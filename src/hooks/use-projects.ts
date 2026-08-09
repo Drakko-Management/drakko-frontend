@@ -42,7 +42,7 @@ export function useProject(id: string) {
 }
 
 interface CreateProjectInput {
-  reference: string
+  reference?: string
   title: string
   address: string
   clientId: string
@@ -123,5 +123,14 @@ export function useUnassignUser(projectId: string) {
       }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+  })
+}
+
+export function useNextProjectReference(enabled: boolean) {
+  return useQuery({
+    queryKey: ['projects', 'next-reference'],
+    queryFn: () => apiRequest<string>('/projects/next-reference'),
+    enabled,
+    staleTime: 0,
   })
 }

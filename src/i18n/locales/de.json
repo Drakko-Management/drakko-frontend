@@ -154,6 +154,9 @@
     "org_insurer_policy": "Policennummer",
     "org_insurer_expiry": "Ablaufdatum",
     "org_docs_section": "Dokumenteneinstellungen",
+    "org_auto_reference_label": "Automatische Referenz",
+    "org_auto_reference_hint": "Generiert automatisch Projektreferenzen",
+    "org_project_prefix": "Baustellen-Präfix",
     "org_quote_prefix": "Angebotspräfix",
     "org_invoice_prefix": "Rechnungspräfix",
     "org_report_prefix": "Berichtspräfix",
@@ -285,6 +288,8 @@
     "notes_placeholder": "Notizen für das Team…",
     "label_reference": "Referenz",
     "reference_placeholder": "Bsp.: BA-2026-001",
+    "reference_auto_placeholder": "Automatisch generiert",
+    "reference_auto_hint": "Automatisch generiert, bei Bedarf änderbar",
     "title_placeholder": "Bsp.: Terrassengestaltung"
   },
   "edit_project": {

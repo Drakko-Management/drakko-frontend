@@ -154,6 +154,9 @@
     "org_insurer_policy": "Policy number",
     "org_insurer_expiry": "Expiry date",
     "org_docs_section": "Document settings",
+    "org_auto_reference_label": "Automatic reference",
+    "org_auto_reference_hint": "Automatically generates project references",
+    "org_project_prefix": "Project prefix",
     "org_quote_prefix": "Quote prefix",
     "org_invoice_prefix": "Invoice prefix",
     "org_report_prefix": "Report prefix",
@@ -285,6 +288,8 @@
     "notes_placeholder": "Notes for the team…",
     "label_reference": "Reference",
     "reference_placeholder": "E.g.: WS-2026-001",
+    "reference_auto_placeholder": "Auto-generated",
+    "reference_auto_hint": "Generated automatically, editable if needed",
     "title_placeholder": "E.g.: Terrace development"
   },
   "edit_project": {

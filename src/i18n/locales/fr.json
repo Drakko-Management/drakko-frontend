@@ -154,6 +154,9 @@
     "org_insurer_policy": "N° de contrat",
     "org_insurer_expiry": "Date d'expiration",
     "org_docs_section": "Paramètres des documents",
+    "org_auto_reference_label": "Référence automatique",
+    "org_auto_reference_hint": "Génère automatiquement la référence des chantiers",
+    "org_project_prefix": "Préfixe chantier",
     "org_quote_prefix": "Préfixe devis",
     "org_invoice_prefix": "Préfixe facture",
     "org_report_prefix": "Préfixe rapport",
@@ -285,6 +288,8 @@
     "notes_placeholder": "Notes pour l'équipe…",
     "label_reference": "Référence",
     "reference_placeholder": "Ex : CH-2026-001",
+    "reference_auto_placeholder": "Auto-généré",
+    "reference_auto_hint": "Générée automatiquement, modifiable si besoin",
     "title_placeholder": "Ex : Aménagement terrasse"
   },
   "edit_project": {

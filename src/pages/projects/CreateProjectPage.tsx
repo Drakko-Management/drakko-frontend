@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
-import { useCreateProject } from '@/hooks/use-projects'
+import { useCreateProject, useNextProjectReference } from '@/hooks/use-projects'
+import { useOrganization } from '@/hooks/use-organization'
 import { useClients } from '@/hooks/use-clients'
 import { buildAddress, parseAddress, fullName } from '@/lib/utils'
 import type { Client } from '@/types/api'
@@ -131,6 +132,9 @@ export function CreateProjectPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const createProject = useCreateProject()
+  const { data: org } = useOrganization()
+  const autoRef = org?.autoProjectReference ?? false
+  const { data: nextRef } = useNextProjectReference(autoRef)
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [form, setForm] = useState({
@@ -160,13 +164,14 @@ export function CreateProjectPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const address = buildAddress(form.street, form.postalCode, form.city)
-    if (!form.reference || !form.title || !address || !selectedClient) {
+    const refValue = form.reference.trim() || (autoRef ? undefined : '')
+    if ((!autoRef && !form.reference) || !form.title || !address || !selectedClient) {
       toast.error(t('create_project.required_error'))
       return
     }
     try {
       const project = await createProject.mutateAsync({
-        reference: form.reference.trim(),
+        reference: refValue,
         title: form.title.trim(),
         address,
         clientId: selectedClient.id,
@@ -196,15 +201,20 @@ export function CreateProjectPage() {
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="reference">{t('create_project.label_reference')} *</Label>
+          <Label htmlFor="reference">
+            {t('create_project.label_reference')} {autoRef ? '' : '*'}
+          </Label>
           <Input
             id="reference"
             className="min-h-[44px]"
-            value={form.reference}
+            value={form.reference || (autoRef ? (nextRef ?? '') : '')}
             onChange={(e) => set('reference', e.target.value)}
-            placeholder={t('create_project.reference_placeholder')}
-            required
+            placeholder={autoRef ? (nextRef ?? t('create_project.reference_auto_placeholder')) : t('create_project.reference_placeholder')}
+            required={!autoRef}
           />
+          {autoRef && (
+            <p className="text-xs text-muted-foreground">{t('create_project.reference_auto_hint')}</p>
+          )}
         </div>
 
         <div className="space-y-2">

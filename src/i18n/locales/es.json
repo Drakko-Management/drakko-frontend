@@ -154,6 +154,9 @@
     "org_insurer_policy": "N° de póliza",
     "org_insurer_expiry": "Fecha de vencimiento",
     "org_docs_section": "Configuración de documentos",
+    "org_auto_reference_label": "Referencia automática",
+    "org_auto_reference_hint": "Genera automáticamente las referencias de obras",
+    "org_project_prefix": "Prefijo obra",
     "org_quote_prefix": "Prefijo presupuesto",
     "org_invoice_prefix": "Prefijo factura",
     "org_report_prefix": "Prefijo informe",
@@ -285,6 +288,8 @@
     "notes_placeholder": "Notas para el equipo…",
     "label_reference": "Referencia",
     "reference_placeholder": "Ej.: OB-2026-001",
+    "reference_auto_placeholder": "Auto-generada",
+    "reference_auto_hint": "Generada automáticamente, editable si es necesario",
     "title_placeholder": "Ej.: Acondicionamiento de terraza"
   },
   "edit_project": {
