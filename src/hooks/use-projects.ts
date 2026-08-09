@@ -129,7 +129,7 @@ export function useUnassignUser(projectId: string) {
 export function useNextProjectReference(enabled: boolean) {
   return useQuery({
     queryKey: ['projects', 'next-reference'],
-    queryFn: () => apiRequest<string>('/projects/next-reference'),
+    queryFn: () => apiRequest<{ reference: string }>('/projects/next-reference').then((r) => r.reference),
     enabled,
     staleTime: 0,
   })
