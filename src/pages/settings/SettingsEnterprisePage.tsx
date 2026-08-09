@@ -411,7 +411,7 @@ export function SettingsEnterprisePage() {
                 </div>
                 <Switch
                   checked={form.autoProjectReference}
-                  onCheckedChange={(v) => setForm((p) => ({ ...p, autoProjectReference: v }))}
+                  onCheckedChange={(v: boolean) => setForm((p) => ({ ...p, autoProjectReference: v }))}
                 />
               </div>
               <div className="grid grid-cols-4 gap-3">
