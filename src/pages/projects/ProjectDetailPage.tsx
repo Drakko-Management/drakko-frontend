@@ -17,10 +17,22 @@ import {
   Loader2,
   Pencil,
   Smartphone,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Stepper } from "@/components/common/Stepper";
 import { Avatar } from "@/components/common/Avatar";
@@ -29,6 +41,7 @@ import {
   useUpdateProjectStatus,
   useAssignUsers,
   useUnassignUser,
+  useDeleteProject,
 } from "@/hooks/use-projects";
 import { usePhotos } from "@/hooks/use-photos";
 import { useReport, useReportPdfUrl, useSendReport, useGenerateReport } from "@/hooks/use-report";
@@ -79,6 +92,7 @@ export function ProjectDetailPage() {
   const generateReport = useGenerateReport(id ?? "");
   const assignUsers = useAssignUsers(id ?? "");
   const unassignUser = useUnassignUser(id ?? "");
+  const deleteProject = useDeleteProject();
 
   if (isLoading) {
     return (
@@ -193,6 +207,41 @@ export function ProjectDetailPage() {
           >
             <Pencil className="h-4 w-4" />
           </button>
+        )}
+        {can('chantiers', 'delete') && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                aria-label={t('common.delete')}
+                className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-card text-red-600 active:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('project.delete_confirm_title')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('project.delete_confirm_message')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={async () => {
+                    try {
+                      await deleteProject.mutateAsync(id!);
+                      toast.success(t('project.delete_success'));
+                      void navigate('/chantiers');
+                    } catch {
+                      toast.error(t('project.delete_error'));
+                    }
+                  }}
+                >
+                  {t('common.delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
 

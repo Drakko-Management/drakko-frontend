@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Download, Loader2, Trash2, X } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -45,6 +46,8 @@ type OrgFormState = {
   // Apparence
   primaryColor: string
   // Documents
+  projectPrefix: string
+  autoProjectReference: boolean
   quotePrefix: string
   invoicePrefix: string
   reportPrefix: string
@@ -61,6 +64,7 @@ const EMPTY: OrgFormState = {
   bankHolder: '', iban: '', bic: '',
   insurerName: '', insurerPolicy: '', insurerExpiry: '',
   primaryColor: '#1a7a33',
+  projectPrefix: 'CH', autoProjectReference: false,
   quotePrefix: 'DEV', invoicePrefix: 'FAC', reportPrefix: 'RAP',
   defaultVatRate: '10', defaultPaymentTerms: '', latePaymentPenalties: '',
 }
@@ -119,6 +123,8 @@ export function SettingsEnterprisePage() {
       insurerPolicy:       org.insurerPolicy ?? '',
       insurerExpiry:       org.insurerExpiry ?? '',
       primaryColor:        org.primaryColor ?? '#1a7a33',
+      projectPrefix:       org.projectPrefix ?? 'CH',
+      autoProjectReference: org.autoProjectReference ?? false,
       quotePrefix:         org.quotePrefix ?? 'DEV',
       invoicePrefix:       org.invoicePrefix ?? 'FAC',
       reportPrefix:        org.reportPrefix ?? 'RAP',
@@ -172,6 +178,8 @@ export function SettingsEnterprisePage() {
       insurerName:         form.insurerName || undefined,
       insurerPolicy:       form.insurerPolicy || undefined,
       insurerExpiry:       form.insurerExpiry || undefined,
+      projectPrefix:       form.projectPrefix || 'CH',
+      autoProjectReference: form.autoProjectReference,
       quotePrefix:         form.quotePrefix || undefined,
       invoicePrefix:       form.invoicePrefix || undefined,
       reportPrefix:        form.reportPrefix || undefined,
@@ -396,7 +404,20 @@ export function SettingsEnterprisePage() {
                   <option value="de">{t('settings.lang_de')}</option>
                 </select>
               </Field>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{t('settings.org_auto_reference_label')}</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.org_auto_reference_hint')}</p>
+                </div>
+                <Switch
+                  checked={form.autoProjectReference}
+                  onCheckedChange={(v: boolean) => setForm((p) => ({ ...p, autoProjectReference: v }))}
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-3">
+                <Field label={t('settings.org_project_prefix')}>
+                  <Input className={inputCls} value={form.projectPrefix} onChange={f('projectPrefix')} maxLength={10} disabled={!form.autoProjectReference} />
+                </Field>
                 <Field label={t('settings.org_quote_prefix')}>
                   <Input className={inputCls} value={form.quotePrefix} onChange={f('quotePrefix')} maxLength={10} />
                 </Field>

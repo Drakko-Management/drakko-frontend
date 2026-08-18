@@ -42,7 +42,7 @@ export function useProject(id: string) {
 }
 
 interface CreateProjectInput {
-  reference: string
+  reference?: string
   title: string
   address: string
   clientId: string
@@ -123,5 +123,22 @@ export function useUnassignUser(projectId: string) {
       }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+  })
+}
+
+export function useDeleteProject() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/projects/${id}`, { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  })
+}
+
+export function useNextProjectReference(enabled: boolean) {
+  return useQuery({
+    queryKey: ['projects', 'next-reference'],
+    queryFn: () => apiRequest<{ reference: string }>('/projects/next-reference').then((r) => r.reference),
+    enabled,
+    staleTime: 0,
   })
 }

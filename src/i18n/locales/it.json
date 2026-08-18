@@ -154,6 +154,9 @@
     "org_insurer_policy": "N° di polizza",
     "org_insurer_expiry": "Data di scadenza",
     "org_docs_section": "Impostazioni documenti",
+    "org_auto_reference_label": "Riferimento automatico",
+    "org_auto_reference_hint": "Genera automaticamente i riferimenti dei cantieri",
+    "org_project_prefix": "Prefisso cantiere",
     "org_quote_prefix": "Prefisso preventivo",
     "org_invoice_prefix": "Prefisso fattura",
     "org_report_prefix": "Prefisso rapporto",
@@ -268,7 +271,11 @@
     "photos_after": "Dopo",
     "report": "Rapporto",
     "edit_report": "Modifica",
-    "no_comment": "Nessun commento inserito"
+    "no_comment": "Nessun commento inserito",
+    "delete_confirm_title": "Eliminare il cantiere?",
+    "delete_confirm_message": "Questa azione è irreversibile. Il cantiere e tutti i suoi dati verranno eliminati definitivamente.",
+    "delete_success": "Cantiere eliminato",
+    "delete_error": "Impossibile eliminare il cantiere"
   },
   "create_project": {
     "title": "Nuovo cantiere",
@@ -284,6 +291,8 @@
     "notes_placeholder": "Note per la squadra…",
     "label_reference": "Riferimento",
     "reference_placeholder": "Es.: CL-2026-001",
+    "reference_auto_placeholder": "Auto-generato",
+    "reference_auto_hint": "Generato automaticamente, modificabile se necessario",
     "title_placeholder": "Es.: Sistemazione terrazza"
   },
   "edit_project": {

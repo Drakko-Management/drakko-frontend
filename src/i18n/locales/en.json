@@ -154,6 +154,9 @@
     "org_insurer_policy": "Policy number",
     "org_insurer_expiry": "Expiry date",
     "org_docs_section": "Document settings",
+    "org_auto_reference_label": "Automatic reference",
+    "org_auto_reference_hint": "Automatically generates project references",
+    "org_project_prefix": "Project prefix",
     "org_quote_prefix": "Quote prefix",
     "org_invoice_prefix": "Invoice prefix",
     "org_report_prefix": "Report prefix",
@@ -269,7 +272,11 @@
     "photos_after": "After",
     "report": "Report",
     "edit_report": "Edit",
-    "no_comment": "No comment entered"
+    "no_comment": "No comment entered",
+    "delete_confirm_title": "Delete project?",
+    "delete_confirm_message": "This action cannot be undone. The project and all its data will be permanently deleted.",
+    "delete_success": "Project deleted",
+    "delete_error": "Failed to delete project"
   },
   "create_project": {
     "title": "New project",
@@ -285,6 +292,8 @@
     "notes_placeholder": "Notes for the team…",
     "label_reference": "Reference",
     "reference_placeholder": "E.g.: WS-2026-001",
+    "reference_auto_placeholder": "Auto-generated",
+    "reference_auto_hint": "Generated automatically, editable if needed",
     "title_placeholder": "E.g.: Terrace development"
   },
   "edit_project": {

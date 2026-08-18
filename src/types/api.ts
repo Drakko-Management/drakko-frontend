@@ -60,6 +60,8 @@ export interface Organization {
   primaryColor?: string
 
   // Documents
+  projectPrefix?: string
+  autoProjectReference?: boolean
   quotePrefix?: string
   invoicePrefix?: string
   reportPrefix?: string
