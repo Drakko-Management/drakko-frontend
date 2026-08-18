@@ -272,7 +272,11 @@
     "photos_after": "Después",
     "report": "Informe",
     "edit_report": "Modificar",
-    "no_comment": "Sin comentario"
+    "no_comment": "Sin comentario",
+    "delete_confirm_title": "¿Eliminar obra?",
+    "delete_confirm_message": "Esta acción es irreversible. La obra y todos sus datos se eliminarán permanentemente.",
+    "delete_success": "Obra eliminada",
+    "delete_error": "No se pudo eliminar la obra"
   },
   "create_project": {
     "title": "Nuevo proyecto",

@@ -126,6 +126,14 @@ export function useUnassignUser(projectId: string) {
   })
 }
 
+export function useDeleteProject() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/projects/${id}`, { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  })
+}
+
 export function useNextProjectReference(enabled: boolean) {
   return useQuery({
     queryKey: ['projects', 'next-reference'],

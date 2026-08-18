@@ -272,7 +272,11 @@
     "photos_after": "Après",
     "report": "Rapport",
     "edit_report": "Modifier",
-    "no_comment": "Aucun commentaire saisi"
+    "no_comment": "Aucun commentaire saisi",
+    "delete_confirm_title": "Supprimer le chantier ?",
+    "delete_confirm_message": "Cette action est irréversible. Le chantier et toutes ses données seront définitivement supprimés.",
+    "delete_success": "Chantier supprimé",
+    "delete_error": "Impossible de supprimer le chantier"
   },
   "create_project": {
     "title": "Nouveau chantier",

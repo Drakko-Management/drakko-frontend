@@ -272,7 +272,11 @@
     "photos_after": "Nachher",
     "report": "Bericht",
     "edit_report": "Bearbeiten",
-    "no_comment": "Kein Kommentar eingegeben"
+    "no_comment": "Kein Kommentar eingegeben",
+    "delete_confirm_title": "Baustelle löschen?",
+    "delete_confirm_message": "Diese Aktion kann nicht rückgängig gemacht werden. Die Baustelle und alle zugehörigen Daten werden dauerhaft gelöscht.",
+    "delete_success": "Baustelle gelöscht",
+    "delete_error": "Baustelle konnte nicht gelöscht werden"
   },
   "create_project": {
     "title": "Neues Projekt",

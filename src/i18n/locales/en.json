@@ -272,7 +272,11 @@
     "photos_after": "After",
     "report": "Report",
     "edit_report": "Edit",
-    "no_comment": "No comment entered"
+    "no_comment": "No comment entered",
+    "delete_confirm_title": "Delete project?",
+    "delete_confirm_message": "This action cannot be undone. The project and all its data will be permanently deleted.",
+    "delete_success": "Project deleted",
+    "delete_error": "Failed to delete project"
   },
   "create_project": {
     "title": "New project",

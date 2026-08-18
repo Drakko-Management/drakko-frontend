@@ -271,7 +271,11 @@
     "photos_after": "Dopo",
     "report": "Rapporto",
     "edit_report": "Modifica",
-    "no_comment": "Nessun commento inserito"
+    "no_comment": "Nessun commento inserito",
+    "delete_confirm_title": "Eliminare il cantiere?",
+    "delete_confirm_message": "Questa azione è irreversibile. Il cantiere e tutti i suoi dati verranno eliminati definitivamente.",
+    "delete_success": "Cantiere eliminato",
+    "delete_error": "Impossibile eliminare il cantiere"
   },
   "create_project": {
     "title": "Nuovo cantiere",
