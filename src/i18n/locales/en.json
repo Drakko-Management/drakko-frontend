@@ -44,7 +44,8 @@
     "empty_no_results_desc": "No projects match \"{{query}}\"",
     "empty_status_desc": "No projects with this status",
     "empty_desc": "No projects yet",
-    "create": "Create a project"
+    "create": "Create a project",
+    "express": "Quick intervention"
   },
   "clients": {
     "title": "Clients",
@@ -517,5 +518,19 @@
     "refuse_title": "Reason for refusal",
     "refuse_placeholder": "Describe what does not satisfy you...",
     "refuse_confirm": "Confirm refusal"
+  },
+  "express_project": {
+    "title": "Quick intervention",
+    "subtitle": "Create a job completion report in seconds",
+    "client_section": "Client",
+    "project_section": "Job",
+    "title_label": "Title",
+    "title_placeholder": "Intervention — today",
+    "description_placeholder": "Description of work performed",
+    "address_placeholder": "12 Main Street, London",
+    "submit": "Create and go to report",
+    "creating": "Creating…",
+    "success": "Intervention created",
+    "error": "Failed to create intervention"
   }
 }

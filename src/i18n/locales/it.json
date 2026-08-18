@@ -44,7 +44,8 @@
     "empty_no_results_desc": "Nessun cantiere corrisponde a \"{{query}}\"",
     "empty_status_desc": "Nessun cantiere con questo stato",
     "empty_desc": "Nessun cantiere al momento",
-    "create": "Crea un cantiere"
+    "create": "Crea un cantiere",
+    "express": "Intervento rapido"
   },
   "clients": {
     "title": "Clienti",
@@ -516,5 +517,19 @@
     "refuse_title": "Motivo del rifiuto",
     "refuse_placeholder": "Descrivi cosa non ti soddisfa...",
     "refuse_confirm": "Conferma il rifiuto"
+  },
+  "express_project": {
+    "title": "Intervento rapido",
+    "subtitle": "Crea un verbale di fine lavori in pochi secondi",
+    "client_section": "Cliente",
+    "project_section": "Cantiere",
+    "title_label": "Titolo",
+    "title_placeholder": "Intervento — oggi",
+    "description_placeholder": "Descrizione dei lavori eseguiti",
+    "address_placeholder": "Via Roma 12, 00100 Roma",
+    "submit": "Crea e vai al rapporto",
+    "creating": "Creazione in corso…",
+    "success": "Intervento creato",
+    "error": "Impossibile creare l'intervento"
   }
 }

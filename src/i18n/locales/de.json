@@ -44,7 +44,8 @@
     "empty_no_results_desc": "Keine Projekte entsprechen \"{{query}}\"",
     "empty_status_desc": "Keine Projekte mit diesem Status",
     "empty_desc": "Noch keine Projekte",
-    "create": "Projekt erstellen"
+    "create": "Projekt erstellen",
+    "express": "Schnellintervention"
   },
   "clients": {
     "title": "Kunden",
@@ -517,5 +518,19 @@
     "refuse_title": "Grund der Ablehnung",
     "refuse_placeholder": "Beschreiben Sie, was Sie nicht zufriedenstellt...",
     "refuse_confirm": "Ablehnung bestätigen"
+  },
+  "express_project": {
+    "title": "Schnellintervention",
+    "subtitle": "Abnahmeprotokoll in Sekunden erstellen",
+    "client_section": "Kunde",
+    "project_section": "Baustelle",
+    "title_label": "Titel",
+    "title_placeholder": "Intervention — heute",
+    "description_placeholder": "Beschreibung der durchgeführten Arbeiten",
+    "address_placeholder": "Musterstraße 12, 10115 Berlin",
+    "submit": "Erstellen und zum Bericht",
+    "creating": "Wird erstellt…",
+    "success": "Intervention erstellt",
+    "error": "Intervention konnte nicht erstellt werden"
   }
 }

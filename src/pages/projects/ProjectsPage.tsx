@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { HardHat, Plus, Search, X } from 'lucide-react'
+import { HardHat, Plus, Search, X, Zap } from 'lucide-react'
 import type { ProjectSort } from '@/hooks/use-projects'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -86,14 +86,25 @@ export function ProjectsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">{t('projects.title')}</h1>
           {can('chantiers', 'create') && (
-            <Button
-              size="sm"
-              className="min-h-[44px] hidden md:flex"
-              onClick={() => void navigate('/chantiers/nouveau')}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              {t('projects.new')}
-            </Button>
+            <div className="hidden md:flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-[44px] gap-1"
+                onClick={() => void navigate('/chantiers/express')}
+              >
+                <Zap className="h-4 w-4" />
+                {t('projects.express')}
+              </Button>
+              <Button
+                size="sm"
+                className="min-h-[44px]"
+                onClick={() => void navigate('/chantiers/nouveau')}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                {t('projects.new')}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -197,7 +208,16 @@ export function ProjectsPage() {
       </div>
 
       {can('chantiers', 'create') && (
-        <Fab onClick={() => void navigate('/chantiers/nouveau')} />
+        <>
+          <Fab onClick={() => void navigate('/chantiers/nouveau')} />
+          <button
+            onClick={() => void navigate('/chantiers/express')}
+            className="fixed bottom-fab right-20 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-card border shadow-md transition-transform active:scale-95 md:hidden"
+            aria-label={t('projects.express')}
+          >
+            <Zap className="h-5 w-5 text-primary" />
+          </button>
+        </>
       )}
 
       {/* Sticky bottom: pagination */}

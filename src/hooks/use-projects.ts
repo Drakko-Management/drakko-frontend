@@ -126,6 +126,26 @@ export function useUnassignUser(projectId: string) {
   })
 }
 
+interface ExpressProjectInput {
+  clientFirstName: string
+  clientLastName: string
+  clientEmail: string
+  title?: string
+  description?: string
+  address?: string
+}
+
+export function useCreateExpressProject() {
+  return useMutation({
+    mutationFn: (dto: ExpressProjectInput) =>
+      apiRequest<Project>('/projects/express', {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  })
+}
+
 export function useDeleteProject() {
   return useMutation({
     mutationFn: (id: string) =>

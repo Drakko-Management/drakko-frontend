@@ -10,6 +10,7 @@ import { ProjectDetailPage } from '@/pages/projects/ProjectDetailPage'
 import { PhotosPage } from '@/pages/projects/PhotosPage'
 import { ReportPage } from '@/pages/projects/ReportPage'
 import { CreateProjectPage } from '@/pages/projects/CreateProjectPage'
+import { ExpressProjectPage } from '@/pages/projects/ExpressProjectPage'
 import { EditProjectPage } from '@/pages/projects/EditProjectPage'
 import { ClientsPage } from '@/pages/clients/ClientsPage'
 import { ClientDetailPage } from '@/pages/clients/ClientDetailPage'
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
                 element: <CanRoute module="chantiers" action="create" />,
                 children: [
                   { path: 'chantiers/nouveau', element: <CreateProjectPage /> },
+                  { path: 'chantiers/express', element: <ExpressProjectPage /> },
                 ],
               },
               {

@@ -44,7 +44,8 @@
     "empty_no_results_desc": "Ningún proyecto coincide con \"{{query}}\"",
     "empty_status_desc": "Sin proyectos con este estado",
     "empty_desc": "Sin proyectos por el momento",
-    "create": "Crear un proyecto"
+    "create": "Crear un proyecto",
+    "express": "Intervención rápida"
   },
   "clients": {
     "title": "Clientes",
@@ -517,5 +518,19 @@
     "refuse_title": "Motivo del rechazo",
     "refuse_placeholder": "Describa lo que no le satisface...",
     "refuse_confirm": "Confirmar el rechazo"
+  },
+  "express_project": {
+    "title": "Intervención rápida",
+    "subtitle": "Crea un parte de trabajo en segundos",
+    "client_section": "Cliente",
+    "project_section": "Obra",
+    "title_label": "Título",
+    "title_placeholder": "Intervención — hoy",
+    "description_placeholder": "Descripción de los trabajos realizados",
+    "address_placeholder": "Calle Mayor 12, 28001 Madrid",
+    "submit": "Crear e ir al informe",
+    "creating": "Creando…",
+    "success": "Intervención creada",
+    "error": "No se pudo crear la intervención"
   }
 }

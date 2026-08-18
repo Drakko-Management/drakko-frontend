@@ -44,7 +44,8 @@
     "empty_no_results_desc": "Aucun chantier ne correspond à \"{{query}}\"",
     "empty_status_desc": "Aucun chantier avec ce statut",
     "empty_desc": "Aucun chantier pour le moment",
-    "create": "Créer un chantier"
+    "create": "Créer un chantier",
+    "express": "Intervention rapide"
   },
   "clients": {
     "title": "Clients",
@@ -517,5 +518,19 @@
     "refuse_title": "Motif du refus",
     "refuse_placeholder": "Décrivez ce qui ne vous convient pas...",
     "refuse_confirm": "Confirmer le refus"
+  },
+  "express_project": {
+    "title": "Intervention rapide",
+    "subtitle": "Créer un bon de fin de chantier en quelques secondes",
+    "client_section": "Client",
+    "project_section": "Chantier",
+    "title_label": "Titre",
+    "title_placeholder": "Intervention — aujourd'hui",
+    "description_placeholder": "Description des travaux effectués",
+    "address_placeholder": "12 rue de la Paix, 75001 Paris",
+    "submit": "Créer et aller au rapport",
+    "creating": "Création en cours…",
+    "success": "Intervention créée",
+    "error": "Impossible de créer l'intervention"
   }
 }
