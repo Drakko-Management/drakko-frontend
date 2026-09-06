@@ -130,7 +130,7 @@ export interface Project {
   description: string | null
   notes: string | null
   address: string
-  projectManager: string | null
+  projectManager?: string | null
   quoteAmount: string | null
   startDate: string | null
   expectedEndDate: string | null
