@@ -143,6 +143,7 @@ export function CreateProjectPage() {
     street: '',
     postalCode: '',
     city: '',
+    projectManager: '',
     description: '',
     quoteAmount: '',
     startDate: '',
@@ -175,6 +176,7 @@ export function CreateProjectPage() {
         title: form.title.trim(),
         address,
         clientId: selectedClient.id,
+        projectManager: form.projectManager.trim() || undefined,
         description: form.description.trim() || undefined,
         quoteAmount: form.quoteAmount ? parseFloat(form.quoteAmount) : undefined,
         startDate: form.startDate || undefined,
@@ -297,6 +299,17 @@ export function CreateProjectPage() {
             value={form.quoteAmount}
             onChange={(e) => set('quoteAmount', e.target.value)}
             placeholder="0"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="projectManager">{t('common.project_manager')}</Label>
+          <Input
+            id="projectManager"
+            className="min-h-[44px]"
+            value={form.projectManager}
+            onChange={(e) => set('projectManager', e.target.value)}
+            placeholder={t('create_project.project_manager_placeholder')}
           />
         </div>
 

@@ -24,6 +24,7 @@ export function EditProjectPage() {
     street: '',
     postalCode: '',
     city: '',
+    projectManager: '',
     description: '',
     notes: '',
     quoteAmount: '',
@@ -43,6 +44,7 @@ export function EditProjectPage() {
       street,
       postalCode,
       city,
+      projectManager: project.projectManager ?? '',
       description: project.description ?? '',
       notes: project.notes ?? '',
       quoteAmount: project.quoteAmount ?? '',
@@ -66,6 +68,7 @@ export function EditProjectPage() {
       await updateProject.mutateAsync({
         title: form.title.trim(),
         address,
+        projectManager: form.projectManager.trim() || undefined,
         description: form.description.trim() || undefined,
         notes: form.notes.trim() || undefined,
         quoteAmount: form.quoteAmount ? parseFloat(form.quoteAmount) : undefined,
@@ -188,6 +191,17 @@ export function EditProjectPage() {
             value={form.quoteAmount}
             onChange={(e) => set('quoteAmount', e.target.value)}
             placeholder="0"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="projectManager">{t('common.project_manager')}</Label>
+          <Input
+            id="projectManager"
+            className="min-h-[44px]"
+            value={form.projectManager}
+            onChange={(e) => set('projectManager', e.target.value)}
+            placeholder={t('create_project.project_manager_placeholder')}
           />
         </div>
 

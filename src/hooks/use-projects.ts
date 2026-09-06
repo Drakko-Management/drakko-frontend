@@ -48,6 +48,7 @@ interface CreateProjectInput {
   clientId: string
   description?: string
   notes?: string
+  projectManager?: string
   quoteAmount?: number
   startDate?: string
   expectedEndDate?: string
@@ -69,6 +70,7 @@ interface UpdateProjectInput {
   address?: string
   description?: string
   notes?: string
+  projectManager?: string
   quoteAmount?: number
   startDate?: string
   expectedEndDate?: string
