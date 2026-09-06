@@ -15,6 +15,7 @@ const ORDER: Record<ProjectStatus, number> = {
   PLANNED: 1,
   IN_PROGRESS: 2,
   AWAITING_SIGNATURE: 3,
+  AWAITING_RESERVE_LIFT: 4,
   COMPLETED: 4,
   DISPUTED: 3,
 };

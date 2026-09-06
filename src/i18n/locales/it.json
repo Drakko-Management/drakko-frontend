@@ -64,6 +64,7 @@
     "PLANNED": "Pianificato",
     "IN_PROGRESS": "In corso",
     "AWAITING_SIGNATURE": "Firma",
+    "AWAITING_RESERVE_LIFT": "Riserve in corso",
     "COMPLETED": "Completato",
     "DISPUTED": "Controversia"
   },
@@ -277,7 +278,9 @@
     "delete_confirm_title": "Eliminare il cantiere?",
     "delete_confirm_message": "Questa azione è irreversibile. Il cantiere e tutti i suoi dati verranno eliminati definitivamente.",
     "delete_success": "Cantiere eliminato",
-    "delete_error": "Impossibile eliminare il cantiere"
+    "delete_error": "Impossibile eliminare il cantiere",
+    "send_reserve_lift": "Invia revoca delle riserve",
+    "reserve_notes_label": "Riserve segnalate"
   },
   "create_project": {
     "title": "Nuovo cantiere",
@@ -518,7 +521,22 @@
     "refuse_btn": "Rifiutare i lavori",
     "refuse_title": "Motivo del rifiuto",
     "refuse_placeholder": "Descrivi cosa non ti soddisfa...",
-    "refuse_confirm": "Conferma il rifiuto"
+    "refuse_confirm": "Conferma il rifiuto",
+    "reception_choice_label": "Ricezione dei lavori",
+    "choice_accepted": "Lavori accettati",
+    "choice_accepted_with_reserves": "Accettato con riserve",
+    "choice_refused": "Lavori rifiutati",
+    "reserves_notes_label": "Riserve emesse",
+    "reserves_notes_placeholder": "Descrivi i difetti o le riserve riscontrate…",
+    "error_reserves_required": "Si prega di descrivere le riserve",
+    "reserves_success_title": "Riserve registrate",
+    "reserves_success_desc": "L'impresa ti contatterà per rimuovere le riserve.",
+    "lift_form_title": "Revoca delle riserve",
+    "lift_form_desc": "Conferma che le riserve sono state eliminate e che i lavori sono ora accettati.",
+    "lift_submit_btn": "Conferma la revoca",
+    "lift_success_title": "Revoca confermata",
+    "lift_success_desc": "I lavori sono ora accettati senza riserve. Grazie.",
+    "initial_reserves": "Riserve iniziali"
   },
   "express_project": {
     "title": "Intervento rapido",

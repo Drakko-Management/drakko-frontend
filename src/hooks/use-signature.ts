@@ -17,6 +17,18 @@ export function useCreateSignatureRequest(projectId: string) {
   })
 }
 
+export function useSendReserveLiftRequest(projectId: string) {
+  return useMutation({
+    mutationFn: (mode: 'onsite' | 'remote' = 'remote') =>
+      apiRequest<SignatureRequest>(`/projects/${projectId}/reserve-lift-requests`, {
+        method: 'POST',
+        body: JSON.stringify({ mode }),
+      }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+  })
+}
+
 export function usePublicReport(token: string) {
   return useQuery({
     queryKey: ['public', token],
@@ -31,8 +43,8 @@ export function usePublicReport(token: string) {
 
 interface SignInput {
   signerName: string
-  validationCompleted: boolean
-  validationConform: boolean
+  receptionChoice: 'ACCEPTED' | 'ACCEPTED_WITH_RESERVES'
+  reserveNotes?: string
   signatureImage: string
 }
 
@@ -47,6 +59,30 @@ export function useSign(token: string) {
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string }
         throw new Error(body.message ?? 'Erreur lors de la signature')
+      }
+      return res.json()
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['public', token] }),
+  })
+}
+
+interface LiftInput {
+  signerName: string
+  signatureImage: string
+}
+
+export function useSignLift(token: string) {
+  return useMutation({
+    mutationFn: async (dto: LiftInput) => {
+      const res = await fetch(`${API_URL}/public/${token}/lift`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string }
+        throw new Error(body.message ?? 'Erreur lors de la levée des réserves')
       }
       return res.json()
     },

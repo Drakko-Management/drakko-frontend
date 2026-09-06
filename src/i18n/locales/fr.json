@@ -64,6 +64,7 @@
     "PLANNED": "Planifié",
     "IN_PROGRESS": "En cours",
     "AWAITING_SIGNATURE": "Signature",
+    "AWAITING_RESERVE_LIFT": "Réserves en cours",
     "COMPLETED": "Terminé",
     "DISPUTED": "Litige"
   },
@@ -278,7 +279,9 @@
     "delete_confirm_title": "Supprimer le chantier ?",
     "delete_confirm_message": "Cette action est irréversible. Le chantier et toutes ses données seront définitivement supprimés.",
     "delete_success": "Chantier supprimé",
-    "delete_error": "Impossible de supprimer le chantier"
+    "delete_error": "Impossible de supprimer le chantier",
+    "send_reserve_lift": "Envoyer levée des réserves",
+    "reserve_notes_label": "Réserves signalées"
   },
   "create_project": {
     "title": "Nouveau chantier",
@@ -519,7 +522,22 @@
     "refuse_btn": "Refuser les travaux",
     "refuse_title": "Motif du refus",
     "refuse_placeholder": "Décrivez ce qui ne vous convient pas...",
-    "refuse_confirm": "Confirmer le refus"
+    "refuse_confirm": "Confirmer le refus",
+    "reception_choice_label": "Réception des travaux",
+    "choice_accepted": "Travaux acceptés",
+    "choice_accepted_with_reserves": "Accepté avec réserves",
+    "choice_refused": "Travaux refusés",
+    "reserves_notes_label": "Réserves émises",
+    "reserves_notes_placeholder": "Décrivez les défauts ou réserves constatés…",
+    "error_reserves_required": "Veuillez décrire les réserves",
+    "reserves_success_title": "Réserves enregistrées",
+    "reserves_success_desc": "L'entreprise va prendre contact avec vous pour lever les réserves.",
+    "lift_form_title": "Levée des réserves",
+    "lift_form_desc": "Confirmez que les réserves ont bien été levées et que les travaux sont désormais acceptés.",
+    "lift_submit_btn": "Confirmer la levée des réserves",
+    "lift_success_title": "Levée des réserves confirmée",
+    "lift_success_desc": "Les travaux sont désormais acceptés sans réserve. Merci.",
+    "initial_reserves": "Réserves initiales"
   },
   "express_project": {
     "title": "Intervention rapide",

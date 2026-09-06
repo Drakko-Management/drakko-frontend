@@ -64,6 +64,7 @@
     "PLANNED": "Planificado",
     "IN_PROGRESS": "En curso",
     "AWAITING_SIGNATURE": "Firma",
+    "AWAITING_RESERVE_LIFT": "Reservas en curso",
     "COMPLETED": "Terminado",
     "DISPUTED": "Litigio"
   },
@@ -278,7 +279,9 @@
     "delete_confirm_title": "¿Eliminar obra?",
     "delete_confirm_message": "Esta acción es irreversible. La obra y todos sus datos se eliminarán permanentemente.",
     "delete_success": "Obra eliminada",
-    "delete_error": "No se pudo eliminar la obra"
+    "delete_error": "No se pudo eliminar la obra",
+    "send_reserve_lift": "Enviar levantamiento de reservas",
+    "reserve_notes_label": "Reservas indicadas"
   },
   "create_project": {
     "title": "Nuevo proyecto",
@@ -519,7 +522,22 @@
     "refuse_btn": "Rechazar los trabajos",
     "refuse_title": "Motivo del rechazo",
     "refuse_placeholder": "Describa lo que no le satisface...",
-    "refuse_confirm": "Confirmar el rechazo"
+    "refuse_confirm": "Confirmar el rechazo",
+    "reception_choice_label": "Recepción de los trabajos",
+    "choice_accepted": "Trabajos aceptados",
+    "choice_accepted_with_reserves": "Aceptado con reservas",
+    "choice_refused": "Trabajos rechazados",
+    "reserves_notes_label": "Reservas emitidas",
+    "reserves_notes_placeholder": "Describa los defectos o reservas constatados…",
+    "error_reserves_required": "Por favor describa las reservas",
+    "reserves_success_title": "Reservas registradas",
+    "reserves_success_desc": "La empresa se pondrá en contacto para levantar las reservas.",
+    "lift_form_title": "Levantamiento de reservas",
+    "lift_form_desc": "Confirme que las reservas han sido levantadas y que los trabajos son ahora aceptados.",
+    "lift_submit_btn": "Confirmar el levantamiento",
+    "lift_success_title": "Levantamiento confirmado",
+    "lift_success_desc": "Los trabajos son ahora aceptados sin reservas. Gracias.",
+    "initial_reserves": "Reservas iniciales"
   },
   "express_project": {
     "title": "Intervención rápida",

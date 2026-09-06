@@ -76,8 +76,12 @@ export type ProjectStatus =
   | 'PLANNED'
   | 'IN_PROGRESS'
   | 'AWAITING_SIGNATURE'
+  | 'AWAITING_RESERVE_LIFT'
   | 'COMPLETED'
   | 'DISPUTED'
+
+export type ReceptionChoice = 'ACCEPTED' | 'ACCEPTED_WITH_RESERVES'
+export type SignatureRequestType = 'RECEPTION' | 'RESERVE_LIFT'
 
 export type PhotoType = 'BEFORE' | 'AFTER'
 
@@ -211,6 +215,7 @@ export interface PublicClient {
 }
 
 export interface PublicReport {
+  signatureRequestType: SignatureRequestType
   project: PublicProject
   client: PublicClient
   report: {
@@ -219,6 +224,7 @@ export interface PublicReport {
   } | null
   photos: Photo[]
   pdfUrl: string | null
+  reserveNotes: string | null
   alreadySigned: boolean
   alreadyRefused: boolean
   refusalComment: string | null

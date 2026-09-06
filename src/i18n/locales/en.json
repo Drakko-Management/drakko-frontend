@@ -64,6 +64,7 @@
     "PLANNED": "Planned",
     "IN_PROGRESS": "In progress",
     "AWAITING_SIGNATURE": "Signature",
+    "AWAITING_RESERVE_LIFT": "Snagging in progress",
     "COMPLETED": "Completed",
     "DISPUTED": "Disputed"
   },
@@ -278,7 +279,9 @@
     "delete_confirm_title": "Delete project?",
     "delete_confirm_message": "This action cannot be undone. The project and all its data will be permanently deleted.",
     "delete_success": "Project deleted",
-    "delete_error": "Failed to delete project"
+    "delete_error": "Failed to delete project",
+    "send_reserve_lift": "Send snagging list clearance",
+    "reserve_notes_label": "Reported snagging items"
   },
   "create_project": {
     "title": "New project",
@@ -519,7 +522,22 @@
     "refuse_btn": "Refuse the work",
     "refuse_title": "Reason for refusal",
     "refuse_placeholder": "Describe what does not satisfy you...",
-    "refuse_confirm": "Confirm refusal"
+    "refuse_confirm": "Confirm refusal",
+    "reception_choice_label": "Works reception",
+    "choice_accepted": "Works accepted",
+    "choice_accepted_with_reserves": "Accepted with snagging list",
+    "choice_refused": "Works refused",
+    "reserves_notes_label": "Snagging items",
+    "reserves_notes_placeholder": "Describe the defects or items to be corrected…",
+    "error_reserves_required": "Please describe the snagging items",
+    "reserves_success_title": "Snagging list recorded",
+    "reserves_success_desc": "The contractor will contact you to address the snagging items.",
+    "lift_form_title": "Snagging list clearance",
+    "lift_form_desc": "Confirm that all snagging items have been addressed and the works are now fully accepted.",
+    "lift_submit_btn": "Confirm clearance",
+    "lift_success_title": "Clearance confirmed",
+    "lift_success_desc": "The works are now fully accepted. Thank you.",
+    "initial_reserves": "Initial snagging items"
   },
   "express_project": {
     "title": "Quick intervention",

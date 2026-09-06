@@ -45,7 +45,7 @@ import {
 } from "@/hooks/use-projects";
 import { usePhotos } from "@/hooks/use-photos";
 import { useReport, useReportPdfUrl, useSendReport, useGenerateReport } from "@/hooks/use-report";
-import { useCreateSignatureRequest } from "@/hooks/use-signature";
+import { useCreateSignatureRequest, useSendReserveLiftRequest } from "@/hooks/use-signature";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { formatDate, formatCurrency, fullName } from "@/lib/utils";
@@ -88,6 +88,7 @@ export function ProjectDetailPage() {
 
   const updateStatus = useUpdateProjectStatus(id ?? "");
   const createSigRequest = useCreateSignatureRequest(id ?? "");
+  const sendReserveLift = useSendReserveLiftRequest(id ?? "");
   const sendReport = useSendReport(id ?? "");
   const generateReport = useGenerateReport(id ?? "");
   const assignUsers = useAssignUsers(id ?? "");
@@ -124,7 +125,7 @@ export function ProjectDetailPage() {
   const afterPhotos = photos?.filter((p) => p.type === "AFTER") ?? [];
   const assignedUserIds = new Set(project.assignments.map((a) => a.userId));
   const assignedUsers = project.assignments.map((a) => a.user);
-  const isLocked = ["AWAITING_SIGNATURE", "COMPLETED", "DISPUTED"].includes(
+  const isLocked = ["AWAITING_SIGNATURE", "AWAITING_RESERVE_LIFT", "COMPLETED", "DISPUTED"].includes(
     project.status,
   );
 
@@ -151,6 +152,24 @@ export function ProjectDetailPage() {
   async function handleSignOnsite() {
     try {
       const req = await createSigRequest.mutateAsync('onsite');
+      window.location.href = `/sign/${req.token}?back=1`;
+    } catch {
+      toast.error(t('project.sig_error'));
+    }
+  }
+
+  async function handleSendReserveLift() {
+    try {
+      await sendReserveLift.mutateAsync('remote');
+      toast.success(t('project.sig_sent'));
+    } catch {
+      toast.error(t('project.sig_error'));
+    }
+  }
+
+  async function handleReserveLiftOnsite() {
+    try {
+      const req = await sendReserveLift.mutateAsync('onsite');
       window.location.href = `/sign/${req.token}?back=1`;
     } catch {
       toast.error(t('project.sig_error'));
@@ -288,7 +307,7 @@ export function ProjectDetailPage() {
       )}
 
       {/* Stepper */}
-      {project.status !== "DISPUTED" && (
+      {project.status !== "DISPUTED" && project.status !== "AWAITING_RESERVE_LIFT" && (
         <Card className="p-4">
           <Stepper status={project.status} />
         </Card>
@@ -306,6 +325,39 @@ export function ProjectDetailPage() {
           ) : null}
           {TRANSITION_LABELS[project.status]}
         </Button>
+      )}
+
+      {/* Reserve lift options */}
+      {project.status === "AWAITING_RESERVE_LIFT" && can('chantiers', 'update') && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground px-1">{t('project.send_reserve_lift')}</p>
+          <Button
+            variant="outline"
+            className="w-full min-h-[48px] gap-3 justify-start"
+            onClick={() => void handleReserveLiftOnsite()}
+            disabled={sendReserveLift.isPending}
+          >
+            <Smartphone className="h-4 w-4 shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium leading-tight">{t('project.sig_onsite')}</p>
+              <p className="text-xs text-muted-foreground leading-tight">{t('project.sig_onsite_sub')}</p>
+            </div>
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full min-h-[48px] gap-3 justify-start"
+            onClick={() => void handleSendReserveLift()}
+            disabled={sendReserveLift.isPending}
+          >
+            <Send className="h-4 w-4 shrink-0" />
+            <div className="text-left">
+              <p className="text-sm font-medium leading-tight">
+                {sendReserveLift.isPending ? t('project.sending') : t('project.send_sig_link')}
+              </p>
+              <p className="text-xs text-muted-foreground leading-tight">{t('project.sig_remote_sub')}</p>
+            </div>
+          </Button>
+        </div>
       )}
 
       {/* Signature options */}

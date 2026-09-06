@@ -64,6 +64,7 @@
     "PLANNED": "Geplant",
     "IN_PROGRESS": "In Bearbeitung",
     "AWAITING_SIGNATURE": "Unterschrift",
+    "AWAITING_RESERVE_LIFT": "Mängel in Bearbeitung",
     "COMPLETED": "Abgeschlossen",
     "DISPUTED": "Streit"
   },
@@ -278,7 +279,9 @@
     "delete_confirm_title": "Baustelle löschen?",
     "delete_confirm_message": "Diese Aktion kann nicht rückgängig gemacht werden. Die Baustelle und alle zugehörigen Daten werden dauerhaft gelöscht.",
     "delete_success": "Baustelle gelöscht",
-    "delete_error": "Baustelle konnte nicht gelöscht werden"
+    "delete_error": "Baustelle konnte nicht gelöscht werden",
+    "send_reserve_lift": "Mängelbeseitigung senden",
+    "reserve_notes_label": "Gemeldete Mängel"
   },
   "create_project": {
     "title": "Neues Projekt",
@@ -519,7 +522,22 @@
     "refuse_btn": "Arbeiten ablehnen",
     "refuse_title": "Grund der Ablehnung",
     "refuse_placeholder": "Beschreiben Sie, was Sie nicht zufriedenstellt...",
-    "refuse_confirm": "Ablehnung bestätigen"
+    "refuse_confirm": "Ablehnung bestätigen",
+    "reception_choice_label": "Abnahme der Arbeiten",
+    "choice_accepted": "Arbeiten abgenommen",
+    "choice_accepted_with_reserves": "Abgenommen mit Vorbehalten",
+    "choice_refused": "Arbeiten abgelehnt",
+    "reserves_notes_label": "Vorbehalte",
+    "reserves_notes_placeholder": "Beschreiben Sie die Mängel oder Vorbehalte…",
+    "error_reserves_required": "Bitte beschreiben Sie die Vorbehalte",
+    "reserves_success_title": "Vorbehalte erfasst",
+    "reserves_success_desc": "Das Unternehmen wird sich mit Ihnen in Verbindung setzen, um die Mängel zu beheben.",
+    "lift_form_title": "Mängelbeseitigung",
+    "lift_form_desc": "Bestätigen Sie, dass alle Mängel behoben wurden und die Arbeiten nun akzeptiert werden.",
+    "lift_submit_btn": "Mängelbeseitigung bestätigen",
+    "lift_success_title": "Mängelbeseitigung bestätigt",
+    "lift_success_desc": "Die Arbeiten sind nun vorbehaltlos akzeptiert. Vielen Dank.",
+    "initial_reserves": "Ursprüngliche Vorbehalte"
   },
   "express_project": {
     "title": "Schnellintervention",
