@@ -6,8 +6,9 @@ const STATUS_CLASSES: Record<ProjectStatus, string> = {
   DRAFT:               'bg-gray-100 text-gray-700 border border-gray-200',
   PLANNED:             'bg-blue-50 text-blue-700 border border-blue-200',
   IN_PROGRESS:         'bg-amber-50 text-amber-700 border border-amber-200',
-  AWAITING_SIGNATURE:  'bg-orange-50 text-orange-700 border border-orange-200',
-  COMPLETED:           'bg-green-50 text-green-700 border border-green-200',
+  AWAITING_SIGNATURE:       'bg-orange-50 text-orange-700 border border-orange-200',
+  AWAITING_RESERVE_LIFT:    'bg-amber-100 text-amber-800 border border-amber-300',
+  COMPLETED:                'bg-green-50 text-green-700 border border-green-200',
   DISPUTED:            'bg-red-50 text-red-700 border border-red-200',
 }
 

@@ -137,7 +137,6 @@ export function SignPage() {
   const [reserveNotes, setReserveNotes] = useState('')
   const [hasSignature, setHasSignature] = useState(false)
   const [signed, setSigned] = useState(false)
-  const [showRefuseForm, setShowRefuseForm] = useState(false)
   const [refuseComment, setRefuseComment] = useState('')
   const [refused, setRefused] = useState(false)
 
@@ -165,10 +164,11 @@ export function SignPage() {
     }
     const signatureImage = getSignatureImage()
     if (!signatureImage) return
+    const choice = receptionChoice as 'ACCEPTED' | 'ACCEPTED_WITH_RESERVES'
     try {
       await sign.mutateAsync({
         signerName: signerName.trim(),
-        receptionChoice,
+        receptionChoice: choice,
         reserveNotes: receptionChoice === 'ACCEPTED_WITH_RESERVES' ? reserveNotes.trim() : undefined,
         signatureImage,
       })
@@ -479,10 +479,7 @@ export function SignPage() {
                 name="receptionChoice"
                 value={choice}
                 checked={receptionChoice === choice}
-                onChange={() => {
-                  setReceptionChoice(choice)
-                  setShowRefuseForm(choice === 'REFUSED')
-                }}
+                onChange={() => setReceptionChoice(choice)}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
               />
               <span className={`text-sm leading-snug ${choice === 'REFUSED' ? 'text-destructive' : ''}`}>

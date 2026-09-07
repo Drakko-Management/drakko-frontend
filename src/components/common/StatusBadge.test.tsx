@@ -9,9 +9,10 @@ const EXPECTED: Record<ProjectStatus, { label: string; colorToken: string }> = {
   DRAFT:               { label: 'Brouillon',               colorToken: 'gray' },
   PLANNED:             { label: 'Planifié',                colorToken: 'blue' },
   IN_PROGRESS:         { label: 'En cours',                colorToken: 'amber' },
-  AWAITING_SIGNATURE:  { label: 'Signature',               colorToken: 'orange' },
-  COMPLETED:           { label: 'Terminé',                 colorToken: 'green' },
-  DISPUTED:            { label: 'Litige',                  colorToken: 'red' },
+  AWAITING_SIGNATURE:    { label: 'Signature',               colorToken: 'orange' },
+  AWAITING_RESERVE_LIFT: { label: 'Réserves en cours',       colorToken: 'amber' },
+  COMPLETED:             { label: 'Terminé',                 colorToken: 'green' },
+  DISPUTED:              { label: 'Litige',                  colorToken: 'red' },
 }
 
 // ── Libellés ───────────────────────────────────────────────────────────────
@@ -60,7 +61,7 @@ describe('StatusBadge — structure', () => {
     expect(cls).toContain('font-medium')
   })
 
-  it('les 6 statuts ont un libellé distinct (pas de doublons)', () => {
+  it('les 7 statuts ont un libellé distinct (pas de doublons)', () => {
     const labels = Object.values(EXPECTED).map((e) => e.label)
     expect(new Set(labels).size).toBe(labels.length)
   })
