@@ -482,7 +482,7 @@ export function SignPage() {
                 onChange={() => setReceptionChoice(choice)}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
               />
-              <span className={`text-sm leading-snug ${choice === 'REFUSED' ? 'text-destructive' : ''}`}>
+              <span className="text-sm leading-snug">
                 {t(`sign.choice_${choice.toLowerCase()}`)}
               </span>
             </label>
