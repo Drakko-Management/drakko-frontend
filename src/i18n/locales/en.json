@@ -517,6 +517,8 @@
     "checkbox_completed": "I confirm that the described work has been completed.",
     "checkbox_conform": "I confirm that the work is in accordance with the initial quote.",
     "signer_name": "Signer's name",
+    "signature_place": "Place of signature",
+    "signature_place_placeholder": "London, Manchester…",
     "signature_label": "Signature",
     "submit_btn": "Sign and validate",
     "refuse_btn": "Refuse the work",

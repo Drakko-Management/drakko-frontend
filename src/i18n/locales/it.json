@@ -516,6 +516,8 @@
     "checkbox_completed": "Confermo che i lavori descritti sono stati eseguiti.",
     "checkbox_conform": "Confermo che i lavori sono conformi al preventivo iniziale.",
     "signer_name": "Nome del firmatario",
+    "signature_place": "Luogo della firma",
+    "signature_place_placeholder": "Roma, Milano…",
     "signature_label": "Firma",
     "submit_btn": "Firma e convalida",
     "refuse_btn": "Rifiutare i lavori",

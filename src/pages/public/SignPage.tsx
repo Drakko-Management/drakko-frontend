@@ -133,6 +133,7 @@ export function SignPage() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [signerName, setSignerName] = useState('')
+  const [signaturePlace, setSignaturePlace] = useState('')
   const [receptionChoice, setReceptionChoice] = useState<'ACCEPTED' | 'ACCEPTED_WITH_RESERVES' | 'REFUSED'>('ACCEPTED')
   const [reserveNotes, setReserveNotes] = useState('')
   const [hasSignature, setHasSignature] = useState(false)
@@ -170,6 +171,7 @@ export function SignPage() {
         signerName: signerName.trim(),
         receptionChoice: choice,
         reserveNotes: receptionChoice === 'ACCEPTED_WITH_RESERVES' ? reserveNotes.trim() : undefined,
+        signaturePlace: signaturePlace.trim() || undefined,
         signatureImage,
       })
       setSigned(true)
@@ -185,7 +187,7 @@ export function SignPage() {
     const signatureImage = getSignatureImage()
     if (!signatureImage) return
     try {
-      await signLift.mutateAsync({ signerName: signerName.trim(), signatureImage })
+      await signLift.mutateAsync({ signerName: signerName.trim(), signaturePlace: signaturePlace.trim() || undefined, signatureImage })
       setSigned(true)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('sign.error_sign_failed'))
@@ -355,6 +357,17 @@ export function SignPage() {
               value={signerName}
               onChange={(e) => setSignerName(e.target.value)}
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="signaturePlaceLift">{t('sign.signature_place')}</Label>
+            <Input
+              id="signaturePlaceLift"
+              className="min-h-[44px]"
+              placeholder={t('sign.signature_place_placeholder')}
+              value={signaturePlace}
+              onChange={(e) => setSignaturePlace(e.target.value)}
             />
           </div>
 
@@ -544,6 +557,17 @@ export function SignPage() {
                 value={signerName}
                 onChange={(e) => setSignerName(e.target.value)}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="signaturePlace">{t('sign.signature_place')}</Label>
+              <Input
+                id="signaturePlace"
+                className="min-h-[44px]"
+                placeholder={t('sign.signature_place_placeholder')}
+                value={signaturePlace}
+                onChange={(e) => setSignaturePlace(e.target.value)}
               />
             </div>
 

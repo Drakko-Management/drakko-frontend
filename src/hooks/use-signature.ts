@@ -45,6 +45,7 @@ interface SignInput {
   signerName: string
   receptionChoice: 'ACCEPTED' | 'ACCEPTED_WITH_RESERVES'
   reserveNotes?: string
+  signaturePlace?: string
   signatureImage: string
 }
 
@@ -69,6 +70,7 @@ export function useSign(token: string) {
 
 interface LiftInput {
   signerName: string
+  signaturePlace?: string
   signatureImage: string
 }
 

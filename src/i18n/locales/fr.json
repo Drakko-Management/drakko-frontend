@@ -517,6 +517,8 @@
     "checkbox_completed": "Je confirme que les travaux décrits ont bien été réalisés.",
     "checkbox_conform": "Je confirme que les travaux sont conformes au devis initial.",
     "signer_name": "Nom du signataire",
+    "signature_place": "Lieu de la signature",
+    "signature_place_placeholder": "Paris, Lyon…",
     "signature_label": "Signature",
     "submit_btn": "Signer et valider",
     "refuse_btn": "Refuser les travaux",

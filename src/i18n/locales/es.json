@@ -517,6 +517,8 @@
     "checkbox_completed": "Confirmo que los trabajos descritos han sido realizados.",
     "checkbox_conform": "Confirmo que los trabajos están conformes con el presupuesto inicial.",
     "signer_name": "Nombre del firmante",
+    "signature_place": "Lugar de la firma",
+    "signature_place_placeholder": "Madrid, Barcelona…",
     "signature_label": "Firma",
     "submit_btn": "Firmar y validar",
     "refuse_btn": "Rechazar los trabajos",

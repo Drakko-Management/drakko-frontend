@@ -517,6 +517,8 @@
     "checkbox_completed": "Ich bestätige, dass die beschriebenen Arbeiten durchgeführt wurden.",
     "checkbox_conform": "Ich bestätige, dass die Arbeiten dem ursprünglichen Angebot entsprechen.",
     "signer_name": "Name des Unterzeichners",
+    "signature_place": "Ort der Unterzeichnung",
+    "signature_place_placeholder": "Berlin, München…",
     "signature_label": "Unterschrift",
     "submit_btn": "Unterzeichnen und bestätigen",
     "refuse_btn": "Arbeiten ablehnen",
