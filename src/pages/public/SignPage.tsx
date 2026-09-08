@@ -506,8 +506,8 @@ export function SignPage() {
 
         {/* Formulaire refus */}
         {receptionChoice === 'REFUSED' && (
-          <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-            <p className="text-sm font-medium text-destructive">{t('sign.refuse_title')}</p>
+          <div className="space-y-3 rounded-xl border bg-muted/50 p-4">
+            <p className="text-sm font-medium">{t('sign.refuse_title')}</p>
             <textarea
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               rows={4}
