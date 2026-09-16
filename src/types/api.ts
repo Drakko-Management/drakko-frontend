@@ -168,6 +168,11 @@ export interface ProjectDetail extends Omit<Project, 'client' | 'assignments'> {
     receptionChoice: ReceptionChoice
     signedAt: string
   } | null
+  reserveLiftSignature?: {
+    signedAt: string
+    signerName: string
+    pdfSentAt: string | null
+  } | null
 }
 
 export interface Photo {

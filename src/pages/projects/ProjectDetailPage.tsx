@@ -44,7 +44,7 @@ import {
   useDeleteProject,
 } from "@/hooks/use-projects";
 import { usePhotos } from "@/hooks/use-photos";
-import { useReport, useReportPdfUrl, useSendReport, useGenerateReport } from "@/hooks/use-report";
+import { useReport, useReportPdfUrl, useSendReport, useGenerateReport, useReserveLiftPdfUrl, useSendReserveLiftReport } from "@/hooks/use-report";
 import { useCreateSignatureRequest, useSendReserveLiftRequest } from "@/hooks/use-signature";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -84,12 +84,17 @@ export function ProjectDetailPage() {
     id ?? "",
     project?.status === "COMPLETED",
   );
+  const { data: liftPdfData } = useReserveLiftPdfUrl(
+    id ?? "",
+    project?.status === "COMPLETED" && !!project?.reserveLiftSignature,
+  );
   const { data: allUsers } = useUsers({ enabled: can('chantiers', 'update') });
 
   const updateStatus = useUpdateProjectStatus(id ?? "");
   const createSigRequest = useCreateSignatureRequest(id ?? "");
   const sendReserveLift = useSendReserveLiftRequest(id ?? "");
   const sendReport = useSendReport(id ?? "");
+  const sendReserveLiftReport = useSendReserveLiftReport(id ?? "");
   const generateReport = useGenerateReport(id ?? "");
   const assignUsers = useAssignUsers(id ?? "");
   const unassignUser = useUnassignUser(id ?? "");
@@ -475,6 +480,63 @@ export function ProjectDetailPage() {
                 }),
               })}
             </p>
+          )}
+        </div>
+      )}
+
+      {/* Reserve lift PDF download + send */}
+      {project.status === "COMPLETED" && project.reserveLiftSignature && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground px-1">{t('project.reserve_lift_pdf_title')}</p>
+          {liftPdfData?.pdfUrl ? (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <a
+                  href={liftPdfData.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-1 min-h-[48px] items-center justify-center gap-2 rounded-lg border bg-card px-4 text-sm font-medium transition-colors hover:bg-muted"
+                >
+                  <Download className="h-4 w-4" />
+                  {t('project.download_reserve_lift')}
+                </a>
+                {project.client.email && can('chantiers', 'update') && (
+                  <Button
+                    variant="outline"
+                    className="flex-1 min-h-[48px] gap-2"
+                    disabled={sendReserveLiftReport.isPending}
+                    onClick={async () => {
+                      try {
+                        await sendReserveLiftReport.mutateAsync();
+                        toast.success(t('project.reserve_lift_report_sent'));
+                      } catch {
+                        toast.error(t('project.reserve_lift_report_send_error'));
+                      }
+                    }}
+                  >
+                    <Send className="h-4 w-4" />
+                    {sendReserveLiftReport.isPending ? t('project.sending') : t('project.send_reserve_lift_report')}
+                  </Button>
+                )}
+              </div>
+              {project.reserveLiftSignature.pdfSentAt && (
+                <p className="text-center text-xs text-muted-foreground">
+                  {t('project.reserve_lift_report_sent_on', {
+                    date: new Date(project.reserveLiftSignature.pdfSentAt).toLocaleDateString(i18n.language, {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }),
+                    time: new Date(project.reserveLiftSignature.pdfSentAt).toLocaleTimeString(i18n.language, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
+                  })}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-center text-xs text-muted-foreground py-2">{t('project.reserve_lift_pdf_generating')}</p>
           )}
         </div>
       )}

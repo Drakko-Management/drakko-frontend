@@ -149,43 +149,45 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
         </div>
 
         {/* Thème + Paramètres + Déconnexion — fixés en bas */}
-        <div className="border-t p-3 space-y-1">
-          <p className="px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            {t('settings.appearance_section')}
-          </p>
-          <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
-            {(
-              [
-                { value: 'system', labelKey: 'settings.theme_system', icon: Monitor },
-                { value: 'light',  labelKey: 'settings.theme_light',  icon: Sun },
-                { value: 'dark',   labelKey: 'settings.theme_dark',   icon: Moon },
-              ] as const
-            ).map(({ value, labelKey, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => handleThemeChange(value)}
-                className={cn(
-                  'flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 text-xs font-medium transition-colors',
-                  theme === value
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {t(labelKey)}
-              </button>
-            ))}
+        <div className="border-t p-3">
+          <div className="space-y-1">
+            <p className="px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {t('settings.appearance_section')}
+            </p>
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
+              {(
+                [
+                  { value: 'system', labelKey: 'settings.theme_system', icon: Monitor },
+                  { value: 'light',  labelKey: 'settings.theme_light',  icon: Sun },
+                  { value: 'dark',   labelKey: 'settings.theme_dark',   icon: Moon },
+                ] as const
+              ).map(({ value, labelKey, icon: Icon }) => (
+                <button
+                  key={value}
+                  onClick={() => handleThemeChange(value)}
+                  className={cn(
+                    'flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 text-xs font-medium transition-colors',
+                    theme === value
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {t(labelKey)}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSettings}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              {t('nav.settings')}
+            </button>
           </div>
           <button
-            onClick={handleSettings}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            {t('nav.settings')}
-          </button>
-          <button
             onClick={() => void handleLogout()}
-            className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+            className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
           >
             <LogOut className="h-4 w-4" />
             {t('settings.logout')}

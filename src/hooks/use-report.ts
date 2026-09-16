@@ -56,6 +56,25 @@ export function useSendReport(projectId: string) {
   })
 }
 
+export function useReserveLiftPdfUrl(projectId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['reserve-lift-pdf', projectId],
+    queryFn: () => apiRequest<{ pdfUrl: string | null }>(`/projects/${projectId}/report/reserve-lift/pdf-url`),
+    enabled: Boolean(projectId) && enabled,
+  })
+}
+
+export function useSendReserveLiftReport(projectId: string) {
+  return useMutation({
+    mutationFn: () =>
+      apiRequest<{ success: true }>(`/projects/${projectId}/report/reserve-lift/send`, {
+        method: 'POST',
+      }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] }),
+  })
+}
+
 export function useReportLines(projectId: string) {
   return useQuery({
     queryKey: ['report-lines', projectId],
