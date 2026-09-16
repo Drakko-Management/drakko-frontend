@@ -185,7 +185,7 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
           </button>
           <button
             onClick={() => void handleLogout()}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+            className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
           >
             <LogOut className="h-4 w-4" />
             {t('settings.logout')}
