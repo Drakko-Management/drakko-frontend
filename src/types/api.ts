@@ -162,6 +162,12 @@ export interface ProjectDetail extends Omit<Project, 'client' | 'assignments'> {
     refusedAt: string
     refusalComment: string | null
   }>
+  signature?: {
+    reserveNotes: string | null
+    signaturePlace: string | null
+    receptionChoice: ReceptionChoice
+    signedAt: string
+  } | null
 }
 
 export interface Photo {
