@@ -283,18 +283,6 @@ export function ProjectDetailPage() {
         </div>
       )}
 
-      {/* Réserves émises */}
-      {project.signature?.reserveNotes && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-1 dark:border-amber-900 dark:bg-amber-950/30">
-          <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-            {t('project.reserve_notes_label')}
-          </p>
-          <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
-            {project.signature.reserveNotes}
-          </p>
-        </div>
-      )}
-
       {/* Refusal history (visible on all statuses) */}
       {(project.signatureRequests?.length ?? 0) > 0 && project.status !== "DISPUTED" && (
         <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 space-y-2">
@@ -315,6 +303,18 @@ export function ProjectDetailPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Réserves émises */}
+      {project.signature?.reserveNotes && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-1 dark:border-amber-900 dark:bg-amber-950/30">
+          <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+            {t('project.reserve_notes_label')}
+          </p>
+          <p className="text-sm text-amber-800 dark:text-amber-300 whitespace-pre-wrap">
+            {project.signature.reserveNotes}
+          </p>
         </div>
       )}
 
