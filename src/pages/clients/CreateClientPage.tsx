@@ -43,7 +43,7 @@ export function CreateClientPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.firstName || !form.lastName || !form.email) {
+    if (!form.firstName || !form.lastName || !form.email || !buildAddress()) {
       toast.error(t('create_client.required_error'))
       return
     }
@@ -125,13 +125,14 @@ export function CreateClientPage() {
         </div>
 
         <div className="space-y-2">
-          <Label>{t('common.address')}</Label>
+          <Label>{t('create_client.billing_address')}</Label>
           <AddressAutocomplete
             placeholder={t('common.street_placeholder')}
             className="min-h-[44px]"
             value={form.street}
             onChange={(v) => set('street', v)}
             onSelect={(s) => setForm((f) => ({ ...f, street: s.street, postalCode: s.postalCode, city: s.city }))}
+            required
           />
           <div className="grid grid-cols-2 gap-3">
             <Input

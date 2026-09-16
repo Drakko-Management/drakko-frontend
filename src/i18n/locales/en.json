@@ -291,6 +291,7 @@
     "search_client": "Search a client…",
     "no_client": "No client found",
     "required_error": "Reference, title, address and client are required",
+    "same_as_billing": "Same as billing address",
     "project_manager_placeholder": "Architect or project manager name (optional)",
     "description_placeholder": "Work description…",
     "submit": "Create project",
@@ -311,6 +312,7 @@
     "error": "Update error"
   },
   "client_detail": {
+    "billing_address": "Billing address",
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
@@ -327,7 +329,8 @@
   },
   "create_client": {
     "title": "New client",
-    "required_error": "First name, last name and email are required",
+    "billing_address": "Billing address *",
+    "required_error": "First name, last name, email and billing address are required",
     "notes_label": "Notes",
     "notes_placeholder": "Additional information…",
     "submit": "Create client",

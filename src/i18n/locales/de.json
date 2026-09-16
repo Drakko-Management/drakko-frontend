@@ -291,6 +291,7 @@
     "search_client": "Kunden suchen…",
     "no_client": "Kein Kunde gefunden",
     "required_error": "Referenz, Titel, Adresse und Kunde sind erforderlich",
+    "same_as_billing": "Gleich wie Rechnungsadresse",
     "project_manager_placeholder": "Name des Architekten oder Bauleiters (optional)",
     "description_placeholder": "Beschreibung der Arbeiten…",
     "submit": "Projekt erstellen",
@@ -311,6 +312,7 @@
     "error": "Aktualisierungsfehler"
   },
   "client_detail": {
+    "billing_address": "Rechnungsadresse",
     "edit": "Bearbeiten",
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -327,7 +329,8 @@
   },
   "create_client": {
     "title": "Neuer Kunde",
-    "required_error": "Vorname, Nachname und E-Mail sind erforderlich",
+    "billing_address": "Rechnungsadresse *",
+    "required_error": "Vorname, Nachname, E-Mail und Rechnungsadresse sind erforderlich",
     "notes_label": "Notizen",
     "notes_placeholder": "Zusätzliche Informationen…",
     "submit": "Kunden erstellen",

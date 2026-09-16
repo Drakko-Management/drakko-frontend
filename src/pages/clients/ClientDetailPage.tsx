@@ -168,7 +168,7 @@ export function ClientDetailPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label>{t('common.address')}</Label>
+            <Label>{t('client_detail.billing_address')}</Label>
             <AddressAutocomplete
               placeholder={t('common.street_placeholder')}
               className="min-h-[44px]"

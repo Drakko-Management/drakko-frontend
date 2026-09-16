@@ -291,6 +291,7 @@
     "search_client": "Buscar un cliente…",
     "no_client": "Sin clientes encontrados",
     "required_error": "Referencia, título, dirección y cliente son obligatorios",
+    "same_as_billing": "Igual que la dirección de facturación",
     "project_manager_placeholder": "Nombre del arquitecto o director de obra (opcional)",
     "description_placeholder": "Descripción de los trabajos…",
     "submit": "Crear proyecto",
@@ -311,6 +312,7 @@
     "error": "Error al actualizar"
   },
   "client_detail": {
+    "billing_address": "Dirección de facturación",
     "edit": "Modificar",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -327,7 +329,8 @@
   },
   "create_client": {
     "title": "Nuevo cliente",
-    "required_error": "Nombre, apellido y email son obligatorios",
+    "billing_address": "Dirección de facturación *",
+    "required_error": "Nombre, apellido, email y dirección de facturación son obligatorios",
     "notes_label": "Notas",
     "notes_placeholder": "Información adicional…",
     "submit": "Crear cliente",

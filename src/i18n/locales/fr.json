@@ -291,6 +291,7 @@
     "search_client": "Rechercher un client…",
     "no_client": "Aucun client trouvé",
     "required_error": "Référence, titre, adresse et client sont obligatoires",
+    "same_as_billing": "Identique à l'adresse de facturation",
     "project_manager_placeholder": "Nom de l'architecte ou maître d'œuvre (optionnel)",
     "description_placeholder": "Description des travaux…",
     "submit": "Créer le chantier",
@@ -311,6 +312,7 @@
     "error": "Erreur lors de la mise à jour"
   },
   "client_detail": {
+    "billing_address": "Adresse de facturation",
     "edit": "Modifier",
     "save": "Enregistrer",
     "cancel": "Annuler",
@@ -327,7 +329,8 @@
   },
   "create_client": {
     "title": "Nouveau client",
-    "required_error": "Prénom, nom et email sont obligatoires",
+    "billing_address": "Adresse de facturation *",
+    "required_error": "Prénom, nom, email et adresse de facturation sont obligatoires",
     "notes_label": "Notes",
     "notes_placeholder": "Informations complémentaires…",
     "submit": "Créer le client",

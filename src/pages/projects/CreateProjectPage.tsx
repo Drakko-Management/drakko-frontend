@@ -149,6 +149,7 @@ export function CreateProjectPage() {
     startDate: '',
     expectedEndDate: '',
   })
+  const [sameAsBilling, setSameAsBilling] = useState(false)
 
   function set(key: string, value: string) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -159,6 +160,19 @@ export function CreateProjectPage() {
     if (client?.address) {
       const { street, postalCode, city } = parseAddress(client.address)
       setForm((f) => ({ ...f, street, postalCode, city }))
+      setSameAsBilling(true)
+    } else {
+      setSameAsBilling(false)
+    }
+  }
+
+  function handleSameAsBillingChange(checked: boolean) {
+    setSameAsBilling(checked)
+    if (checked && selectedClient?.address) {
+      const { street, postalCode, city } = parseAddress(selectedClient.address)
+      setForm((f) => ({ ...f, street, postalCode, city }))
+    } else if (!checked) {
+      setForm((f) => ({ ...f, street: '', postalCode: '', city: '' }))
     }
   }
 
@@ -237,14 +251,28 @@ export function CreateProjectPage() {
         </div>
 
         <div className="space-y-2">
-          <Label>{t('common.address')} *</Label>
+          <div className="flex items-center justify-between">
+            <Label>{t('common.address')} *</Label>
+            {selectedClient?.address && (
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 rounded border-border accent-primary"
+                  checked={sameAsBilling}
+                  onChange={(e) => handleSameAsBillingChange(e.target.checked)}
+                />
+                {t('create_project.same_as_billing')}
+              </label>
+            )}
+          </div>
           <AddressAutocomplete
             placeholder={t('common.street_placeholder')}
             className="min-h-[44px]"
             value={form.street}
-            onChange={(v) => set('street', v)}
-            onSelect={(s) => setForm((f) => ({ ...f, street: s.street, postalCode: s.postalCode, city: s.city }))}
+            onChange={(v) => { if (!sameAsBilling) set('street', v) }}
+            onSelect={(s) => { if (!sameAsBilling) setForm((f) => ({ ...f, street: s.street, postalCode: s.postalCode, city: s.city })) }}
             required
+            disabled={sameAsBilling}
           />
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -253,14 +281,16 @@ export function CreateProjectPage() {
               inputMode="numeric"
               autoComplete="postal-code"
               value={form.postalCode}
-              onChange={(e) => set('postalCode', e.target.value)}
+              onChange={(e) => { if (!sameAsBilling) set('postalCode', e.target.value) }}
+              disabled={sameAsBilling}
             />
             <Input
               placeholder={t('common.city')}
               className="min-h-[44px]"
               autoComplete="address-level2"
               value={form.city}
-              onChange={(e) => set('city', e.target.value)}
+              onChange={(e) => { if (!sameAsBilling) set('city', e.target.value) }}
+              disabled={sameAsBilling}
             />
           </div>
         </div>
