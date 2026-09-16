@@ -82,7 +82,7 @@ export function ProjectDetailPage() {
   const { data: report } = useReport(id ?? "");
   const { data: pdfData } = useReportPdfUrl(
     id ?? "",
-    project?.status === "COMPLETED",
+    project?.status === "COMPLETED" || project?.status === "AWAITING_RESERVE_LIFT",
   );
   const { data: liftPdfData } = useReserveLiftPdfUrl(
     id ?? "",
@@ -205,6 +205,7 @@ export function ProjectDetailPage() {
   return (
     <div className="space-y-4 pb-8">
       {/* Header */}
+      <div className="flex flex-col gap-3">
       <div className="flex items-start gap-3">
         <button
           className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card active:bg-muted"
@@ -217,7 +218,9 @@ export function ProjectDetailPage() {
             <span className="text-xs font-mono text-muted-foreground">
               {project.reference}
             </span>
-            <StatusBadge status={project.status} />
+            <span className="md:hidden">
+              <StatusBadge status={project.status} />
+            </span>
           </div>
           <h1 className="mt-0.5 text-lg font-bold leading-snug">
             {project.title}
@@ -267,6 +270,14 @@ export function ProjectDetailPage() {
             </AlertDialogContent>
           </AlertDialog>
         )}
+      </div>
+
+      {/* Stepper — desktop only, centered in header area */}
+      {project.status !== "DISPUTED" && (
+        <div className="hidden md:flex justify-center">
+          <Stepper status={project.status} hasReserveLift={!!project.reserveLiftSignature} />
+        </div>
+      )}
       </div>
 
       {/* DISPUTED warning */}
@@ -327,10 +338,10 @@ export function ProjectDetailPage() {
         </div>
       )}
 
-      {/* Stepper */}
-      {project.status !== "DISPUTED" && project.status !== "AWAITING_RESERVE_LIFT" && (
-        <Card className="p-4">
-          <Stepper status={project.status} />
+      {/* Stepper — mobile only */}
+      {project.status !== "DISPUTED" && (
+        <Card className="p-4 md:hidden">
+          <Stepper status={project.status} hasReserveLift={!!project.reserveLiftSignature} />
         </Card>
       )}
 
@@ -414,8 +425,8 @@ export function ProjectDetailPage() {
         </div>
       )}
 
-      {/* Generate report — COMPLETED but no PDF yet */}
-      {project.status === "COMPLETED" && pdfData && !pdfData.pdfUrl && can('chantiers', 'update') && (
+      {/* Generate report — COMPLETED or AWAITING_RESERVE_LIFT but no PDF yet */}
+      {(project.status === "COMPLETED" || project.status === "AWAITING_RESERVE_LIFT") && pdfData && !pdfData.pdfUrl && can('chantiers', 'update') && (
         <Button
           variant="outline"
           className="w-full min-h-[48px] gap-2"
@@ -435,8 +446,13 @@ export function ProjectDetailPage() {
       )}
 
       {/* PDF download + send to client */}
-      {project.status === "COMPLETED" && pdfData?.pdfUrl && (
+      {(project.status === "COMPLETED" || project.status === "AWAITING_RESERVE_LIFT") && pdfData?.pdfUrl && (
         <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground px-1">
+            {project.signature?.receptionChoice === "ACCEPTED_WITH_RESERVES"
+              ? t('project.pv_with_reserves')
+              : t('project.pv_initial')}
+          </p>
           <div className="flex gap-2">
             <a
               href={pdfData.pdfUrl}

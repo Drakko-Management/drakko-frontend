@@ -255,6 +255,8 @@
     "report_sent": "Procès-verbal envoyé au client",
     "report_send_error": "Erreur lors de l'envoi",
     "report_sent_on": "Procès-verbal envoyé le {{date}} à {{time}}",
+    "pv_initial": "Procès-verbal de réception",
+    "pv_with_reserves": "Procès-verbal de réception avec réserves",
     "reserve_lift_pdf_title": "PV de levée des réserves",
     "reserve_lift_pdf_generating": "Le PV de levée est en cours de génération…",
     "download_reserve_lift": "Télécharger",

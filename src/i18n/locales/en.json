@@ -255,6 +255,8 @@
     "report_sent": "Certificate sent to client",
     "report_send_error": "Error sending report",
     "report_sent_on": "Certificate sent on {{date}} at {{time}}",
+    "pv_initial": "Works completion certificate",
+    "pv_with_reserves": "Works completion certificate with reservations",
     "reserve_lift_pdf_title": "Reserve lift certificate",
     "reserve_lift_pdf_generating": "Reserve lift certificate is being generated…",
     "download_reserve_lift": "Download",

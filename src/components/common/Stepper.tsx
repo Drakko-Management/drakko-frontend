@@ -2,30 +2,41 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProjectStatus } from "@/types/api";
 
-const STEPS: { status: ProjectStatus; label: string; short: string }[] = [
+const BASE_STEPS: { status: ProjectStatus; label: string; short: string }[] = [
   { status: "DRAFT", label: "Brouillon", short: "Brouillon" },
   { status: "PLANNED", label: "Planifié", short: "Planifié" },
   { status: "IN_PROGRESS", label: "En cours", short: "En cours" },
   { status: "AWAITING_SIGNATURE", label: "Signature", short: "Signature" },
+  { status: "AWAITING_RESERVE_LIFT", label: "Levée des réserves", short: "Levée" },
   { status: "COMPLETED", label: "Terminé", short: "Terminé" },
 ];
 
-const ORDER: Record<ProjectStatus, number> = {
+const BASE_ORDER: Record<ProjectStatus, number> = {
   DRAFT: 0,
   PLANNED: 1,
   IN_PROGRESS: 2,
   AWAITING_SIGNATURE: 3,
   AWAITING_RESERVE_LIFT: 4,
-  COMPLETED: 4,
+  COMPLETED: 5,
   DISPUTED: 3,
+};
+
+const NO_LIFT_STEPS = BASE_STEPS.filter((s) => s.status !== "AWAITING_RESERVE_LIFT");
+const NO_LIFT_ORDER: Record<ProjectStatus, number> = {
+  ...BASE_ORDER,
+  COMPLETED: 4,
 };
 
 interface StepperProps {
   status: ProjectStatus;
+  hasReserveLift?: boolean;
   className?: string;
 }
 
-export function Stepper({ status, className }: StepperProps) {
+export function Stepper({ status, hasReserveLift = false, className }: StepperProps) {
+  const showLift = hasReserveLift || status === "AWAITING_RESERVE_LIFT";
+  const STEPS = showLift ? BASE_STEPS : NO_LIFT_STEPS;
+  const ORDER = showLift ? BASE_ORDER : NO_LIFT_ORDER;
   const currentIndex = ORDER[status];
 
   return (

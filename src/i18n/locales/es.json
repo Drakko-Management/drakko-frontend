@@ -255,6 +255,8 @@
     "report_sent": "Acta enviada al cliente",
     "report_send_error": "Error al enviar informe",
     "report_sent_on": "Acta enviada el {{date}} a las {{time}}",
+    "pv_initial": "Acta de recepción de obras",
+    "pv_with_reserves": "Acta de recepción de obras con reservas",
     "reserve_lift_pdf_title": "Acta de levantamiento de reservas",
     "reserve_lift_pdf_generating": "El acta de levantamiento se está generando…",
     "download_reserve_lift": "Descargar",

@@ -254,6 +254,8 @@
     "report_sent": "Verbale inviato al cliente",
     "report_send_error": "Errore durante l'invio",
     "report_sent_on": "Verbale inviato il {{date}} alle {{time}}",
+    "pv_initial": "Verbale di fine lavori",
+    "pv_with_reserves": "Verbale di fine lavori con riserve",
     "reserve_lift_pdf_title": "Verbale di scioglimento delle riserve",
     "reserve_lift_pdf_generating": "Il verbale di scioglimento è in corso di generazione…",
     "download_reserve_lift": "Scarica",

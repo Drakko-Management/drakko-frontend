@@ -133,7 +133,7 @@ export function ProjectsPage() {
           <select
             value={sort}
             onChange={(e) => { setSort(e.target.value as ProjectSort); setPage(1) }}
-            className="h-11 rounded-xl border bg-card px-3 text-sm text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
+            className="h-11 cursor-pointer rounded-xl border bg-card px-3 text-sm text-muted-foreground outline-none focus:ring-2 focus:ring-ring"
             aria-label={t('projects.sort_recent')}
           >
             <option value="recent">{t('projects.sort_recent')}</option>
