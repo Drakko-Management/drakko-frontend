@@ -252,14 +252,14 @@ export function CreateProjectPage() {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <Label>{t('common.address')} *</Label>
             {selectedClient?.address && (
               <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                 <Switch
                   checked={sameAsBilling}
                   onCheckedChange={handleSameAsBillingChange}
-                  className="scale-75 origin-right"
+                  className="scale-75 origin-left"
                 />
                 {t('create_project.same_as_billing')}
               </label>
