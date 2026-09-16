@@ -24,9 +24,10 @@ interface Props {
   placeholder?: string
   className?: string
   required?: boolean
+  disabled?: boolean
 }
 
-export function AddressAutocomplete({ value, onChange, onSelect, placeholder, className, required }: Props) {
+export function AddressAutocomplete({ value, onChange, onSelect, placeholder, className, required, disabled }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -102,6 +103,7 @@ export function AddressAutocomplete({ value, onChange, onSelect, placeholder, cl
         placeholder={placeholder}
         className={className}
         required={required}
+        disabled={disabled}
         autoComplete="address-line1"
       />
       {open && isFocused && suggestions.length > 0 && (
