@@ -379,7 +379,7 @@ export function SignPage() {
             <SignatureCanvas canvasRef={canvasRef} onHasStrokes={setHasSignature} placeholder={t('sign.canvas_placeholder')} clearLabel={t('sign.canvas_clear')} />
           </div>
 
-          <Button type="submit" className="w-full min-h-[52px] text-base" disabled={signLift.isPending}>
+          <Button type="submit" className="w-full min-h-[52px] text-base" disabled={signLift.isPending || !signerName.trim() || !signaturePlace.trim() || !hasSignature}>
             {signLift.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
             {t('sign.lift_submit_btn')}
           </Button>
@@ -580,7 +580,7 @@ export function SignPage() {
               <SignatureCanvas canvasRef={canvasRef} onHasStrokes={setHasSignature} placeholder={t('sign.canvas_placeholder')} clearLabel={t('sign.canvas_clear')} />
             </div>
 
-            <Button type="submit" className="w-full min-h-[52px] text-base" disabled={sign.isPending || refuse.isPending}>
+            <Button type="submit" className="w-full min-h-[52px] text-base" disabled={sign.isPending || refuse.isPending || !signerName.trim() || !signaturePlace.trim() || !hasSignature || (receptionChoice === 'ACCEPTED_WITH_RESERVES' && !reserveNotes.trim())}>
               {sign.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
               {t('sign.submit_btn')}
             </Button>
