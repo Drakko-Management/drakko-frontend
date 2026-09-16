@@ -248,6 +248,15 @@ export function SignPage() {
           <h1 className="text-xl font-bold">{t('sign.refused_title')}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t('sign.refused_desc')}</p>
         </div>
+        {isOnsite && (
+          <button
+            onClick={() => { window.location.href = `/chantiers/${data?.project.id}` }}
+            className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t('sign.back_to_project')}
+          </button>
+        )}
       </div>
     )
   }
