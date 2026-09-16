@@ -489,6 +489,7 @@
   "sign": {
     "error_sign_required": "Veuillez signer le document",
     "error_name_required": "Veuillez indiquer votre nom",
+    "error_place_required": "Veuillez indiquer le lieu de la signature",
     "error_validation_required": "Veuillez cocher la case de validation avant de signer",
     "signature_locked": "Cochez la case ci-dessus pour débloquer la signature",
     "checkbox_agreement": "Je reconnais avoir pris connaissance du présent procès-verbal de réception des travaux et confirme qu'il reflète les travaux effectivement réalisés.",

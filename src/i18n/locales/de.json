@@ -489,6 +489,7 @@
   "sign": {
     "error_sign_required": "Bitte unterschreiben Sie das Dokument",
     "error_name_required": "Bitte geben Sie Ihren Namen an",
+    "error_place_required": "Bitte geben Sie den Unterschriftsort an",
     "error_validation_required": "Bitte kreuzen Sie das Bestätigungsfeld an, bevor Sie unterschreiben",
     "signature_locked": "Kreuzen Sie das obige Feld an, um die Unterschrift freizuschalten",
     "checkbox_agreement": "Ich bestätige, dass ich das vorliegende Abnahmeprotokoll gelesen habe und dass es die tatsächlich ausgeführten Arbeiten widerspiegelt.",

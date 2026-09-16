@@ -160,6 +160,7 @@ export function SignPage() {
     e.preventDefault()
     if (!hasSignature) { toast.error(t('sign.error_sign_required')); return }
     if (!signerName.trim()) { toast.error(t('sign.error_name_required')); return }
+    if (!signaturePlace.trim()) { toast.error(t('sign.error_place_required')); return }
     if (receptionChoice === 'ACCEPTED_WITH_RESERVES' && !reserveNotes.trim()) {
       toast.error(t('sign.error_reserves_required')); return
     }
@@ -184,10 +185,11 @@ export function SignPage() {
     e.preventDefault()
     if (!hasSignature) { toast.error(t('sign.error_sign_required')); return }
     if (!signerName.trim()) { toast.error(t('sign.error_name_required')); return }
+    if (!signaturePlace.trim()) { toast.error(t('sign.error_place_required')); return }
     const signatureImage = getSignatureImage()
     if (!signatureImage) return
     try {
-      await signLift.mutateAsync({ signerName: signerName.trim(), signaturePlace: signaturePlace.trim() || undefined, signatureImage })
+      await signLift.mutateAsync({ signerName: signerName.trim(), signaturePlace: signaturePlace.trim(), signatureImage })
       setSigned(true)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('sign.error_sign_failed'))
@@ -368,6 +370,7 @@ export function SignPage() {
               placeholder={t('sign.signature_place_placeholder')}
               value={signaturePlace}
               onChange={(e) => setSignaturePlace(e.target.value)}
+              required
             />
           </div>
 
@@ -568,6 +571,7 @@ export function SignPage() {
                 placeholder={t('sign.signature_place_placeholder')}
                 value={signaturePlace}
                 onChange={(e) => setSignaturePlace(e.target.value)}
+                required
               />
             </div>
 

@@ -489,6 +489,7 @@
   "sign": {
     "error_sign_required": "Por favor firme el documento",
     "error_name_required": "Por favor indique su nombre",
+    "error_place_required": "Por favor indique el lugar de la firma",
     "error_validation_required": "Por favor marque la casilla de validación antes de firmar",
     "signature_locked": "Marque la casilla anterior para desbloquear la firma",
     "checkbox_agreement": "Reconozco haber leído el presente acta de recepción de obras y confirmo que refleja los trabajos efectivamente realizados.",

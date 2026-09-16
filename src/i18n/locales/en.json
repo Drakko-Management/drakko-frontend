@@ -489,6 +489,7 @@
   "sign": {
     "error_sign_required": "Please sign the document",
     "error_name_required": "Please enter your name",
+    "error_place_required": "Please enter the place of signature",
     "error_validation_required": "Please check the validation box before signing",
     "signature_locked": "Check the box above to unlock the signature",
     "checkbox_agreement": "I acknowledge that I have read this works completion certificate and confirm that it reflects the work actually carried out.",

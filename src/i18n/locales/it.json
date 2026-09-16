@@ -488,6 +488,7 @@
   "sign": {
     "error_sign_required": "Si prega di firmare il documento",
     "error_name_required": "Si prega di indicare il nome",
+    "error_place_required": "Si prega di indicare il luogo della firma",
     "error_validation_required": "Si prega di spuntare la casella di validazione prima di firmare",
     "signature_locked": "Spuntare la casella sopra per sbloccare la firma",
     "checkbox_agreement": "Riconosco di aver preso visione del presente verbale di fine lavori e confermo che rispecchia i lavori effettivamente eseguiti.",
