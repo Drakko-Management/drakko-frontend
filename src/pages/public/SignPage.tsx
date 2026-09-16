@@ -211,7 +211,7 @@ export function SignPage() {
             {isReserveLift ? t('sign.lift_success_title') : isWithReserves ? t('sign.reserves_success_title') : t('sign.success_title')}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isReserveLift ? t('sign.lift_success_desc') : isWithReserves ? t('sign.reserves_success_desc') : t('sign.success_desc')}
+            {isReserveLift ? t('sign.lift_success_desc') : isWithReserves ? t(isOnsite ? 'sign.reserves_success_desc_onsite' : 'sign.reserves_success_desc') : t('sign.success_desc')}
           </p>
         </div>
         {isOnsite ? (
@@ -246,7 +246,7 @@ export function SignPage() {
         </div>
         <div>
           <h1 className="text-xl font-bold">{t('sign.refused_title')}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t('sign.refused_desc')}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t(isOnsite ? 'sign.refused_desc_onsite' : 'sign.refused_desc')}</p>
         </div>
         {isOnsite && (
           <button
