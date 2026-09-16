@@ -37,6 +37,7 @@
     "filter_planned": "Planificado",
     "filter_in_progress": "En curso",
     "filter_awaiting_sig": "Firma",
+    "filter_reserve_lift": "Reservas",
     "filter_completed": "Terminado",
     "filter_disputed": "Litigio",
     "empty_title": "Sin proyectos",

@@ -37,6 +37,7 @@
     "filter_planned": "Pianificato",
     "filter_in_progress": "In corso",
     "filter_awaiting_sig": "Firma",
+    "filter_reserve_lift": "Riserve",
     "filter_completed": "Completato",
     "filter_disputed": "Controversia",
     "empty_title": "Nessun cantiere",

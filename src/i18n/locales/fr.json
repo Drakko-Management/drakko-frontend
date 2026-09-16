@@ -37,6 +37,7 @@
     "filter_planned": "Planifié",
     "filter_in_progress": "En cours",
     "filter_awaiting_sig": "Signature",
+    "filter_reserve_lift": "Réserves",
     "filter_completed": "Terminé",
     "filter_disputed": "Litige",
     "empty_title": "Aucun chantier",

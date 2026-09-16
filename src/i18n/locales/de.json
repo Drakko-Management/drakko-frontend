@@ -37,6 +37,7 @@
     "filter_planned": "Geplant",
     "filter_in_progress": "In Bearbeitung",
     "filter_awaiting_sig": "Unterschrift",
+    "filter_reserve_lift": "Mängel",
     "filter_completed": "Abgeschlossen",
     "filter_disputed": "Streit",
     "empty_title": "Keine Projekte",

@@ -37,6 +37,7 @@
     "filter_planned": "Planned",
     "filter_in_progress": "In progress",
     "filter_awaiting_sig": "Signature",
+    "filter_reserve_lift": "Snagging",
     "filter_completed": "Completed",
     "filter_disputed": "Disputed",
     "empty_title": "No projects",

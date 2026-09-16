@@ -21,8 +21,9 @@ const STATUS_FILTERS: StatusFilter[] = [
   { labelKey: 'projects.filter_draft',       value: 'DRAFT' },
   { labelKey: 'projects.filter_planned',     value: 'PLANNED' },
   { labelKey: 'projects.filter_in_progress', value: 'IN_PROGRESS' },
-  { labelKey: 'projects.filter_awaiting_sig',value: 'AWAITING_SIGNATURE' },
-  { labelKey: 'projects.filter_completed',   value: 'COMPLETED' },
+  { labelKey: 'projects.filter_awaiting_sig',    value: 'AWAITING_SIGNATURE' },
+  { labelKey: 'projects.filter_reserve_lift',    value: 'AWAITING_RESERVE_LIFT' },
+  { labelKey: 'projects.filter_completed',       value: 'COMPLETED' },
   { labelKey: 'projects.filter_disputed',    value: 'DISPUTED' },
 ]
 
