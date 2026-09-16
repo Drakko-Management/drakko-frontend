@@ -137,7 +137,7 @@ export function Sidebar({ className }: SidebarProps) {
         </NavLink>
         <button
           onClick={() => void handleLogout()}
-          className="mt-3 flex w-full min-h-[44px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+          className="mt-1.5 flex w-full min-h-[44px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           {t('settings.logout')}
