@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, Search, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
 import { useCreateProject, useNextProjectReference } from '@/hooks/use-projects'
@@ -254,12 +255,11 @@ export function CreateProjectPage() {
           <div className="flex items-center justify-between">
             <Label>{t('common.address')} *</Label>
             {selectedClient?.address && (
-              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="h-3.5 w-3.5 rounded border-border accent-primary"
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <Switch
                   checked={sameAsBilling}
-                  onChange={(e) => handleSameAsBillingChange(e.target.checked)}
+                  onCheckedChange={handleSameAsBillingChange}
+                  className="scale-75 origin-right"
                 />
                 {t('create_project.same_as_billing')}
               </label>
