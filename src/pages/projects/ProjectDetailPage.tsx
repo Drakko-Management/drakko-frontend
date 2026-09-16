@@ -296,6 +296,10 @@ export function ProjectDetailPage() {
                   day: "2-digit",
                   month: "long",
                   year: "numeric",
+                })}{" "}
+                {new Date(r.refusedAt).toLocaleTimeString(i18n.language, {
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </p>
               {r.refusalComment && (
