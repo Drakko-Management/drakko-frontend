@@ -216,7 +216,7 @@ export function SignPage() {
         </div>
         {isOnsite ? (
           <button
-            onClick={() => { window.location.href = `/chantiers/${data?.project.id}` }}
+            onClick={() => { window.close() }}
             className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -250,7 +250,7 @@ export function SignPage() {
         </div>
         {isOnsite && (
           <button
-            onClick={() => { window.location.href = `/chantiers/${data?.project.id}` }}
+            onClick={() => { window.close() }}
             className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -334,7 +334,7 @@ export function SignPage() {
         <div className="flex items-center gap-2 pt-2">
           {isOnsite && (
             <button
-              onClick={() => window.history.back()}
+              onClick={() => window.close()}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-card"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -403,7 +403,7 @@ export function SignPage() {
       <div className="flex items-center gap-2 pt-2">
         {isOnsite && (
           <button
-            onClick={() => window.history.back()}
+            onClick={() => window.close()}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-card"
             aria-label={t('sign.back_to_project')}
           >

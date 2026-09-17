@@ -157,7 +157,7 @@ export function ProjectDetailPage() {
   async function handleSignOnsite() {
     try {
       const req = await createSigRequest.mutateAsync('onsite');
-      window.location.href = `/sign/${req.token}?back=1`;
+      window.open(`/sign/${req.token}?back=1`, '_blank');
     } catch {
       toast.error(t('project.sig_error'));
     }
@@ -175,7 +175,7 @@ export function ProjectDetailPage() {
   async function handleReserveLiftOnsite() {
     try {
       const req = await sendReserveLift.mutateAsync('onsite');
-      window.location.href = `/sign/${req.token}?back=1`;
+      window.open(`/sign/${req.token}?back=1`, '_blank');
     } catch {
       toast.error(t('project.sig_error'));
     }
