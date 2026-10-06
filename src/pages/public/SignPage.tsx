@@ -175,6 +175,7 @@ export function SignPage() {
         signaturePlace: signaturePlace.trim() || undefined,
         signatureImage,
       })
+      window.opener?.postMessage({ type: 'project_updated', projectId: data?.project.id }, window.location.origin)
       setSigned(true)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('sign.error_sign_failed'))
@@ -190,6 +191,7 @@ export function SignPage() {
     if (!signatureImage) return
     try {
       await signLift.mutateAsync({ signerName: signerName.trim(), signaturePlace: signaturePlace.trim(), signatureImage })
+      window.opener?.postMessage({ type: 'project_updated', projectId: data?.project.id }, window.location.origin)
       setSigned(true)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('sign.error_sign_failed'))
@@ -548,6 +550,7 @@ export function SignPage() {
               onClick={async () => {
                 try {
                   await refuse.mutateAsync({ comment: refuseComment.trim() })
+                  window.opener?.postMessage({ type: 'project_updated', projectId: data?.project.id }, window.location.origin)
                   setRefused(true)
                 } catch (err) {
                   toast.error(err instanceof Error ? err.message : t('sign.error_refuse_failed'))

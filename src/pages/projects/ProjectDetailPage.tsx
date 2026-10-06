@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { queryClient } from "@/lib/query-client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
@@ -64,6 +65,19 @@ export function ProjectDetailPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { can } = usePermissions();
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === 'project_updated' && e.data?.projectId === id) {
+        void queryClient.invalidateQueries({ queryKey: ['project', id] });
+        void queryClient.invalidateQueries({ queryKey: ['report-pdf', id] });
+        void queryClient.invalidateQueries({ queryKey: ['reserve-lift-pdf', id] });
+      }
+    }
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [id]);
   const [lightbox, setLightbox] = useState<{
     photos: Photo[];
     index: number;
