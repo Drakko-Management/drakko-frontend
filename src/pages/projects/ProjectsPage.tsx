@@ -215,17 +215,20 @@ export function ProjectsPage() {
       </div>
 
       {can('chantiers', 'create') && (
-        <>
-          <Fab tutorial="projects-new" onClick={() => void navigate('/chantiers/nouveau')} />
-          <button
-            onClick={() => void navigate('/chantiers/express')}
-            className="fixed bottom-fab right-20 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-card border shadow-md transition-transform active:scale-95 md:hidden"
-            aria-label={t('projects.express')}
-            data-tutorial="projects-express"
-          >
-            <Zap className="h-5 w-5 text-primary" />
-          </button>
-        </>
+        <Fab
+          tutorial="projects-new"
+          onClick={() => void navigate('/chantiers/nouveau')}
+          secondary={
+            <button
+              onClick={() => void navigate('/chantiers/express')}
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-card border shadow-md transition-transform active:scale-95"
+              aria-label={t('projects.express')}
+              data-tutorial="projects-express"
+            >
+              <Zap className="h-5 w-5 text-primary" />
+            </button>
+          }
+        />
       )}
 
       {/* Sticky bottom: pagination */}

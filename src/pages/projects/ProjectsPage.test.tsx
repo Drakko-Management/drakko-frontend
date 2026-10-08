@@ -212,3 +212,44 @@ describe('ProjectsPage — navigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/chantiers/proj-1')
   })
 })
+
+// ── Tests : intervention rapide (mobile) ───────────────────────────────────
+
+describe('ProjectsPage — intervention rapide', () => {
+  // « Intervention rapide » existe deux fois : bouton de l'en-tête (desktop, dans le DOM en premier)
+  // et bouton rond mobile, empilé sous le « + » (dans le DOM en dernier)
+  const mobileExpress = () => {
+    const buttons = screen.getAllByRole('button', { name: 'Intervention rapide' })
+    return buttons[buttons.length - 1]!
+  }
+  const mobileFab = () => {
+    const buttons = screen.getAllByRole('button', { name: 'Nouveau' })
+    return buttons[buttons.length - 1]!
+  }
+
+  it('le bouton mobile est empilé sous le « + », dans le même conteneur', () => {
+    renderProjects()
+
+    const fab = mobileFab()
+    const express = mobileExpress()
+    const stack = fab.parentElement!
+
+    expect(stack).toContainElement(express)
+    expect(fab.compareDocumentPosition(express) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // un seul conteneur fixe : le mode gaucher le déplace d'un bloc (.bottom-fab)
+    expect(stack).toHaveClass('bottom-fab')
+    expect(express).not.toHaveClass('fixed')
+  })
+
+  it('cliquer dessus ouvre /chantiers/express', async () => {
+    renderProjects()
+    await userEvent.click(mobileExpress())
+    expect(mockNavigate).toHaveBeenCalledWith('/chantiers/express')
+  })
+
+  it('absent sans permission de création', () => {
+    useAuthStore.setState({ accessToken: 'tok', username: 'f', role: 'MEMBER', userId: 'u2', permissions: { chantiers: ['read'], clients: [], equipe: [], prestations: [] } })
+    renderProjects()
+    expect(screen.queryByRole('button', { name: 'Intervention rapide' })).not.toBeInTheDocument()
+  })
+})
