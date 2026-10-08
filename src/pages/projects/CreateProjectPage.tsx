@@ -249,7 +249,7 @@ export function CreateProjectPage() {
 
         </div>
 
-        <div className="space-y-2" data-tutorial="project-client">
+        <div className="space-y-2" data-tutorial="project-client" data-tutorial-ready={selectedClient ? 'true' : 'false'}>
           <Label>{t('create_project.label_client')} *</Label>
           <ClientSearch value={selectedClient} onChange={handleClientChange} />
         </div>

@@ -588,6 +588,7 @@
     "finish": "Terminar",
     "quit": "Salir",
     "step_of": "Paso {{current}} de {{total}}",
+    "fill_required": "Rellene los campos obligatorios (*) para continuar.",
     "your_turn": "Aquí es donde usted interviene",
     "action_hint": "Toca el elemento resaltado para continuar.",
     "target_missing": "No se pudo mostrar este paso. El tutorial se ha detenido.",

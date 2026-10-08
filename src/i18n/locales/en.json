@@ -588,6 +588,7 @@
     "finish": "Finish",
     "quit": "Quit",
     "step_of": "Step {{current}} of {{total}}",
+    "fill_required": "Fill in the required fields (*) to continue.",
     "your_turn": "This is where you act",
     "action_hint": "Tap the highlighted element to continue.",
     "target_missing": "This step could not be displayed. The tutorial was stopped.",

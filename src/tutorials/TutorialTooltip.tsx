@@ -1,15 +1,42 @@
+import { useEffect, useState } from 'react'
 import { Hand } from 'lucide-react'
 import type { TooltipRenderProps } from 'react-joyride'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/providers/ThemeProvider'
 import { cn } from '@/lib/utils'
 import { useTutorial } from './TutorialProvider'
+import { findVisible, isZoneFilled } from './dom'
 import type { StepAdvance } from './definitions'
 
 export interface TutorialStepData {
   advance: StepAdvance
   canGoBack: boolean
   interactive?: boolean
+  gate?: boolean
+  targetName?: string
+}
+
+/** Vrai quand les champs obligatoires de la zone ciblée sont remplis (toujours vrai si l'étape n'est pas bloquante). */
+function useZoneFilled(targetName: string | undefined, enabled: boolean): boolean {
+  const [filled, setFilled] = useState(() => !enabled || isZoneFilled(targetName ? findVisible(targetName) : null))
+
+  useEffect(() => {
+    if (!enabled || !targetName) { setFilled(true); return }
+    const update = () => { setFilled(isZoneFilled(findVisible(targetName))) }
+    update()
+    // Les mises à jour de React (sélection dans une liste, saisie automatique…) arrivent après l'événement :
+    // on réévalue aussi à intervalle court plutôt que de dépendre de chaque cas.
+    const timer = window.setInterval(update, 300)
+    document.addEventListener('input', update, true)
+    document.addEventListener('change', update, true)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('input', update, true)
+      document.removeEventListener('change', update, true)
+    }
+  }, [targetName, enabled])
+
+  return filled
 }
 
 export function TutorialTooltip({
@@ -25,6 +52,7 @@ export function TutorialTooltip({
   const { t } = useTutorial()
   const { handedness } = useTheme()
   const data = step.data as TutorialStepData
+  const filled = useZoneFilled(data.targetName, Boolean(data.gate))
 
   return (
     <div
@@ -50,6 +78,12 @@ export function TutorialTooltip({
         </p>
       )}
 
+      {!filled && (
+        <p className="mt-3 text-xs font-medium text-amber-600 dark:text-amber-400">
+          {t('tutorials.fill_required')}
+        </p>
+      )}
+
       <div
         className={cn(
           'mt-4 flex items-center justify-between gap-2',
@@ -66,7 +100,7 @@ export function TutorialTooltip({
             </Button>
           )}
           {data.advance === 'next' && (
-            <Button size="sm" className="min-h-[44px]" {...primaryProps}>
+            <Button size="sm" className="min-h-[44px]" {...primaryProps} disabled={!filled}>
               {isLastStep ? t('tutorials.finish') : t('tutorials.next')}
             </Button>
           )}

@@ -8,6 +8,7 @@ import type { EventHandler, Step } from 'react-joyride'
 import { TutorialTooltip } from './TutorialTooltip'
 import type { TutorialStepData } from './TutorialTooltip'
 import { getSteps, getTutorial } from './definitions'
+import { findVisible } from './dom'
 import type { TutorialId, TutorialStepDef, TutorialVariant } from './definitions'
 import { apiRequest } from '@/lib/api-client'
 import { useAuthStore } from '@/store/auth.store'
@@ -42,12 +43,6 @@ async function findAwaitingSignatureProjectId(): Promise<string | null> {
 function primaryColor(): string {
   const raw = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()
   return raw ? `hsl(${raw})` : '#277a3f'
-}
-
-/** Les éléments mobile/desktop partagent le même data-tutorial : on prend celui qui est affiché. */
-function findVisible(name: string): HTMLElement | null {
-  const nodes = document.querySelectorAll<HTMLElement>(`[data-tutorial="${name}"]`)
-  return Array.from(nodes).find((el) => el.getClientRects().length > 0) ?? null
 }
 
 interface TutorialContextValue {
@@ -193,6 +188,8 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
       const data: TutorialStepData = {
         advance: s.advance,
         interactive: s.interactive,
+        gate: s.gate,
+        targetName: s.target,
         // « Précédent » seulement si l'étape d'avant est sur la même page
         canGoBack: i > 0 && defSteps[i - 1]!.route.source === s.route.source,
       }

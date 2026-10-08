@@ -588,6 +588,7 @@
     "finish": "Fertig",
     "quit": "Beenden",
     "step_of": "Schritt {{current}} von {{total}}",
+    "fill_required": "Füllen Sie die Pflichtfelder (*) aus, um fortzufahren.",
     "your_turn": "Hier sind Sie gefragt",
     "action_hint": "Tippen Sie auf das hervorgehobene Element, um fortzufahren.",
     "target_missing": "Dieser Schritt konnte nicht angezeigt werden. Die Anleitung wurde beendet.",

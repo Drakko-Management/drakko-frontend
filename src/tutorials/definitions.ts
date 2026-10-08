@@ -28,6 +28,8 @@ export interface TutorialStepDef {
   optional?: boolean
   /** Zone où l'utilisateur doit agir (saisir, choisir, signer) : contour coloré + repère dans la bulle */
   interactive?: boolean
+  /** « Suivant » reste bloqué tant que les champs obligatoires de la zone ne sont pas remplis */
+  gate?: boolean
   /** Capture affichée dans la bulle : `public/tutorials/<image>-<langue>.png` */
   image?: string
   placement?: 'top' | 'bottom' | 'left' | 'right'
@@ -75,10 +77,10 @@ export const TUTORIALS: TutorialDef[] = [
     permission: { module: 'clients', action: 'create' },
     steps: [
       { id: 'new', route: /^\/clients$/, target: 'clients-new', advance: 'action' },
-      { id: 'name', route: /^\/clients\/nouveau$/, target: 'client-name', advance: 'next' },
-      { id: 'email', route: /^\/clients\/nouveau$/, target: 'client-email', advance: 'next' },
+      { id: 'name', route: /^\/clients\/nouveau$/, target: 'client-name', advance: 'next', gate: true },
+      { id: 'email', route: /^\/clients\/nouveau$/, target: 'client-email', advance: 'next', gate: true },
       { id: 'phone', route: /^\/clients\/nouveau$/, target: 'client-phone', advance: 'next' },
-      { id: 'address', route: /^\/clients\/nouveau$/, target: 'client-address', advance: 'next' },
+      { id: 'address', route: /^\/clients\/nouveau$/, target: 'client-address', advance: 'next', gate: true },
       { id: 'notes', route: /^\/clients\/nouveau$/, target: 'client-notes', advance: 'next' },
       { id: 'submit', route: /^\/clients\/nouveau$/, target: 'client-submit', advance: 'action', placement: 'top' },
       { id: 'done', route: /^\/clients\/(?!nouveau$)[^/]+$/, target: 'center', advance: 'next' },
@@ -91,10 +93,10 @@ export const TUTORIALS: TutorialDef[] = [
     permission: { module: 'chantiers', action: 'create' },
     steps: [
       { id: 'new', route: /^\/chantiers$/, target: 'projects-new', advance: 'action' },
-      { id: 'title', route: /^\/chantiers\/nouveau$/, target: 'project-title', advance: 'next' },
+      { id: 'title', route: /^\/chantiers\/nouveau$/, target: 'project-title', advance: 'next', gate: true },
       // La liste déroulante des clients dépasse de la cible : on étend la zone cliquable vers le bas
-      { id: 'client', route: /^\/chantiers\/nouveau$/, target: 'project-client', advance: 'next', placement: 'top', spotlightPadding: { bottom: 340 } },
-      { id: 'address', route: /^\/chantiers\/nouveau$/, target: 'project-address', advance: 'next' },
+      { id: 'client', route: /^\/chantiers\/nouveau$/, target: 'project-client', advance: 'next', placement: 'top', spotlightPadding: { bottom: 340 }, gate: true },
+      { id: 'address', route: /^\/chantiers\/nouveau$/, target: 'project-address', advance: 'next', gate: true },
       { id: 'planning', route: /^\/chantiers\/nouveau$/, target: 'project-planning', advance: 'next' },
       { id: 'submit', route: /^\/chantiers\/nouveau$/, target: 'project-submit', advance: 'action', placement: 'top' },
       { id: 'done', route: /^\/chantiers\/(?!nouveau$|express$)[^/]+$/, target: 'center', advance: 'next' },
@@ -107,7 +109,7 @@ export const TUTORIALS: TutorialDef[] = [
     permission: { module: 'chantiers', action: 'create' },
     steps: [
       { id: 'new', route: /^\/chantiers$/, target: 'projects-express', advance: 'action' },
-      { id: 'client', route: /^\/chantiers\/express$/, target: 'express-client', advance: 'next' },
+      { id: 'client', route: /^\/chantiers\/express$/, target: 'express-client', advance: 'next', gate: true },
       { id: 'project', route: /^\/chantiers\/express$/, target: 'express-project', advance: 'next' },
       { id: 'submit', route: /^\/chantiers\/express$/, target: 'express-submit', advance: 'action', placement: 'top' },
       { id: 'done', route: /^\/chantiers\/[^/]+\/rapport$/, target: 'center', advance: 'next' },
@@ -143,7 +145,7 @@ export const TUTORIALS: TutorialDef[] = [
       { id: 'accepted', route: SIGN_PAGE, target: 'sign-choice-accepted', advance: 'next', optional: true, interactive: true },
       { id: 'reserves', route: SIGN_PAGE, target: 'sign-choice-accepted_with_reserves', advance: 'next', optional: true, interactive: true },
       { id: 'refused', route: SIGN_PAGE, target: 'sign-choice-refused', advance: 'next', optional: true, interactive: true },
-      { id: 'identity', route: SIGN_PAGE, target: 'sign-identity', advance: 'next', optional: true, interactive: true },
+      { id: 'identity', route: SIGN_PAGE, target: 'sign-identity', advance: 'next', optional: true, interactive: true, gate: true },
       { id: 'signature', route: SIGN_PAGE, target: 'sign-canvas', advance: 'next', optional: true, interactive: true },
       { id: 'submit', route: SIGN_PAGE, target: 'sign-submit', advance: 'next', blockInteraction: true, placement: 'top', optional: true, interactive: true },
     ],
@@ -157,7 +159,7 @@ export const TUTORIALS: TutorialDef[] = [
     steps: [
       { id: 'tab', route: /^\/utilisateurs$/, target: 'team-roles-tab', advance: 'click' },
       { id: 'new', route: /^\/utilisateurs$/, target: 'team-new', advance: 'action' },
-      { id: 'name', route: /^\/utilisateurs\/roles\/nouveau$/, target: 'role-name', advance: 'next' },
+      { id: 'name', route: /^\/utilisateurs\/roles\/nouveau$/, target: 'role-name', advance: 'next', gate: true },
       { id: 'permissions', route: /^\/utilisateurs\/roles\/nouveau$/, target: 'role-permissions', advance: 'next', placement: 'top' },
       { id: 'submit', route: /^\/utilisateurs\/roles\/nouveau$/, target: 'role-submit', advance: 'action', placement: 'top' },
       { id: 'done', route: /^\/utilisateurs$/, target: 'center', advance: 'next' },

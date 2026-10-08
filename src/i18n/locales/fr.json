@@ -588,6 +588,7 @@
     "finish": "Terminer",
     "quit": "Quitter",
     "step_of": "Étape {{current}} sur {{total}}",
+    "fill_required": "Remplissez les champs obligatoires (*) pour continuer.",
     "your_turn": "C'est ici que vous intervenez",
     "action_hint": "Appuyez sur l'élément en surbrillance pour continuer.",
     "target_missing": "Impossible d'afficher cette étape. Le tutoriel a été arrêté.",
