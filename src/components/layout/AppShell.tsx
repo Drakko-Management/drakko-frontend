@@ -3,7 +3,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import { InstallBanner } from '@/components/common/InstallBanner'
-import { PwaUpdatePrompt } from '@/components/common/PwaUpdatePrompt'
+import { PwaAutoUpdate } from '@/components/common/PwaAutoUpdate'
 import { TutorialProvider } from '@/tutorials/TutorialProvider'
 import { useProjectLiveRefresh, useProjectUpdateSync } from '@/hooks/use-project-sync'
 import { useSessionSync } from '@/hooks/use-session-sync'
@@ -19,7 +19,7 @@ export function AppShell() {
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header className="lg:hidden" />
           <InstallBanner />
-          <PwaUpdatePrompt />
+          <PwaAutoUpdate />
           <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <Outlet />
           </main>
