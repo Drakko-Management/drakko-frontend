@@ -13,6 +13,7 @@ import { useServices } from '@/hooks/use-services'
 import { useProject } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { ReportLine } from '@/types/api'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 function ReportLineCard({
   line,
@@ -212,21 +213,24 @@ export function ReportPage() {
           </button>
           <h1 className="text-lg font-bold">{t('report.title')}</h1>
         </div>
-        {canEdit && !isLocked && dirty && (
-          <Button
-            size="sm"
-            className="min-h-[44px] gap-1.5"
-            onClick={() => void handleSave()}
-            disabled={updateReport.isPending}
-          >
-            {updateReport.isPending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Save className="h-3.5 w-3.5" />
-            )}
-            {t('report.save')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <TutorialHelpButton scope="report" className="h-10 w-10 shrink-0" />
+          {canEdit && !isLocked && dirty && (
+            <Button
+              size="sm"
+              className="min-h-[44px] gap-1.5"
+              onClick={() => void handleSave()}
+              disabled={updateReport.isPending}
+            >
+              {updateReport.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
+              {t('report.save')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {project && (
@@ -242,12 +246,13 @@ export function ReportPage() {
       )}
 
       {/* Service lines section */}
-      <div className="space-y-2">
+      <div className="space-y-2" data-tutorial="report-lines">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">{t('report.lines_title')}</p>
           {canEdit && !isLocked && !addOpen && (
             <button
               className="flex items-center gap-1 text-xs text-primary font-medium min-h-[36px] px-2 rounded-lg active:bg-primary/10"
+              data-tutorial="report-add"
               onClick={() => setAddOpen(true)}
             >
               <Plus className="h-3.5 w-3.5" />
@@ -274,7 +279,7 @@ export function ReportPage() {
 
         {addOpen && canEdit && !isLocked && (
           <div className="rounded-xl border bg-card p-3 space-y-3">
-            <div className="space-y-1">
+            <div className="space-y-1" data-tutorial="report-service">
               <Label htmlFor="line-service">{t('report.line_title_label')}</Label>
               <select
                 id="line-service"
@@ -298,7 +303,7 @@ export function ReportPage() {
                 />
               )}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1" data-tutorial="report-complement">
               <Label htmlFor="line-complement">{t('report.line_complement_label')}</Label>
               <Input
                 id="line-complement"
@@ -308,7 +313,7 @@ export function ReportPage() {
                 className="min-h-[44px]"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2" data-tutorial="report-validate">
               <Button
                 type="button"
                 variant="outline"
@@ -342,7 +347,7 @@ export function ReportPage() {
         )}
       </div>
 
-      <div className="border-t pt-4 space-y-2">
+      <div className="border-t pt-4 space-y-2" data-tutorial="report-comment">
         <Label htmlFor="comment">{t('report.comment_label')}</Label>
 
         {isLoading ? (
@@ -370,6 +375,7 @@ export function ReportPage() {
       {canEdit && !isLocked && (
         <Button
           className="w-full min-h-[48px]"
+          data-tutorial="report-save"
           onClick={() => void handleSave()}
           disabled={updateReport.isPending || !dirty}
         >

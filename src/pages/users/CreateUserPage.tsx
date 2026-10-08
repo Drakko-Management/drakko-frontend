@@ -106,7 +106,7 @@ export function CreateUserPage() {
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" data-tutorial="user-name">
           <div className="space-y-2">
             <Label htmlFor="cu-fn">{t('common.first_name')} *</Label>
             <Input
@@ -128,7 +128,7 @@ export function CreateUserPage() {
             />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="user-identifier">
           <Label htmlFor="cu-uname">{t('common.identifier')} *</Label>
           <Input
             id="cu-uname"
@@ -140,7 +140,7 @@ export function CreateUserPage() {
             required
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="user-email">
           <Label htmlFor="cu-email">{t('common.email')}</Label>
           <Input
             id="cu-email"
@@ -150,7 +150,7 @@ export function CreateUserPage() {
             onChange={(e) => setField('email', e.target.value)}
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="user-password">
           <Label htmlFor="cu-pw">{t('common.password')} *</Label>
           <Input
             id="cu-pw"
@@ -163,7 +163,7 @@ export function CreateUserPage() {
             required
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="user-role">
           <Label>{t('common.role')}</Label>
           <RoleSelect
             value={form.role}
@@ -174,6 +174,7 @@ export function CreateUserPage() {
         <Button
           type="submit"
           className="w-full min-h-[48px] text-base"
+          data-tutorial="user-submit"
           disabled={createUser.isPending}
         >
           {createUser.isPending ? (

@@ -51,6 +51,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { formatDate, formatCurrency, fullName } from "@/lib/utils";
 import type { Photo, ProjectStatus } from "@/types/api";
 import { PhotoLightbox } from "@/components/common/PhotoLightbox";
+import { TutorialHelpButton } from "@/tutorials/TutorialHelpButton";
 
 const NEXT_STATUS: Partial<Record<ProjectStatus, ProjectStatus>> = {
   DRAFT: "PLANNED",
@@ -227,6 +228,7 @@ export function ProjectDetailPage() {
             {project.title}
           </h1>
         </div>
+        <TutorialHelpButton scope="project" className="mt-0.5 h-10 w-10 shrink-0" />
         {can('chantiers', 'update') && !isLocked && (
           <button
             aria-label={t('project.edit_aria')}
@@ -275,7 +277,7 @@ export function ProjectDetailPage() {
 
       {/* Stepper — desktop only, centered in header area */}
       {project.status !== "DISPUTED" && (
-        <div className="hidden md:flex justify-center">
+        <div className="hidden md:flex justify-center" data-tutorial="project-stepper">
           <Stepper status={project.status} hasReserveLift={!!project.reserveLiftSignature} />
         </div>
       )}
@@ -341,7 +343,7 @@ export function ProjectDetailPage() {
 
       {/* Stepper — mobile only */}
       {project.status !== "DISPUTED" && (
-        <Card className="p-4 md:hidden">
+        <Card className="p-4 md:hidden" data-tutorial="project-stepper">
           <Stepper status={project.status} hasReserveLift={!!project.reserveLiftSignature} />
         </Card>
       )}
@@ -350,6 +352,7 @@ export function ProjectDetailPage() {
       {can('chantiers', 'update') && NEXT_STATUS[project.status] && (
         <Button
           className="w-full min-h-[48px] text-base"
+          data-tutorial="project-action"
           onClick={() => void handleTransition()}
           disabled={updateStatus.isPending}
         >
@@ -630,7 +633,7 @@ export function ProjectDetailPage() {
       </Card>
 
       {/* Team */}
-      <div className="space-y-2">
+      <div className="space-y-2" data-tutorial="project-team">
         <h2 className="text-sm font-semibold">{t('project.team')}</h2>
         <Card className="divide-y">
           {assignedUsers.length === 0 && (
@@ -693,7 +696,7 @@ export function ProjectDetailPage() {
 
       {/* Photos */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" data-tutorial="project-photos">
           <h2 className="text-sm font-semibold">{t('project.photos')}</h2>
           <button
             className="flex items-center gap-1 text-xs text-primary font-medium min-h-[44px]"
@@ -774,7 +777,7 @@ export function ProjectDetailPage() {
       )}
 
       {/* Report */}
-      <div className="space-y-2">
+      <div className="space-y-2" data-tutorial="project-report">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">{t('project.report')}</h2>
           {can('chantiers', 'update') && !isLocked && (

@@ -121,6 +121,7 @@ export function InstallModal({ open, onClose }: Props) {
       <div className="absolute inset-0 bg-black/40" />
       <div
         className="relative w-full max-w-sm rounded-2xl bg-card p-5 shadow-xl"
+        data-tutorial="install-modal"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">

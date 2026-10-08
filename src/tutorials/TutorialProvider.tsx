@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
@@ -34,9 +34,25 @@ function writeCompleted(userId: string | null, ids: TutorialId[]) {
   }
 }
 
-async function findAwaitingSignatureProjectId(): Promise<string | null> {
-  const res = await apiRequest<Paginated<Project>>('/projects?status=AWAITING_SIGNATURE&page=1&limit=1')
-  return res.data[0]?.id ?? null
+/** Id du chantier de la page courante (`/chantiers/:id`, `/photos`, `/rapport`, `/modifier`), s'il y en a un. */
+function currentProjectId(pathname: string): string | null {
+  const m = pathname.match(/^\/chantiers\/(?!nouveau$|express$)([^/]+)(?:\/(?:photos|rapport|modifier))?$/)
+  return m?.[1] ?? null
+}
+
+const STATUSES_BY_NEED = {
+  awaiting_signature_project: ['AWAITING_SIGNATURE'],
+  editable_project: ['IN_PROGRESS', 'PLANNED', 'DRAFT'],
+} as const
+
+/** Cherche le chantier dont a besoin un tutoriel (le plus avancé d'abord pour un chantier « modifiable »). */
+async function findProjectId(needs: 'awaiting_signature_project' | 'editable_project'): Promise<string | null> {
+  for (const status of STATUSES_BY_NEED[needs]) {
+    const res = await apiRequest<Paginated<Project>>(`/projects?status=${status}&page=1&limit=1`)
+    const id = res.data[0]?.id
+    if (id) return id
+  }
+  return null
 }
 
 /** Couleur d'accent courante (variable CSS `--primary`, ex. « 24 63% 47% ») au format utilisable dans un SVG */
@@ -81,6 +97,8 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const userId = useAuthStore((s) => s.userId)
+  const pathnameRef = useRef(pathname)
+  pathnameRef.current = pathname
   const [activeId, setActiveId] = useState<TutorialId | null>(null)
   const [index, setIndex] = useState(0)
   const [variant, setVariant] = useState<TutorialVariant>('main')
@@ -100,10 +118,17 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
         const def = getTutorial(id)
         let route: string | null = def.startRoute
         let nextVariant: TutorialVariant = 'main'
-        if (def.needs === 'awaiting_signature_project') {
+        if (def.needs) {
           try {
-            const projectId = await findAwaitingSignatureProjectId()
-            if (projectId) route = `/chantiers/${projectId}`
+            // Lancé depuis la page d'un chantier : on reste sur CE chantier s'il convient
+            const here = currentProjectId(pathnameRef.current)
+            let projectId: string | null = null
+            if (here) {
+              const current = await apiRequest<{ status: string }>(`/projects/${here}`)
+              if ((STATUSES_BY_NEED[def.needs] as readonly string[]).includes(current.status)) projectId = here
+            }
+            projectId ??= await findProjectId(def.needs)
+            if (projectId && def.dataRoute) route = def.dataRoute.replace(':id', projectId)
             else nextVariant = 'fallback'
           } catch {
             nextVariant = 'fallback'
@@ -215,11 +240,11 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
         ...(s.blockInteraction && { blockTargetInteraction: true }),
         // Zone d'action : contour dans la couleur de l'entreprise pour la distinguer d'une simple explication
         ...(s.interactive && { styles: { spotlight: { stroke: primaryColor(), strokeWidth: 3 } } }),
-        // Élément facultatif déjà présent sur la page (ou non) : pas besoin d'attendre longtemps
-        ...(s.optional && { targetWaitTimeout: 400 }),
+        // Page publique déjà affichée : l'élément est là ou ne viendra pas. Sur une page qui charge ses données, on garde l'attente par défaut.
+        ...(s.optional && stepsOverride && { targetWaitTimeout: 400 }),
       }
     })
-  }, [activeId, activeSteps, t, i18n, lang, textVariant])
+  }, [activeId, activeSteps, stepsOverride, t, i18n, lang, textVariant])
 
   const onEvent = useCallback<EventHandler>(
     (data) => {

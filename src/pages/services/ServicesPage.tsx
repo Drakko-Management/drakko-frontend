@@ -20,6 +20,7 @@ import {
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuthStore } from "@/store/auth.store";
 import type { Service } from "@/types/api";
+import { TutorialHelpButton } from "@/tutorials/TutorialHelpButton";
 
 interface ServiceFormData {
   title: string;
@@ -312,25 +313,29 @@ export function ServicesPage() {
             <span className="lg:hidden">{t("services.title_short")}</span>
             <span className="hidden lg:inline">{t("services.title")}</span>
           </h1>
-          {view === "active" && can('prestations', 'create') ? (
-            <Button
-              size="sm"
-              className="min-h-[44px] gap-1.5 hidden md:flex"
-              onClick={() => void navigate('/prestations/nouveau')}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t("services.add")}
-            </Button>
-          ) : view === "inactive" ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="min-h-[44px]"
-              onClick={() => switchView("active")}
-            >
-              {t("services.view_active", { count: activeServices.length })}
-            </Button>
-          ) : null}
+          <div className="flex items-center gap-2">
+            <TutorialHelpButton scope="services" />
+            {view === "active" && can('prestations', 'create') ? (
+              <Button
+                size="sm"
+                className="min-h-[44px] gap-1.5 hidden md:flex"
+                data-tutorial="services-new"
+                onClick={() => void navigate('/prestations/nouveau')}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t("services.add")}
+              </Button>
+            ) : view === "inactive" ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-[44px]"
+                onClick={() => switchView("active")}
+              >
+                {t("services.view_active", { count: activeServices.length })}
+              </Button>
+            ) : null}
+          </div>
         </div>
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -450,7 +455,7 @@ export function ServicesPage() {
       )}
 
       {view === "active" && can('prestations', 'create') && (
-        <Fab onClick={() => void navigate('/prestations/nouveau')} />
+        <Fab tutorial="services-new" onClick={() => void navigate('/prestations/nouveau')} />
       )}
     </div>
   );

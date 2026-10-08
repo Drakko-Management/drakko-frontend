@@ -44,7 +44,7 @@ export function CreateServicePage() {
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="service-title">
           <Label htmlFor="svc-title">{t('services.form_title_label')} *</Label>
           <Input
             id="svc-title"
@@ -56,7 +56,7 @@ export function CreateServicePage() {
             required
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="service-unit">
           <Label htmlFor="svc-unit">{t('services.form_unit_label')}</Label>
           <Input
             id="svc-unit"
@@ -66,7 +66,7 @@ export function CreateServicePage() {
             placeholder={t('services.form_unit_placeholder')}
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="service-description">
           <Label htmlFor="svc-desc">{t('services.form_description_label')}</Label>
           <Input
             id="svc-desc"
@@ -79,6 +79,7 @@ export function CreateServicePage() {
         <Button
           type="submit"
           className="w-full min-h-[48px] text-base"
+          data-tutorial="service-submit"
           disabled={createService.isPending || !form.title.trim()}
         >
           {createService.isPending ? (

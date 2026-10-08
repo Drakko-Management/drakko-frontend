@@ -55,7 +55,7 @@ function PhotoSection({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-tutorial={`photos-${type.toLowerCase()}`}>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">
           {label} <span className="text-muted-foreground font-normal">({filtered.length})</span>
@@ -175,6 +175,7 @@ export function PhotosPage() {
       <div className="flex items-center gap-3">
         <button
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card active:bg-muted"
+          data-tutorial="photos-back"
           onClick={() => void navigate(`/chantiers/${id}`)}
         >
           <ArrowLeft className="h-4 w-4" />

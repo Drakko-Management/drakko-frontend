@@ -28,6 +28,7 @@ export function InstallBanner() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
+          data-tutorial="install-open"
           className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
         >
           {t('install.install_btn')}

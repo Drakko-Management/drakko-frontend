@@ -8,6 +8,7 @@ import { usePwaInstall } from '@/hooks/use-pwa-install'
 import { InstallModal } from '@/components/common/InstallModal'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 interface HubRowProps {
   icon: React.ElementType
@@ -45,7 +46,10 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6 pb-4">
-      <h1 className="text-xl font-bold">{t('settings.title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">{t('settings.title')}</h1>
+        <TutorialHelpButton scope="settings" />
+      </div>
 
       {/* Mon compte */}
       <div className="space-y-2">
@@ -104,6 +108,7 @@ export function SettingsPage() {
           <Button
             variant="outline"
             className="w-full min-h-[48px] gap-2"
+            data-tutorial="install-open"
             onClick={() => setInstallOpen(true)}
           >
             <Smartphone className="h-4 w-4" />

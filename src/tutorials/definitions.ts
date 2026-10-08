@@ -1,9 +1,9 @@
 import type { PermAction, PermModule } from '@/types/api'
 
-export type TutorialId = 'create_client' | 'create_project' | 'express_project' | 'create_role' | 'send_signature' | 'sign_page'
+export type TutorialId = 'create_client' | 'create_project' | 'express_project' | 'create_role' | 'send_signature' | 'sign_page' | 'create_service' | 'install_app' | 'run_project' | 'fill_report' | 'create_member'
 
 /** Page (ou module) à laquelle un tutoriel est rattaché : sert au bouton « ? » de la page. */
-export type TutorialScope = 'clients' | 'projects' | 'team' | 'sign'
+export type TutorialScope = 'clients' | 'projects' | 'project' | 'report' | 'team' | 'sign' | 'services' | 'settings'
 
 /**
  * - `next`   : l'utilisateur appuie sur « Suivant » dans la bulle.
@@ -39,7 +39,8 @@ export interface TutorialStepDef {
 
 export interface TutorialDef {
   id: TutorialId
-  scope: TutorialScope
+  /** Page(s) dont le bouton « ? » propose ce tutoriel */
+  scope: TutorialScope | TutorialScope[]
   /** Page de départ du tutoriel (`null` : on reste sur la page courante) */
   startRoute: string | null
   /**
@@ -55,7 +56,14 @@ export interface TutorialDef {
    * Le tutoriel s'appuie sur une donnée existante (ex. un chantier en attente de signature) :
    * le provider la cherche au démarrage et ouvre la page correspondante.
    */
-  needs?: 'awaiting_signature_project'
+  needs?: 'awaiting_signature_project' | 'editable_project'
+  /**
+   * Page à ouvrir quand la donnée requise existe (`:id` = id du chantier trouvé).
+   * Sinon on reste sur `startRoute` avec les `fallbackSteps`.
+   */
+  dataRoute?: string
+  /** Condition d'environnement : le tutoriel n'a de sens que si elle est remplie */
+  requires?: 'pwa_installable'
   /** Étapes explicatives utilisées quand la donnée requise n'existe pas */
   fallbackSteps?: TutorialStepDef[]
 }
@@ -66,6 +74,8 @@ export function getSteps(def: TutorialDef, variant: TutorialVariant): TutorialSt
   return variant === 'fallback' && def.fallbackSteps ? def.fallbackSteps : def.steps
 }
 
+const PROJECT_PHOTOS = /^\/chantiers\/(?!nouveau$|express$)[^/]+\/photos$/
+const PROJECT_REPORT = /^\/chantiers\/(?!nouveau$|express$)[^/]+\/rapport$/
 const SIGN_PAGE = /^\/sign\/[^/]+$/
 const PROJECT_DETAIL = /^\/chantiers\/(?!nouveau$|express$)[^/]+$/
 
@@ -117,10 +127,11 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'send_signature',
-    scope: 'projects',
+    scope: ['projects', 'project'],
     startRoute: '/chantiers',
     permission: { module: 'chantiers', action: 'update' },
     needs: 'awaiting_signature_project',
+    dataRoute: '/chantiers/:id',
     steps: [
       { id: 'choose', route: PROJECT_DETAIL, target: 'project-sig-options', advance: 'next', blockInteraction: true },
       { id: 'onsite', route: PROJECT_DETAIL, target: 'project-sig-onsite', advance: 'next', blockInteraction: true },
@@ -132,6 +143,94 @@ export const TUTORIALS: TutorialDef[] = [
       { id: 'none_1', route: /^\/chantiers$/, target: 'center', advance: 'next', image: 'signature-options' },
       { id: 'none_2', route: /^\/chantiers$/, target: 'center', advance: 'next' },
       { id: 'none_3', route: /^\/chantiers$/, target: 'center', advance: 'next' },
+    ],
+  },
+  {
+    id: 'create_service',
+    scope: 'services',
+    startRoute: '/prestations',
+    permission: { module: 'prestations', action: 'create' },
+    steps: [
+      { id: 'new', route: /^\/prestations$/, target: 'services-new', advance: 'action' },
+      { id: 'title', route: /^\/prestations\/nouveau$/, target: 'service-title', advance: 'next', gate: true },
+      { id: 'unit', route: /^\/prestations\/nouveau$/, target: 'service-unit', advance: 'next' },
+      { id: 'description', route: /^\/prestations\/nouveau$/, target: 'service-description', advance: 'next' },
+      { id: 'submit', route: /^\/prestations\/nouveau$/, target: 'service-submit', advance: 'action', placement: 'top' },
+      { id: 'done', route: /^\/prestations$/, target: 'center', advance: 'next' },
+    ],
+  },
+  {
+    id: 'create_member',
+    scope: 'team',
+    startRoute: '/utilisateurs',
+    permission: { module: 'equipe', action: 'create' },
+    steps: [
+      { id: 'new', route: /^\/utilisateurs$/, target: 'team-new', advance: 'action' },
+      { id: 'name', route: /^\/utilisateurs\/nouveau$/, target: 'user-name', advance: 'next', gate: true },
+      { id: 'identifier', route: /^\/utilisateurs\/nouveau$/, target: 'user-identifier', advance: 'next', gate: true },
+      { id: 'email', route: /^\/utilisateurs\/nouveau$/, target: 'user-email', advance: 'next' },
+      { id: 'password', route: /^\/utilisateurs\/nouveau$/, target: 'user-password', advance: 'next', gate: true },
+      { id: 'role', route: /^\/utilisateurs\/nouveau$/, target: 'user-role', advance: 'next' },
+      { id: 'submit', route: /^\/utilisateurs\/nouveau$/, target: 'user-submit', advance: 'action', placement: 'top' },
+      { id: 'done', route: /^\/utilisateurs$/, target: 'center', advance: 'next' },
+    ],
+  },
+  {
+    id: 'install_app',
+    scope: 'settings',
+    startRoute: '/parametres',
+    requires: 'pwa_installable',
+    steps: [
+      { id: 'open', route: /^\/parametres$/, target: 'install-open', advance: 'click' },
+      { id: 'modal', route: /^\/parametres$/, target: 'install-modal', advance: 'next' },
+      { id: 'done', route: /^\/parametres$/, target: 'center', advance: 'next' },
+    ],
+  },
+  {
+    id: 'run_project',
+    scope: ['projects', 'project'],
+    startRoute: '/chantiers',
+    dataRoute: '/chantiers/:id',
+    permission: { module: 'chantiers', action: 'update' },
+    needs: 'editable_project',
+    // Visite guidée sur un vrai chantier : les actions qui modifient des données sont verrouillées
+    steps: [
+      { id: 'stepper', route: PROJECT_DETAIL, target: 'project-stepper', advance: 'next' },
+      { id: 'action', route: PROJECT_DETAIL, target: 'project-action', advance: 'next', blockInteraction: true, interactive: true, optional: true },
+      { id: 'team', route: PROJECT_DETAIL, target: 'project-team', advance: 'next', blockInteraction: true, interactive: true, optional: true },
+      { id: 'photos', route: PROJECT_DETAIL, target: 'project-photos', advance: 'action', interactive: true, optional: true },
+      { id: 'before', route: PROJECT_PHOTOS, target: 'photos-before', advance: 'next', blockInteraction: true, interactive: true },
+      { id: 'after', route: PROJECT_PHOTOS, target: 'photos-after', advance: 'next', blockInteraction: true, interactive: true },
+      { id: 'back', route: PROJECT_PHOTOS, target: 'photos-back', advance: 'action' },
+      { id: 'report', route: PROJECT_DETAIL, target: 'project-report', advance: 'next', blockInteraction: true, interactive: true, optional: true },
+    ],
+    // Aucun chantier en cours de préparation : on explique le principe, avec une capture
+    fallbackSteps: [
+      { id: 'none_1', route: /^\/chantiers$/, target: 'center', advance: 'next', image: 'project-lifecycle' },
+      { id: 'none_2', route: /^\/chantiers$/, target: 'center', advance: 'next' },
+      { id: 'none_3', route: /^\/chantiers$/, target: 'center', advance: 'next' },
+    ],
+  },
+  {
+    id: 'fill_report',
+    scope: ['projects', 'project', 'report'],
+    startRoute: '/chantiers',
+    dataRoute: '/chantiers/:id/rapport',
+    permission: { module: 'chantiers', action: 'update' },
+    needs: 'editable_project',
+    // Les boutons qui enregistrent sont verrouillés : on peut saisir, rien n'est enregistré par le guide
+    steps: [
+      { id: 'lines', route: PROJECT_REPORT, target: 'report-lines', advance: 'next' },
+      { id: 'add', route: PROJECT_REPORT, target: 'report-add', advance: 'click', optional: true },
+      { id: 'service', route: PROJECT_REPORT, target: 'report-service', advance: 'next', interactive: true, optional: true },
+      { id: 'complement', route: PROJECT_REPORT, target: 'report-complement', advance: 'next', interactive: true, optional: true },
+      { id: 'validate', route: PROJECT_REPORT, target: 'report-validate', advance: 'next', blockInteraction: true, optional: true },
+      { id: 'comment', route: PROJECT_REPORT, target: 'report-comment', advance: 'next', interactive: true },
+      { id: 'save', route: PROJECT_REPORT, target: 'report-save', advance: 'next', blockInteraction: true, optional: true },
+    ],
+    fallbackSteps: [
+      { id: 'none_1', route: /^\/chantiers$/, target: 'center', advance: 'next', image: 'report-page' },
+      { id: 'none_2', route: /^\/chantiers$/, target: 'center', advance: 'next' },
     ],
   },
   {
@@ -168,11 +267,18 @@ export const TUTORIALS: TutorialDef[] = [
 ]
 
 /** Un tutoriel est proposé seulement si l'utilisateur peut réellement faire les actions qu'il décrit. */
+export interface TutorialEnv {
+  /** Appareil mobile sur lequel l'appli n'est pas encore installée */
+  pwaInstallable?: boolean
+}
+
 export function isTutorialAvailable(
   def: TutorialDef,
   can: (module: PermModule, action: PermAction) => boolean,
   isAdmin: boolean,
+  env: TutorialEnv = {},
 ): boolean {
+  if (def.requires === 'pwa_installable' && !env.pwaInstallable) return false
   if (def.audience === 'public') return true
   if (def.adminOnly && !isAdmin) return false
   return def.permission ? can(def.permission.module, def.permission.action) : true

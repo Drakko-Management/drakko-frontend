@@ -3,6 +3,7 @@ import { CheckCircle2, PlayCircle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { usePermissions } from '@/hooks/use-permissions'
+import { usePwaInstall } from '@/hooks/use-pwa-install'
 import { SettingsSubHeader } from './SettingsSubHeader'
 import { TUTORIALS, isTutorialAvailable } from '@/tutorials/definitions'
 import { useTutorial } from '@/tutorials/TutorialProvider'
@@ -10,9 +11,10 @@ import { useTutorial } from '@/tutorials/TutorialProvider'
 export function SettingsTutorialsPage() {
   const { t } = useTranslation()
   const { can, isAdmin } = usePermissions()
+  const { isMobile, isInstalled } = usePwaInstall()
   const { start, completed } = useTutorial()
 
-  const available = TUTORIALS.filter((tuto) => tuto.audience !== 'public' && isTutorialAvailable(tuto, can, isAdmin))
+  const available = TUTORIALS.filter((tuto) => tuto.audience !== 'public' && isTutorialAvailable(tuto, can, isAdmin, { pwaInstallable: isMobile && !isInstalled }))
 
   return (
     <div className="space-y-4 pb-4">

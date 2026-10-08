@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { usePermissions } from '@/hooks/use-permissions'
 import { TUTORIALS, isTutorialAvailable } from './definitions'
 import type { TutorialScope } from './definitions'
+import { usePwaInstall } from '@/hooks/use-pwa-install'
 import { useTutorial } from './TutorialProvider'
 
 interface Props {
@@ -14,11 +15,12 @@ interface Props {
 /** Bouton « ? » d'une page : ouvre la liste des tutoriels liés à cette page. */
 export function TutorialHelpButton({ scope, className }: Props) {
   const { can, isAdmin } = usePermissions()
+  const { isMobile, isInstalled } = usePwaInstall()
   const { t, start, completed } = useTutorial()
   const [open, setOpen] = useState(false)
 
   const available = TUTORIALS.filter(
-    (tuto) => tuto.scope === scope && isTutorialAvailable(tuto, can, isAdmin),
+    (tuto) => [tuto.scope].flat().includes(scope) && isTutorialAvailable(tuto, can, isAdmin, { pwaInstallable: isMobile && !isInstalled }),
   )
   if (available.length === 0) return null
 
