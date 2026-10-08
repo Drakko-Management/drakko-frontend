@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { useUsers, useCreateUser, useUpdateUser } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
 import { useAuthStore } from '@/store/auth.store'
+import { makePermissions } from '@/lib/permissions'
 import { UsersPage } from './UsersPage'
 import type { User } from '@/types/api'
 
@@ -58,6 +60,19 @@ function mockMutation(overrides = {}) {
   return { mutateAsync: vi.fn(), isPending: false, ...overrides }
 }
 
+// Routeur réel avec des pages repères : on vérifie la destination de la navigation, pas un appel simulé
+function renderUsers() {
+  return render(
+    <MemoryRouter initialEntries={['/utilisateurs']}>
+      <Routes>
+        <Route path="/utilisateurs" element={<UsersPage />} />
+        <Route path="/utilisateurs/nouveau" element={<p>Page création membre</p>} />
+        <Route path="/utilisateurs/roles/nouveau" element={<p>Page création rôle</p>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+}
+
 // ── Reset ──────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -75,30 +90,31 @@ beforeEach(() => {
 
 describe('UsersPage — rendu', () => {
   it('affiche le titre Utilisateurs', () => {
-    render(<UsersPage />)
+    renderUsers()
     expect(screen.getByRole('heading', { name: 'Utilisateurs' })).toBeInTheDocument()
   })
 
-  it('affiche le bouton Nouveau', () => {
-    render(<UsersPage />)
-    expect(screen.getByRole('button', { name: /nouveau/i })).toBeInTheDocument()
+  it('affiche le bouton Nouveau (en-tête et bouton flottant mobile)', () => {
+    renderUsers()
+    // happy-dom ignore les classes responsive : les deux boutons sont dans le DOM
+    expect(screen.getAllByRole('button', { name: /nouveau/i })).toHaveLength(2)
   })
 
   it('ADMIN : affiche les onglets Membres et Rôles', () => {
-    render(<UsersPage />)
+    renderUsers()
     expect(screen.getByRole('button', { name: 'Membres' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Rôles' })).toBeInTheDocument()
   })
 
   it('MEMBER : n\'affiche pas l\'onglet Rôles', () => {
     useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: { chantiers: [], clients: [], equipe: ['read'], prestations: [] } })
-    render(<UsersPage />)
+    renderUsers()
     expect(screen.queryByRole('button', { name: 'Rôles' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Membres' })).not.toBeInTheDocument()
   })
 
   it('l\'onglet Membres est actif par défaut', () => {
-    render(<UsersPage />)
+    renderUsers()
     const membresTab = screen.getByRole('button', { name: 'Membres' })
     expect(membresTab.className).toContain('bg-background')
   })
@@ -108,7 +124,7 @@ describe('UsersPage — rendu', () => {
 
 describe('UsersPage — navigation par onglets', () => {
   it('cliquer sur "Rôles" affiche le contenu des rôles', async () => {
-    render(<UsersPage />)
+    renderUsers()
     await userEvent.click(screen.getByRole('button', { name: 'Rôles' }))
     // RolesTab renders "Aucun rôle configuré" when empty
     await waitFor(() => {
@@ -117,7 +133,7 @@ describe('UsersPage — navigation par onglets', () => {
   })
 
   it('cliquer sur "Membres" après "Rôles" revient à la liste des membres', async () => {
-    render(<UsersPage />)
+    renderUsers()
     await userEvent.click(screen.getByRole('button', { name: 'Rôles' }))
     await userEvent.click(screen.getByRole('button', { name: 'Membres' }))
     // State vide → EmptyState "Aucun utilisateur"
@@ -125,46 +141,43 @@ describe('UsersPage — navigation par onglets', () => {
       expect(screen.getByText('Aucun utilisateur')).toBeInTheDocument()
     })
   })
-
-  it('changer d\'onglet ferme le formulaire de création', async () => {
-    render(<UsersPage />)
-    await userEvent.click(screen.getByRole('button', { name: /nouveau/i }))
-    expect(screen.getByText('Nouvel utilisateur')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Rôles' }))
-    expect(screen.queryByText('Nouvel utilisateur')).not.toBeInTheDocument()
-  })
 })
 
-// ── Formulaire de création ─────────────────────────────────────────────────
+// ── Création (pages dédiées) ───────────────────────────────────────────────
 
-describe('UsersPage — formulaire Nouvel utilisateur', () => {
-  it('cliquer Nouveau affiche le formulaire', async () => {
-    render(<UsersPage />)
-    await userEvent.click(screen.getByRole('button', { name: /nouveau/i }))
-    expect(screen.getByText('Nouvel utilisateur')).toBeInTheDocument()
+describe('UsersPage — bouton Nouveau', () => {
+  it('sur l\'onglet Membres, Nouveau ouvre la création d\'un membre', async () => {
+    renderUsers()
+    const [header] = screen.getAllByRole('button', { name: 'Nouveau' })
+    await userEvent.click(header)
+    expect(screen.getByText('Page création membre')).toBeInTheDocument()
   })
 
-  it('cliquer Nouveau une deuxième fois masque le formulaire (toggle)', async () => {
-    render(<UsersPage />)
-    // Premier clic : affiche le formulaire
-    const toggleBtn = screen.getByRole('button', { name: 'Nouveau' })
-    await userEvent.click(toggleBtn)
-    expect(screen.getByText('Nouvel utilisateur')).toBeInTheDocument()
-    // Deuxième clic sur le premier bouton "Nouveau" (toggle header)
-    const allNewButtons = screen.getAllByRole('button', { name: 'Nouveau' })
-    await userEvent.click(allNewButtons[0]) // header toggle
-    await waitFor(() => {
-      expect(screen.queryByText('Nouvel utilisateur')).not.toBeInTheDocument()
-    })
+  it('sur l\'onglet Rôles, Nouveau ouvre la création d\'un rôle', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByRole('button', { name: 'Rôles' }))
+    const [header] = screen.getAllByRole('button', { name: 'Nouveau' })
+    await userEvent.click(header)
+    expect(screen.getByText('Page création rôle')).toBeInTheDocument()
   })
 
-  it('cliquer Annuler masque le formulaire', async () => {
-    render(<UsersPage />)
-    await userEvent.click(screen.getByRole('button', { name: /nouveau/i }))
-    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
-    await waitFor(() => {
-      expect(screen.queryByText('Nouvel utilisateur')).not.toBeInTheDocument()
-    })
+  it('le bouton flottant mobile mène à la même page que le bouton de l\'en-tête', async () => {
+    renderUsers()
+    const buttons = screen.getAllByRole('button', { name: 'Nouveau' })
+    await userEvent.click(buttons[buttons.length - 1])
+    expect(screen.getByText('Page création membre')).toBeInTheDocument()
+  })
+
+  it('MEMBER avec equipe.create : boutons Nouveau visibles', () => {
+    useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: makePermissions({ equipe: ['read', 'create'] }) })
+    renderUsers()
+    expect(screen.getAllByRole('button', { name: 'Nouveau' })).toHaveLength(2)
+  })
+
+  it('MEMBER avec equipe.read seulement : aucun bouton Nouveau', () => {
+    useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: makePermissions({ equipe: ['read'] }) })
+    renderUsers()
+    expect(screen.queryByRole('button', { name: 'Nouveau' })).not.toBeInTheDocument()
   })
 })
 
@@ -174,14 +187,14 @@ describe('UsersPage — liste des membres', () => {
   it('affiche le nom complet de l\'utilisateur actif', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as any)
-    render(<UsersPage />)
+    renderUsers()
     expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
   })
 
   it('affiche le username', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as any)
-    render(<UsersPage />)
+    renderUsers()
     expect(screen.getByText(/@jean\.dupont/)).toBeInTheDocument()
   })
 
@@ -191,7 +204,7 @@ describe('UsersPage — liste des membres', () => {
       data: [USER_ACTIVE, USER_INACTIVE],
       isLoading: false,
     } as any)
-    render(<UsersPage />)
+    renderUsers()
     expect(screen.getByText('Comptes inactifs')).toBeInTheDocument()
     expect(screen.getByText('Marie Martin')).toBeInTheDocument()
   })
@@ -199,13 +212,13 @@ describe('UsersPage — liste des membres', () => {
   it('affiche 3 skeletons pendant le chargement', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(useUsers).mockReturnValue({ data: undefined, isLoading: true } as any)
-    render(<UsersPage />)
+    renderUsers()
     const skeletons = document.querySelectorAll('.animate-pulse')
     expect(skeletons.length).toBe(3)
   })
 
   it('affiche l\'état vide quand aucun utilisateur', () => {
-    render(<UsersPage />)
+    renderUsers()
     expect(screen.getByText('Aucun utilisateur')).toBeInTheDocument()
   })
 })
@@ -219,7 +232,7 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
   })
 
   it('cliquer sur un utilisateur ouvre le formulaire d\'édition', async () => {
-    render(<UsersPage />)
+    renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
     expect(screen.getByDisplayValue('Jean')).toBeInTheDocument()         // prénom
     expect(screen.getByDisplayValue('Dupont')).toBeInTheDocument()       // nom
@@ -227,7 +240,7 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
   })
 
   it('le formulaire d\'édition contient le champ identifiant pré-rempli', async () => {
-    render(<UsersPage />)
+    renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
     expect(screen.getByDisplayValue('jean.dupont')).toBeInTheDocument()
   })
@@ -235,7 +248,7 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
   it('enregistrer inclut le username dans la mutation', async () => {
     const mutateAsync = vi.fn().mockResolvedValue({})
     vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
-    render(<UsersPage />)
+    renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     expect(mutateAsync).toHaveBeenCalledWith(
@@ -244,13 +257,13 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
   })
 
   it('affiche le bouton Enregistrer dans le panneau ouvert', async () => {
-    render(<UsersPage />)
+    renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
   })
 
   it('affiche le bouton désactiver pour un utilisateur actif', async () => {
-    render(<UsersPage />)
+    renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
     expect(screen.getByRole('button', { name: 'Désactiver le compte' })).toBeInTheDocument()
   })

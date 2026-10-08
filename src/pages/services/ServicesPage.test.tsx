@@ -18,6 +18,13 @@ import type { Service } from '@/types/api'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
+const mockNavigate = vi.fn()
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>()
+  return { ...actual, useNavigate: () => mockNavigate }
+})
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
@@ -215,23 +222,19 @@ describe('ServicesPage — ServiceCard (RBAC)', () => {
   })
 })
 
-// ── Formulaire de création ─────────────────────────────────────────────────
+// ── Création (page dédiée) ─────────────────────────────────────────────────
 
-describe('ServicesPage — modal d\'ajout', () => {
-  it('cliquer Ajouter ouvre le formulaire', async () => {
+describe('ServicesPage — ajout', () => {
+  it('cliquer Ajouter navigue vers la page de création', async () => {
     renderServices()
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
-    // services.form_add_title = "Nouvelle prestation"
-    expect(screen.getByText('Nouvelle prestation')).toBeInTheDocument()
+    expect(mockNavigate).toHaveBeenCalledWith('/prestations/nouveau')
   })
 
-  it('cliquer l\'overlay ferme le formulaire', async () => {
+  it('le bouton flottant mobile mène à la même page', async () => {
     renderServices()
-    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
-    // Click the backdrop overlay
-    const overlay = document.querySelector('.absolute.inset-0.bg-black\\/40') as HTMLElement
-    if (overlay) await userEvent.click(overlay)
-    expect(screen.queryByText('Ajouter une prestation')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Nouveau' }))
+    expect(mockNavigate).toHaveBeenCalledWith('/prestations/nouveau')
   })
 })
 

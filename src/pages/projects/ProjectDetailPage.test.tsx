@@ -200,7 +200,7 @@ describe('ProjectDetailPage — rendu', () => {
     renderDetail()
     // StatusBadge affiche "Brouillon" pour DRAFT, mais Stepper affiche aussi d'autres étapes
     // On vérifie un label présent uniquement dans le Stepper (pas dans le StatusBadge pour DRAFT).
-    // Le stepper est rendu deux fois (desktop en haut de page, mobile dans une carte) : jsdom ignore les classes responsive.
+    // Le stepper est rendu deux fois (desktop en haut de page, mobile dans une carte) : happy-dom ignore les classes responsive.
     expect(screen.getAllByText('Planifié').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Terminé').length).toBeGreaterThan(0)
   })

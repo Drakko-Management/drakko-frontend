@@ -70,9 +70,11 @@ describe('LoginPage — rendu', () => {
     expect(screen.getByRole('button', { name: /se connecter/i })).toBeInTheDocument()
   })
 
-  it('affiche le logo Drakko', () => {
+  it('affiche le logo Drakko (variantes claire et sombre)', () => {
     renderLogin()
-    expect(screen.getByRole('img', { name: 'Drakko' })).toBeInTheDocument()
+    // Les deux variantes sont dans le DOM : le thème en masque une avec des classes `dark:`
+    const sources = screen.getAllByRole('img', { name: 'Drakko' }).map((img) => img.getAttribute('src'))
+    expect(sources).toEqual(['/drakko/logo_light.png', '/drakko/logo_dark.png'])
   })
 
   it('masque le mot de passe par défaut (type=password)', () => {

@@ -87,13 +87,14 @@ describe('ClientsPage — rendu', () => {
 // ── Bouton "Nouveau" — permissions ─────────────────────────────────────────
 
 describe('ClientsPage — bouton Nouveau', () => {
-  // Le bouton header a le texte exact "Nouveau" (t('clients.new'))
+  // « Nouveau » existe deux fois : bouton de l'en-tête (desktop) et bouton flottant (mobile) ; happy-dom ignore
+  // les classes responsive, les deux sont donc dans le DOM.
   // L'EmptyState affiche "Nouveau client" (t('clients.new_client')) → ne doit pas compter
 
-  it('visible pour ADMIN', () => {
+  it('visible pour ADMIN (en-tête et bouton flottant)', () => {
     useAuthStore.setState({ role: 'ADMIN', permissions: null, accessToken: 'tok', username: 'admin', userId: 'u1' })
     renderClients()
-    expect(screen.getByRole('button', { name: 'Nouveau' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Nouveau' })).toHaveLength(2)
   })
 
   it('visible pour MEMBER avec clients.create', () => {
@@ -105,7 +106,7 @@ describe('ClientsPage — bouton Nouveau', () => {
       userId: 'u2',
     })
     renderClients()
-    expect(screen.getByRole('button', { name: 'Nouveau' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Nouveau' })).toHaveLength(2)
   })
 
   it('absent pour MEMBER sans permission clients.create', () => {
@@ -143,9 +144,17 @@ describe('ClientsPage — bouton Nouveau', () => {
 // ── Clic "Nouveau" ─────────────────────────────────────────────────────────
 
 describe('ClientsPage — navigation', () => {
-  it('cliquer Nouveau navigue vers /clients/nouveau', async () => {
+  it('cliquer Nouveau (en-tête) navigue vers /clients/nouveau', async () => {
     renderClients()
-    await userEvent.click(screen.getByRole('button', { name: 'Nouveau' }))
+    const [header] = screen.getAllByRole('button', { name: 'Nouveau' })
+    await userEvent.click(header)
+    expect(mockNavigate).toHaveBeenCalledWith('/clients/nouveau')
+  })
+
+  it('le bouton flottant mobile mène aussi à /clients/nouveau', async () => {
+    renderClients()
+    const buttons = screen.getAllByRole('button', { name: 'Nouveau' })
+    await userEvent.click(buttons[buttons.length - 1])
     expect(mockNavigate).toHaveBeenCalledWith('/clients/nouveau')
   })
 

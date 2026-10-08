@@ -95,10 +95,11 @@ describe('ProjectsPage — rendu', () => {
 // ── Tests : accès par rôle ─────────────────────────────────────────────────
 
 describe('ProjectsPage — bouton Nouveau', () => {
-  it('visible pour ADMIN', () => {
+  it('visible pour ADMIN (en-tête et bouton flottant mobile)', () => {
     useAuthStore.setState({ accessToken: 'tok', username: 'admin', role: 'ADMIN', userId: 'u1' })
     renderProjects()
-    expect(screen.getByRole('button', { name: /nouveau/i })).toBeInTheDocument()
+    // happy-dom ignore les classes responsive : le bouton de l'en-tête (desktop) et le bouton flottant (mobile) sont tous deux dans le DOM
+    expect(screen.getAllByRole('button', { name: /nouveau/i })).toHaveLength(2)
   })
 
   it('absent pour MEMBER sans permission create', () => {
@@ -190,9 +191,17 @@ describe('ProjectsPage — useProjects', () => {
 // ── Tests : navigation ─────────────────────────────────────────────────────
 
 describe('ProjectsPage — navigation', () => {
-  it('cliquer "Nouveau" navigue vers /chantiers/nouveau', async () => {
+  it('cliquer "Nouveau" (en-tête) navigue vers /chantiers/nouveau', async () => {
     renderProjects()
-    await userEvent.click(screen.getByRole('button', { name: /nouveau/i }))
+    const [header] = screen.getAllByRole('button', { name: /nouveau/i })
+    await userEvent.click(header)
+    expect(mockNavigate).toHaveBeenCalledWith('/chantiers/nouveau')
+  })
+
+  it('le bouton flottant mobile mène aussi à /chantiers/nouveau', async () => {
+    renderProjects()
+    const buttons = screen.getAllByRole('button', { name: /nouveau/i })
+    await userEvent.click(buttons[buttons.length - 1])
     expect(mockNavigate).toHaveBeenCalledWith('/chantiers/nouveau')
   })
 
