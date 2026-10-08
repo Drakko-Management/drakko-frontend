@@ -15,6 +15,7 @@ import { useRoles } from '@/hooks/use-roles'
 import { usePermissions } from '@/hooks/use-permissions'
 import { fullName } from '@/lib/utils'
 import { RolesTab } from './RolesTab'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 import type { User, UserRole } from '@/types/api'
 
 function RoleSelect({
@@ -245,16 +246,20 @@ export function UsersPage() {
     <div className="flex flex-col space-y-4 pb-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">{t('users.title')}</h1>
-        {canCreate && (
-          <Button
-            size="sm"
-            className="min-h-[44px] hidden md:flex"
-            onClick={() => void navigate(tab === 'roles' ? '/utilisateurs/roles/nouveau' : '/utilisateurs/nouveau')}
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            {t('common.new')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <TutorialHelpButton scope="team" />
+          {canCreate && (
+            <Button
+              size="sm"
+              className="min-h-[44px] hidden md:flex"
+              data-tutorial="team-new"
+              onClick={() => void navigate(tab === 'roles' ? '/utilisateurs/roles/nouveau' : '/utilisateurs/nouveau')}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              {t('common.new')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Onglets — tab Rôles visible uniquement pour l'admin */}
@@ -264,6 +269,7 @@ export function UsersPage() {
             <button
               key={t_}
               onClick={() => setTab(t_)}
+              data-tutorial={t_ === 'roles' ? 'team-roles-tab' : undefined}
               className={[
                 'flex-1 rounded-lg py-2 text-sm font-medium transition-colors',
                 tab === t_
@@ -308,7 +314,7 @@ export function UsersPage() {
       {tab === 'roles' && <RolesTab isAdmin={isAdmin} />}
 
       {canCreate && (
-        <Fab onClick={() => void navigate(tab === 'roles' ? '/utilisateurs/roles/nouveau' : '/utilisateurs/nouveau')} />
+        <Fab tutorial="team-new" onClick={() => void navigate(tab === 'roles' ? '/utilisateurs/roles/nouveau' : '/utilisateurs/nouveau')} />
       )}
     </div>
   )

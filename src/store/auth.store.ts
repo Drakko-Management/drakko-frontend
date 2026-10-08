@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { queryClient } from '@/lib/query-client'
 import type { UserRole, Permissions } from '@/types/api'
 
 const REFRESH_TOKEN_KEY = 'drakko-rt'
@@ -101,6 +102,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     sessionStorage.removeItem('firstName')
     sessionStorage.removeItem('lastName')
     localStorage.removeItem(REFRESH_TOKEN_KEY)
+    // Ne jamais montrer à l'utilisateur suivant les données du précédent
+    queryClient.clear()
     set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], customRoleName: null })
   },
 }))

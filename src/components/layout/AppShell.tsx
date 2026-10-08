@@ -4,20 +4,27 @@ import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import { InstallBanner } from '@/components/common/InstallBanner'
 import { PwaUpdatePrompt } from '@/components/common/PwaUpdatePrompt'
+import { TutorialProvider } from '@/tutorials/TutorialProvider'
+import { useProjectUpdateSync } from '@/hooks/use-project-sync'
+import { useSessionSync } from '@/hooks/use-session-sync'
 
 export function AppShell() {
+  useProjectUpdateSync()
+  useSessionSync()
   return (
-    <div className="flex h-[100dvh] bg-background">
-      <Sidebar className="hidden lg:flex" />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header className="lg:hidden" />
-        <InstallBanner />
-        <PwaUpdatePrompt />
-        <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
-          <Outlet />
-        </main>
-        <BottomNav className="lg:hidden" />
+    <TutorialProvider>
+      <div className="flex h-[100dvh] bg-background">
+        <Sidebar className="hidden lg:flex" />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header className="lg:hidden" />
+          <InstallBanner />
+          <PwaUpdatePrompt />
+          <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <Outlet />
+          </main>
+          <BottomNav className="lg:hidden" />
+        </div>
       </div>
-    </div>
+    </TutorialProvider>
   )
 }

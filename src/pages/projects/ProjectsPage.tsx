@@ -13,6 +13,7 @@ import { useProjects } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
 import { formatDate } from '@/lib/utils'
 import type { Project, ProjectStatus } from '@/types/api'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 type StatusFilter = { labelKey: string; value: ProjectStatus | undefined }
 
@@ -86,27 +87,32 @@ export function ProjectsPage() {
       <div className="shrink-0 space-y-3 px-4 pt-4 pb-3 bg-background">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">{t('projects.title')}</h1>
-          {can('chantiers', 'create') && (
-            <div className="hidden md:flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                className="min-h-[44px] gap-1"
-                onClick={() => void navigate('/chantiers/express')}
-              >
-                <Zap className="h-4 w-4" />
-                {t('projects.express')}
-              </Button>
-              <Button
-                size="sm"
-                className="min-h-[44px]"
-                onClick={() => void navigate('/chantiers/nouveau')}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                {t('projects.new')}
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <TutorialHelpButton scope="projects" />
+            {can('chantiers', 'create') && (
+              <div className="hidden md:flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="min-h-[44px] gap-1"
+                  data-tutorial="projects-express"
+                  onClick={() => void navigate('/chantiers/express')}
+                >
+                  <Zap className="h-4 w-4" />
+                  {t('projects.express')}
+                </Button>
+                <Button
+                  size="sm"
+                  className="min-h-[44px]"
+                  data-tutorial="projects-new"
+                  onClick={() => void navigate('/chantiers/nouveau')}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {t('projects.new')}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -210,11 +216,12 @@ export function ProjectsPage() {
 
       {can('chantiers', 'create') && (
         <>
-          <Fab onClick={() => void navigate('/chantiers/nouveau')} />
+          <Fab tutorial="projects-new" onClick={() => void navigate('/chantiers/nouveau')} />
           <button
             onClick={() => void navigate('/chantiers/express')}
             className="fixed bottom-fab right-20 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-card border shadow-md transition-transform active:scale-95 md:hidden"
             aria-label={t('projects.express')}
+            data-tutorial="projects-express"
           >
             <Zap className="h-5 w-5 text-primary" />
           </button>

@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 interface FabProps {
   onClick: () => void;
   className?: string;
+  tutorial?: string;
 }
 
-export function Fab({ onClick, className }: FabProps) {
+export function Fab({ onClick, className, tutorial }: FabProps) {
   return (
     <button
       onClick={onClick}
@@ -15,6 +16,7 @@ export function Fab({ onClick, className }: FabProps) {
         className,
       )}
       aria-label="Nouveau"
+      data-tutorial={tutorial}
     >
       <Plus className="h-6 w-6 text-primary-foreground" />
     </button>

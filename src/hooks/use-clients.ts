@@ -85,6 +85,10 @@ export function useDeactivateClient(id: string) {
   return useMutation({
     mutationFn: () =>
       apiRequest<void>(`/clients/${id}`, { method: 'DELETE' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['clients'] }),
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+      ]),
   })
 }

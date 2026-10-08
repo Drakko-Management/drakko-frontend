@@ -26,8 +26,7 @@ export function useUpdateReport(projectId: string) {
         method: 'PATCH',
         body: JSON.stringify({ comment }),
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
   })
 }
 
@@ -41,6 +40,7 @@ export function useGenerateReport(projectId: string) {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['report-pdf', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
       ]),
   })
 }
@@ -52,7 +52,11 @@ export function useSendReport(projectId: string) {
         method: 'POST',
       }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['report-pdf', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+      ]),
   })
 }
 
@@ -71,7 +75,10 @@ export function useSendReserveLiftReport(projectId: string) {
         method: 'POST',
       }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['project', projectId] }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+        queryClient.invalidateQueries({ queryKey: ['reserve-lift-pdf', projectId] }),
+      ]),
   })
 }
 
@@ -91,7 +98,10 @@ export function useAddReportLine(projectId: string) {
         body: JSON.stringify(data),
       }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['report-lines', projectId] }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['report-lines', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
+      ]),
   })
 }
 
@@ -103,7 +113,10 @@ export function useUpdateReportLine(projectId: string) {
         body: JSON.stringify(data),
       }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['report-lines', projectId] }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['report-lines', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
+      ]),
   })
 }
 
@@ -114,6 +127,9 @@ export function useDeleteReportLine(projectId: string) {
         method: 'DELETE',
       }),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['report-lines', projectId] }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['report-lines', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['report', projectId] }),
+      ]),
   })
 }

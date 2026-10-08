@@ -23,6 +23,7 @@ import { SettingsProfilPage } from '@/pages/settings/SettingsProfilPage'
 import { SettingsAppearancePage } from '@/pages/settings/SettingsAppearancePage'
 import { SettingsNavigationPage } from '@/pages/settings/SettingsNavigationPage'
 import { SettingsEnterprisePage } from '@/pages/settings/SettingsEnterprisePage'
+import { SettingsTutorialsPage } from '@/pages/settings/SettingsTutorialsPage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
 import { CreateServicePage } from '@/pages/services/CreateServicePage'
 import { SignPage } from '@/pages/public/SignPage'
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
               { path: 'parametres/apparence', element: <SettingsAppearancePage /> },
               { path: 'parametres/navigation', element: <SettingsNavigationPage /> },
               { path: 'parametres/entreprise', element: <SettingsEnterprisePage /> },
+              { path: 'parametres/tutoriels', element: <SettingsTutorialsPage /> },
               {
                 element: <CanRoute module="chantiers" action="create" />,
                 children: [

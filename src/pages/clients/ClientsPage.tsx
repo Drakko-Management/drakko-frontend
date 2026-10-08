@@ -12,6 +12,7 @@ import { useClients } from '@/hooks/use-clients'
 import type { ClientSort } from '@/hooks/use-clients'
 import { usePermissions } from '@/hooks/use-permissions'
 import { fullName } from '@/lib/utils'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 export function ClientsPage() {
   const navigate = useNavigate()
@@ -29,16 +30,20 @@ export function ClientsPage() {
       <div className="shrink-0 space-y-3 px-4 pt-4 pb-3 bg-background">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">{t('clients.title')}</h1>
-          {can('clients', 'create') && (
-            <Button
-              size="sm"
-              className="min-h-[44px] hidden md:flex"
-              onClick={() => void navigate('/clients/nouveau')}
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              {t('clients.new')}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <TutorialHelpButton scope="clients" />
+            {can('clients', 'create') && (
+              <Button
+                size="sm"
+                className="min-h-[44px] hidden md:flex"
+                data-tutorial="clients-new"
+                onClick={() => void navigate('/clients/nouveau')}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                {t('clients.new')}
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -109,7 +114,7 @@ export function ClientsPage() {
       </div>
 
       {can('clients', 'create') && (
-        <Fab onClick={() => void navigate('/clients/nouveau')} />
+        <Fab tutorial="clients-new" onClick={() => void navigate('/clients/nouveau')} />
       )}
 
       {/* Sticky bottom: pagination */}

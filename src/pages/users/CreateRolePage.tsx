@@ -44,7 +44,7 @@ export function CreateRolePage() {
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="role-name">
           <Label htmlFor="role-name">{t('users.role_name')} *</Label>
           <Input
             id="role-name"
@@ -59,7 +59,7 @@ export function CreateRolePage() {
             disabled={createRole.isPending}
           />
         </div>
-        <div>
+        <div data-tutorial="role-permissions">
           <p className="mb-2 text-sm font-medium">{t('users.role_permissions')}</p>
           <PermissionMatrix
             permissions={permissions}
@@ -70,6 +70,7 @@ export function CreateRolePage() {
         <Button
           type="submit"
           className="w-full min-h-[48px] text-base"
+          data-tutorial="role-submit"
           disabled={createRole.isPending || !name.trim()}
         >
           {createRole.isPending ? (

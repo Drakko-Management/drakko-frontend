@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { queryClient } from "@/lib/query-client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
@@ -66,18 +65,6 @@ export function ProjectDetailPage() {
   const { t, i18n } = useTranslation();
   const { can } = usePermissions();
 
-  useEffect(() => {
-    function onMessage(e: MessageEvent) {
-      if (e.origin !== window.location.origin) return;
-      if (e.data?.type === 'project_updated' && e.data?.projectId === id) {
-        void queryClient.invalidateQueries({ queryKey: ['project', id] });
-        void queryClient.invalidateQueries({ queryKey: ['report-pdf', id] });
-        void queryClient.invalidateQueries({ queryKey: ['reserve-lift-pdf', id] });
-      }
-    }
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, [id]);
   const [lightbox, setLightbox] = useState<{
     photos: Photo[];
     index: number;
@@ -408,11 +395,12 @@ export function ProjectDetailPage() {
 
       {/* Signature options */}
       {project.status === "AWAITING_SIGNATURE" && can('chantiers', 'update') && (
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="project-sig-options">
           <p className="text-xs font-medium text-muted-foreground px-1">{t('project.sig_choose')}</p>
           <Button
             variant="outline"
             className="w-full min-h-[48px] gap-3 justify-start"
+            data-tutorial="project-sig-onsite"
             onClick={() => void handleSignOnsite()}
             disabled={createSigRequest.isPending}
           >
@@ -425,6 +413,7 @@ export function ProjectDetailPage() {
           <Button
             variant="outline"
             className="w-full min-h-[48px] gap-3 justify-start"
+            data-tutorial="project-sig-remote"
             onClick={() => void handleSendSignature()}
             disabled={createSigRequest.isPending}
           >

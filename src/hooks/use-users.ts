@@ -53,6 +53,8 @@ export function useUpdateUser(id: string) {
       }),
     onSuccess: (updated, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
+      // Nom, identifiant ou statut d'un membre : visibles dans les affectations des chantiers
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       if ('role' in variables || 'customRoleId' in variables) {
         queryClient.invalidateQueries({ queryKey: ['roles'] })
       }

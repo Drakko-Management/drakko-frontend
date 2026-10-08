@@ -76,7 +76,7 @@ export function CreateClientPage() {
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" data-tutorial="client-name">
           <div className="space-y-2">
             <Label htmlFor="firstName">{t('common.first_name')} *</Label>
             <Input
@@ -99,7 +99,7 @@ export function CreateClientPage() {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="client-email">
           <Label htmlFor="email">{t('common.email')} *</Label>
           <Input
             id="email"
@@ -111,7 +111,7 @@ export function CreateClientPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="client-phone">
           <Label htmlFor="phone">{t('common.phone')}</Label>
           <Input
             id="phone"
@@ -124,7 +124,7 @@ export function CreateClientPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="client-address">
           <Label>{t('create_client.billing_address')}</Label>
           <AddressAutocomplete
             placeholder={t('common.street_placeholder')}
@@ -153,7 +153,7 @@ export function CreateClientPage() {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="client-notes">
           <Label htmlFor="notes">{t('create_client.notes_label')}</Label>
           <Textarea
             id="notes"
@@ -167,6 +167,7 @@ export function CreateClientPage() {
         <Button
           type="submit"
           className="w-full min-h-[48px] text-base"
+          data-tutorial="client-submit"
           disabled={createClient.isPending}
         >
           {createClient.isPending ? (

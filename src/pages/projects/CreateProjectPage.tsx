@@ -217,6 +217,7 @@ export function CreateProjectPage() {
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
+        <div className="space-y-4" data-tutorial="project-title">
         <div className="space-y-2">
           <Label htmlFor="reference">
             {t('create_project.label_reference')} {autoRef ? '' : '*'}
@@ -246,12 +247,14 @@ export function CreateProjectPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        </div>
+
+        <div className="space-y-2" data-tutorial="project-client">
           <Label>{t('create_project.label_client')} *</Label>
           <ClientSearch value={selectedClient} onChange={handleClientChange} />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="project-address">
           <div className="flex items-center gap-3">
             <Label>{t('common.address')} *</Label>
             {selectedClient?.address && (
@@ -295,6 +298,7 @@ export function CreateProjectPage() {
           </div>
         </div>
 
+        <div className="space-y-4" data-tutorial="project-planning">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label htmlFor="startDate">{t('common.start_date')}</Label>
@@ -331,6 +335,7 @@ export function CreateProjectPage() {
             placeholder="0"
           />
         </div>
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="projectManager">{t('common.project_manager')}</Label>
@@ -357,6 +362,7 @@ export function CreateProjectPage() {
         <Button
           type="submit"
           className="w-full min-h-[48px] text-base"
+          data-tutorial="project-submit"
           disabled={createProject.isPending}
         >
           {createProject.isPending ? (

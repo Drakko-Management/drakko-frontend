@@ -63,7 +63,7 @@ export function ExpressProjectPage() {
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
         {/* Client */}
-        <section className="space-y-3">
+        <section className="space-y-3" data-tutorial="express-client">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             {t('express_project.client_section')}
           </h2>
@@ -101,7 +101,7 @@ export function ExpressProjectPage() {
         </section>
 
         {/* Chantier */}
-        <section className="space-y-3">
+        <section className="space-y-3" data-tutorial="express-project">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             {t('express_project.project_section')}
           </h2>
@@ -138,6 +138,7 @@ export function ExpressProjectPage() {
         <Button
           type="submit"
           className="w-full min-h-[48px] gap-2 text-base"
+          data-tutorial="express-submit"
           disabled={create.isPending}
         >
           {create.isPending ? (

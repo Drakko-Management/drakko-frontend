@@ -12,8 +12,7 @@ export function useCreateSignatureRequest(projectId: string) {
         method: 'POST',
         body: JSON.stringify({ mode }),
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   })
 }
 
@@ -24,8 +23,7 @@ export function useSendReserveLiftRequest(projectId: string) {
         method: 'POST',
         body: JSON.stringify({ mode }),
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   })
 }
 

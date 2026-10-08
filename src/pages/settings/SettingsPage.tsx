@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, User, Palette, Building2, LayoutGrid, Smartphone } from 'lucide-react'
+import { ChevronRight, User, Palette, Building2, LayoutGrid, Smartphone, GraduationCap } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { usePermissions } from '@/hooks/use-permissions'
@@ -64,6 +64,13 @@ export function SettingsPage() {
             label={t('settings.hub_appearance')}
             sub={t('settings.hub_appearance_sub')}
             onClick={() => navigate('/parametres/apparence')}
+          />
+          <HubRow
+            icon={GraduationCap}
+            iconClass="bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400"
+            label={t('settings.hub_tutorials')}
+            sub={t('settings.hub_tutorials_sub')}
+            onClick={() => navigate('/parametres/tutoriels')}
           />
         </Card>
       </div>

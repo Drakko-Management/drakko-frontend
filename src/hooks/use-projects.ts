@@ -112,8 +112,8 @@ export function useAssignUsers(projectId: string) {
         method: 'POST',
         body: JSON.stringify({ userIds }),
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+    // Une affectation peut changer le statut (DRAFT → PLANNED) : on rafraîchit aussi la liste
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   })
 }
 
@@ -123,8 +123,8 @@ export function useUnassignUser(projectId: string) {
       apiRequest(`/projects/${projectId}/assignments/${userId}`, {
         method: 'DELETE',
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+    // Une affectation peut changer le statut (DRAFT → PLANNED) : on rafraîchit aussi la liste
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   })
 }
 
@@ -144,7 +144,12 @@ export function useCreateExpressProject() {
         method: 'POST',
         body: JSON.stringify(dto),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+    // L'intervention rapide crée aussi un client
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+        queryClient.invalidateQueries({ queryKey: ['clients'] }),
+      ]),
   })
 }
 

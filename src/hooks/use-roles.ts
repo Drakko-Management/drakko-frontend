@@ -14,7 +14,11 @@ export function useCreateRole() {
   return useMutation({
     mutationFn: (data: { name: string; permissions: Permissions; isDefault?: boolean }) =>
       apiRequest<Role>('/roles', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['roles'] }) },
+    // Les rôles sont affichés (nom, permissions) dans la liste des utilisateurs
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['roles'] })
+      void qc.invalidateQueries({ queryKey: ['users'] })
+    },
   })
 }
 
@@ -23,7 +27,11 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string; name?: string; permissions?: Permissions; isDefault?: boolean }) =>
       apiRequest<Role>(`/roles/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['roles'] }) },
+    // Les rôles sont affichés (nom, permissions) dans la liste des utilisateurs
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['roles'] })
+      void qc.invalidateQueries({ queryKey: ['users'] })
+    },
   })
 }
 
@@ -31,6 +39,10 @@ export function useDeleteRole() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiRequest(`/roles/${id}`, { method: 'DELETE' }),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['roles'] }) },
+    // Les rôles sont affichés (nom, permissions) dans la liste des utilisateurs
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['roles'] })
+      void qc.invalidateQueries({ queryKey: ['users'] })
+    },
   })
 }

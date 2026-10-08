@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePublicReport, useSign, useSignLift, useRefuse } from '@/hooks/use-signature'
 import { formatDate } from '@/lib/utils'
+import { TutorialProvider } from '@/tutorials/TutorialProvider'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 function SignatureCanvas({
   onHasStrokes,
@@ -401,6 +403,7 @@ export function SignPage() {
 
   // ── SIGNATURE INITIALE ──
   return (
+    <TutorialProvider lang={lang} textVariant={isOnsite ? 'onsite' : undefined}>
     <div className="mx-auto max-w-lg space-y-6 p-4 pb-12">
       <div className="flex items-center gap-2 pt-2">
         {isOnsite && (
@@ -413,6 +416,9 @@ export function SignPage() {
           </button>
         )}
         <span className="font-bold text-foreground">Drakko</span>
+        <div className="ml-auto">
+          <TutorialHelpButton scope="sign" className="h-9 w-9" />
+        </div>
       </div>
 
       <div className="space-y-1">
@@ -463,7 +469,7 @@ export function SignPage() {
       )}
 
       {report && (report.lines.length > 0 || report.comment) && (
-        <div className="space-y-3">
+        <div className="space-y-3" data-tutorial="sign-report">
           <h2 className="font-semibold">{t('sign.report_section')}</h2>
           {report.lines.length > 0 && (
             <div className="space-y-1.5">
@@ -499,6 +505,7 @@ export function SignPage() {
           {(['ACCEPTED', 'ACCEPTED_WITH_RESERVES', 'REFUSED'] as const).map((choice) => (
             <label
               key={choice}
+              data-tutorial={`sign-choice-${choice.toLowerCase()}`}
               className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${receptionChoice === choice ? 'border-primary bg-primary/5' : ''}`}
             >
               <input
@@ -564,6 +571,7 @@ export function SignPage() {
 
         {receptionChoice !== 'REFUSED' && (
           <>
+            <div className="space-y-5" data-tutorial="sign-identity">
             <div className="space-y-2">
               <Label htmlFor="signerName">{t('sign.signer_name')}</Label>
               <Input
@@ -586,13 +594,14 @@ export function SignPage() {
                 required
               />
             </div>
+            </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2" data-tutorial="sign-canvas">
               <Label>{t('sign.signature_label')}</Label>
               <SignatureCanvas canvasRef={canvasRef} onHasStrokes={setHasSignature} placeholder={t('sign.canvas_placeholder')} clearLabel={t('sign.canvas_clear')} />
             </div>
 
-            <Button type="submit" className="w-full min-h-[52px] text-base" disabled={sign.isPending || refuse.isPending || !signerName.trim() || !signaturePlace.trim() || !hasSignature || (receptionChoice === 'ACCEPTED_WITH_RESERVES' && !reserveNotes.trim())}>
+            <Button type="submit" className="w-full min-h-[52px] text-base" data-tutorial="sign-submit" disabled={sign.isPending || refuse.isPending || !signerName.trim() || !signaturePlace.trim() || !hasSignature || (receptionChoice === 'ACCEPTED_WITH_RESERVES' && !reserveNotes.trim())}>
               {sign.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
               {t('sign.submit_btn')}
             </Button>
@@ -600,5 +609,6 @@ export function SignPage() {
         )}
       </form>
     </div>
+    </TutorialProvider>
   )
 }
