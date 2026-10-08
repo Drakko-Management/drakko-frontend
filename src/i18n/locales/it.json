@@ -227,6 +227,7 @@
     "not_found": "Cantiere non trovato",
     "back": "Indietro",
     "edit_aria": "Modifica cantiere",
+    "edit_client_aria": "Modifica cliente",
     "transition_plan": "Pianifica",
     "transition_start": "Avvia cantiere",
     "transition_close": "Chiudi cantiere",
