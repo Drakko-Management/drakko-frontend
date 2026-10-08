@@ -110,18 +110,18 @@ function mockMutation(overrides = {}) {
 beforeEach(() => {
   vi.clearAllMocks()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useProject).mockReturnValue({ data: PROJECT_DRAFT, isLoading: false } as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(usePhotos).mockReturnValue({ data: [] } as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useReport).mockReturnValue({ data: { comment: '', lastSentAt: null } } as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useReportPdfUrl).mockReturnValue({ data: { pdfUrl: null } } as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useReserveLiftPdfUrl).mockReturnValue({ data: { pdfUrl: null } } as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useUsers).mockReturnValue({ data: [] } as any)
+   
+  vi.mocked(useProject).mockReturnValue({ data: PROJECT_DRAFT, isLoading: false } as unknown as ReturnType<typeof useProject>)
+   
+  vi.mocked(usePhotos).mockReturnValue({ data: [] } as unknown as ReturnType<typeof usePhotos>)
+   
+  vi.mocked(useReport).mockReturnValue({ data: { comment: '', lastSentAt: null } } as unknown as ReturnType<typeof useReport>)
+   
+  vi.mocked(useReportPdfUrl).mockReturnValue({ data: { pdfUrl: null } } as unknown as ReturnType<typeof useReportPdfUrl>)
+   
+  vi.mocked(useReserveLiftPdfUrl).mockReturnValue({ data: { pdfUrl: null } } as unknown as ReturnType<typeof useReserveLiftPdfUrl>)
+   
+  vi.mocked(useUsers).mockReturnValue({ data: [] } as unknown as ReturnType<typeof useUsers>)
 
   vi.mocked(useUpdateProjectStatus).mockReturnValue(mockMutation() as never)
   vi.mocked(useAssignUsers).mockReturnValue(mockMutation() as never)
@@ -158,16 +158,16 @@ function renderDetail() {
 
 describe('ProjectDetailPage — chargement', () => {
   it('affiche des skeletons pendant isLoading', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useProject).mockReturnValue({ data: undefined, isLoading: true } as any)
+     
+    vi.mocked(useProject).mockReturnValue({ data: undefined, isLoading: true } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     const skeletons = document.querySelectorAll('.animate-pulse')
     expect(skeletons.length).toBeGreaterThan(0)
   })
 
   it('affiche "Chantier introuvable" quand data=undefined et isLoading=false', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useProject).mockReturnValue({ data: undefined, isLoading: false } as any)
+     
+    vi.mocked(useProject).mockReturnValue({ data: undefined, isLoading: false } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.getByText('Chantier introuvable')).toBeInTheDocument()
   })
@@ -239,11 +239,11 @@ describe('ProjectDetailPage — bouton modifier (RBAC)', () => {
   })
 
   it('absent sur un chantier verrouillé (COMPLETED) même pour ADMIN', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: { ...PROJECT_DRAFT, status: 'COMPLETED' },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.queryByLabelText('Modifier le chantier')).not.toBeInTheDocument()
   })
@@ -282,21 +282,21 @@ describe('ProjectDetailPage — bouton de transition', () => {
   })
 
   it('affiche "Démarrer le chantier" pour un chantier PLANNED', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: { ...PROJECT_DRAFT, status: 'PLANNED' },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.getByRole('button', { name: 'Démarrer le chantier' })).toBeInTheDocument()
   })
 
   it('absent pour un chantier COMPLETED (pas de transition suivante)', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: { ...PROJECT_DRAFT, status: 'COMPLETED' },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.queryByRole('button', { name: /Planifier|Démarrer|Clôturer/i })).not.toBeInTheDocument()
   })
@@ -306,14 +306,14 @@ describe('ProjectDetailPage — bouton de transition', () => {
 
 describe('ProjectDetailPage — équipe (RBAC)', () => {
   it('affiche le bouton "Retirer" pour les membres assignés si ADMIN', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: {
         ...PROJECT_DRAFT,
         assignments: [{ userId: 'u-foreman', user: { id: 'u-foreman', firstName: 'Jean', lastName: 'Dupont', role: 'MEMBER' } }],
       },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.getByRole('button', { name: 'Retirer' })).toBeInTheDocument()
   })
@@ -326,21 +326,21 @@ describe('ProjectDetailPage — équipe (RBAC)', () => {
       username: 'user',
       userId: 'u2',
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: {
         ...PROJECT_DRAFT,
         assignments: [{ userId: 'u-foreman', user: { id: 'u-foreman', firstName: 'Jean', lastName: 'Dupont', role: 'MEMBER' } }],
       },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.queryByRole('button', { name: 'Retirer' })).not.toBeInTheDocument()
   })
 
   it('affiche la section "Ajouter un membre" si ADMIN avec utilisateurs disponibles', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useUsers).mockReturnValue({ data: [USER_MEMBER] } as any)
+     
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_MEMBER] } as unknown as ReturnType<typeof useUsers>)
     renderDetail()
     expect(screen.getByText('Ajouter un membre')).toBeInTheDocument()
     expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
@@ -354,8 +354,8 @@ describe('ProjectDetailPage — équipe (RBAC)', () => {
       username: 'user',
       userId: 'u2',
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useUsers).mockReturnValue({ data: [USER_MEMBER] } as any)
+     
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_MEMBER] } as unknown as ReturnType<typeof useUsers>)
     renderDetail()
     expect(screen.queryByText('Ajouter un membre')).not.toBeInTheDocument()
   })
@@ -382,11 +382,11 @@ describe('ProjectDetailPage — rapport (RBAC)', () => {
   })
 
   it('absent sur un chantier verrouillé (COMPLETED)', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: { ...PROJECT_DRAFT, status: 'COMPLETED' },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument()
   })
@@ -396,11 +396,11 @@ describe('ProjectDetailPage — rapport (RBAC)', () => {
 
 describe('ProjectDetailPage — lien de signature', () => {
   it('affiche le bouton "Envoyer le lien de signature" pour AWAITING_SIGNATURE + ADMIN', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: { ...PROJECT_DRAFT, status: 'AWAITING_SIGNATURE' },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(
       screen.getByRole('button', { name: /Envoyer le lien de signature/ }),
@@ -415,11 +415,11 @@ describe('ProjectDetailPage — lien de signature', () => {
       username: 'user',
       userId: 'u2',
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useProject).mockReturnValue({
       data: { ...PROJECT_DRAFT, status: 'AWAITING_SIGNATURE' },
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(
       screen.queryByRole('button', { name: /Envoyer le lien de signature/ }),

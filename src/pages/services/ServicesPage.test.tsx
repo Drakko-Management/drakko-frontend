@@ -69,8 +69,8 @@ function mockMutation(overrides = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useServices).mockReturnValue({ data: [SERVICE_ACTIVE], isLoading: false } as any)
+   
+  vi.mocked(useServices).mockReturnValue({ data: [SERVICE_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useServices>)
   vi.mocked(useCreateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useUpdateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useDeleteService).mockReturnValue(mockMutation() as never)
@@ -253,23 +253,23 @@ describe('ServicesPage — modal de modification', () => {
 
 describe('ServicesPage — états vide et chargement', () => {
   it('affiche des skeletons pendant le chargement', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useServices).mockReturnValue({ data: undefined, isLoading: true } as any)
+     
+    vi.mocked(useServices).mockReturnValue({ data: undefined, isLoading: true } as unknown as ReturnType<typeof useServices>)
     renderServices()
     const skeletons = document.querySelectorAll('.animate-pulse')
     expect(skeletons.length).toBe(3)
   })
 
   it('affiche le bouton d\'import pour un ADMIN quand la liste est vide', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useServices).mockReturnValue({ data: [], isLoading: false } as any)
+     
+    vi.mocked(useServices).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useServices>)
     renderServices()
     expect(screen.getByText('Importer les prestations par défaut')).toBeInTheDocument()
   })
 
   it('masque le bouton d\'import pour un MEMBER quand la liste est vide', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useServices).mockReturnValue({ data: [], isLoading: false } as any)
+     
+    vi.mocked(useServices).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useServices>)
     useAuthStore.setState({
       accessToken: 'tok',
       username: 'user',
@@ -288,11 +288,11 @@ describe('ServicesPage — états vide et chargement', () => {
 
 describe('ServicesPage — vue inactive', () => {
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useServices).mockReturnValue({
       data: [SERVICE_ACTIVE, SERVICE_INACTIVE],
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useServices>)
   })
 
   it('affiche le lien "Voir les désactivées" quand il y en a', () => {

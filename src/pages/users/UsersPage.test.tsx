@@ -78,10 +78,10 @@ function renderUsers() {
 beforeEach(() => {
   vi.clearAllMocks()
   useAuthStore.setState({ accessToken: 'tok', username: 'admin', role: 'ADMIN', userId: 'u0', permissions: null })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useUsers).mockReturnValue({ data: [], isLoading: false } as any)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useRoles).mockReturnValue({ data: [], isLoading: false } as any)
+   
+  vi.mocked(useUsers).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+   
+  vi.mocked(useRoles).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useRoles>)
   vi.mocked(useCreateUser).mockReturnValue(mockMutation() as never)
   vi.mocked(useUpdateUser).mockReturnValue(mockMutation() as never)
 })
@@ -185,33 +185,33 @@ describe('UsersPage — bouton Nouveau', () => {
 
 describe('UsersPage — liste des membres', () => {
   it('affiche le nom complet de l\'utilisateur actif', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as any)
+     
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
     renderUsers()
     expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
   })
 
   it('affiche le username', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as any)
+     
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
     renderUsers()
     expect(screen.getByText(/@jean\.dupont/)).toBeInTheDocument()
   })
 
   it('affiche la section "Comptes inactifs" pour les utilisateurs inactifs', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     vi.mocked(useUsers).mockReturnValue({
       data: [USER_ACTIVE, USER_INACTIVE],
       isLoading: false,
-    } as any)
+    } as unknown as ReturnType<typeof useUsers>)
     renderUsers()
     expect(screen.getByText('Comptes inactifs')).toBeInTheDocument()
     expect(screen.getByText('Marie Martin')).toBeInTheDocument()
   })
 
   it('affiche 3 skeletons pendant le chargement', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useUsers).mockReturnValue({ data: undefined, isLoading: true } as any)
+     
+    vi.mocked(useUsers).mockReturnValue({ data: undefined, isLoading: true } as unknown as ReturnType<typeof useUsers>)
     renderUsers()
     const skeletons = document.querySelectorAll('.animate-pulse')
     expect(skeletons.length).toBe(3)
@@ -227,8 +227,8 @@ describe('UsersPage — liste des membres', () => {
 
 describe('UsersPage — expansion d\'un utilisateur', () => {
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as any)
+     
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
   })
 
   it('cliquer sur un utilisateur ouvre le formulaire d\'édition', async () => {

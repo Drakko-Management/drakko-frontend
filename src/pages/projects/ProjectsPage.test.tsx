@@ -52,8 +52,8 @@ function paginated(items: Project[]): Paginated<Project> {
 beforeEach(() => {
   vi.clearAllMocks()
   useAuthStore.setState({ accessToken: 'tok', username: 'admin', role: 'ADMIN', userId: 'u1' })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(useProjects).mockReturnValue({ data: paginated([]), isLoading: false } as any)
+   
+  vi.mocked(useProjects).mockReturnValue({ data: paginated([]), isLoading: false } as unknown as ReturnType<typeof useProjects>)
 })
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ describe('ProjectsPage — rendu', () => {
   })
 
   it('affiche un projet quand useProjects retourne des données', () => {
-    vi.mocked(useProjects).mockReturnValue({ data: paginated([PROJECT]), isLoading: false } as any)
+    vi.mocked(useProjects).mockReturnValue({ data: paginated([PROJECT]), isLoading: false } as unknown as ReturnType<typeof useProjects>)
     renderProjects()
     expect(screen.getByText('Aménagement Jardin Dupont')).toBeInTheDocument()
     expect(screen.getByText('CH-2026-001')).toBeInTheDocument()
@@ -150,7 +150,7 @@ describe('ProjectsPage — clic filtre', () => {
 
 describe('ProjectsPage — chargement', () => {
   it('affiche 4 skeletons pendant isLoading', () => {
-    vi.mocked(useProjects).mockReturnValue({ data: undefined, isLoading: true } as any)
+    vi.mocked(useProjects).mockReturnValue({ data: undefined, isLoading: true } as unknown as ReturnType<typeof useProjects>)
     renderProjects()
     const skeletons = document.querySelectorAll('.animate-pulse')
     expect(skeletons.length).toBe(4)
@@ -161,13 +161,13 @@ describe('ProjectsPage — chargement', () => {
 
 describe('ProjectsPage — liste vide', () => {
   it('affiche EmptyState quand la liste est vide', () => {
-    vi.mocked(useProjects).mockReturnValue({ data: paginated([]), isLoading: false } as any)
+    vi.mocked(useProjects).mockReturnValue({ data: paginated([]), isLoading: false } as unknown as ReturnType<typeof useProjects>)
     renderProjects()
     expect(screen.getByText('Aucun chantier')).toBeInTheDocument()
   })
 
   it('affiche le bouton "Créer un chantier" dans EmptyState pour ADMIN', () => {
-    vi.mocked(useProjects).mockReturnValue({ data: paginated([]), isLoading: false } as any)
+    vi.mocked(useProjects).mockReturnValue({ data: paginated([]), isLoading: false } as unknown as ReturnType<typeof useProjects>)
     useAuthStore.setState({ accessToken: 'tok', username: 'admin', role: 'ADMIN', userId: 'u1' })
     renderProjects()
     expect(screen.getByRole('button', { name: 'Créer un chantier' })).toBeInTheDocument()
@@ -206,7 +206,7 @@ describe('ProjectsPage — navigation', () => {
   })
 
   it('cliquer sur un projet navigue vers /chantiers/:id', async () => {
-    vi.mocked(useProjects).mockReturnValue({ data: paginated([PROJECT]), isLoading: false } as any)
+    vi.mocked(useProjects).mockReturnValue({ data: paginated([PROJECT]), isLoading: false } as unknown as ReturnType<typeof useProjects>)
     renderProjects()
     await userEvent.click(screen.getByText('Aménagement Jardin Dupont'))
     expect(mockNavigate).toHaveBeenCalledWith('/chantiers/proj-1')
