@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
+import i18n from 'i18next'
 import { formatDate, formatCurrency, fullName, initials, avatarColor } from './utils'
 
 // ── formatDate ─────────────────────────────────────────────────────────────
@@ -65,6 +66,34 @@ describe('formatCurrency', () => {
   it('arrondit à zéro décimale', () => {
     const result = formatCurrency(1234.99)
     expect(result).not.toContain(',9')
+  })
+})
+
+// ── Langue de l'interface ──────────────────────────────────────────────────
+
+describe('formatDate / formatCurrency — langue de l\'interface', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('fr')
+  })
+
+  it.each([
+    ['fr', '20 oct. 2025'],
+    ['en', 'Oct 20, 2025'],
+    ['es', '20 oct 2025'],
+    ['it', '20 ott 2025'],
+    ['de', '20. Okt. 2025'],
+  ])('formatDate suit la langue %s', async (lang, expected) => {
+    await i18n.changeLanguage(lang)
+    expect(formatDate('2025-10-20')).toBe(expected)
+  })
+
+  it.each([
+    ['fr', /^12\s500\s€$/],
+    ['en', /^€12,500$/],
+    ['de', /^12\.500\s€$/],
+  ])('formatCurrency suit la langue %s', async (lang, expected) => {
+    await i18n.changeLanguage(lang)
+    expect(formatCurrency(12500)).toMatch(expected)
   })
 })
 

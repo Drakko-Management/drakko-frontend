@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import i18n from 'i18next'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -7,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(date: string | null | undefined): string {
   if (!date) return '—'
-  return new Date(date).toLocaleDateString('fr-FR', {
+  return new Date(date).toLocaleDateString(i18n.language || 'fr', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -18,7 +19,7 @@ export function formatCurrency(amount: string | number | null | undefined): stri
   if (amount === null || amount === undefined || amount === '') return '—'
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
   if (isNaN(num)) return '—'
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat(i18n.language || 'fr', {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0,

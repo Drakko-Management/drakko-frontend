@@ -19,4 +19,9 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 })
 
+// Lecteurs d'écran et traduction automatique du navigateur se fient à <html lang>
+const applyHtmlLang = (lng: string) => { document.documentElement.lang = lng }
+i18n.on('languageChanged', applyHtmlLang)
+applyHtmlLang(i18n.language)
+
 export default i18n
