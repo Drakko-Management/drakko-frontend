@@ -718,9 +718,9 @@ export function ProjectDetailPage() {
         ) : (
           <div className="space-y-3">
             {[
-              { label: t('project.photos_before'), list: beforePhotos },
-              { label: t('project.photos_after'), list: afterPhotos },
-            ].map(({ label, list }) => (
+              { label: t('project.photos_before'), title: t('photos.title_before'), list: beforePhotos },
+              { label: t('project.photos_after'), title: t('photos.title_after'), list: afterPhotos },
+            ].map(({ label, title, list }) => (
               <div key={label} className="space-y-1.5">
                 <p className="text-xs font-medium text-muted-foreground">
                   {label.toUpperCase()}{" "}
@@ -742,7 +742,7 @@ export function ProjectDetailPage() {
                           setLightbox({
                             photos: list,
                             index: i,
-                            title: `Photos ${label.toLowerCase()}`,
+                            title,
                           })
                         }
                       >

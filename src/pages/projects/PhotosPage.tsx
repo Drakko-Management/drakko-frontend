@@ -102,7 +102,7 @@ function PhotoSection({
             <div key={photo.id} className="relative">
               <button
                 className="w-full"
-                onClick={() => setLightbox({ photos: filtered, index: i, title: `Photos ${label.toLowerCase()}` })}
+                onClick={() => setLightbox({ photos: filtered, index: i, title: t(type === 'BEFORE' ? 'photos.title_before' : 'photos.title_after') })}
               >
                 <img
                   src={photo.signedUrl ?? ''}

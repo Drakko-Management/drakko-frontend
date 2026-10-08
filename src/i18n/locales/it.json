@@ -46,7 +46,8 @@
     "empty_status_desc": "Nessun cantiere con questo stato",
     "empty_desc": "Nessun cantiere al momento",
     "create": "Crea un cantiere",
-    "express": "Intervento rapido"
+    "express": "Intervento rapido",
+    "clear_search": "Cancella la ricerca"
   },
   "clients": {
     "title": "Clienti",
@@ -67,7 +68,8 @@
     "AWAITING_SIGNATURE": "Firma",
     "AWAITING_RESERVE_LIFT": "Riserve in corso",
     "COMPLETED": "Completato",
-    "DISPUTED": "Controversia"
+    "DISPUTED": "Controversia",
+    "step_reserve_lift": "Riserve"
   },
   "settings": {
     "title": "Impostazioni",
@@ -179,7 +181,13 @@
     "logo_deleted": "Logo eliminato",
     "logo_uploaded": "Logo aggiornato",
     "logo_error": "Errore durante l'importazione del logo",
-    "logo_type_error": "Sono accettati solo i formati JPEG, PNG e WebP"
+    "logo_type_error": "Sono accettati solo i formati JPEG, PNG e WebP",
+    "legal_form_micro": "Microimpresa",
+    "legal_form_association": "Associazione",
+    "payment_immediate": "Alla ricezione",
+    "payment_days": "{{days}} giorni",
+    "org_late_penalties_placeholder": "3 volte il tasso legale vigente",
+    "org_update_error": "Errore nell'aggiornamento"
   },
   "common": {
     "back": "Indietro",
@@ -212,7 +220,13 @@
     "inactive": "Inattivo",
     "add": "Aggiungi",
     "update_available": "Aggiornamento disponibile",
-    "update_btn": "Ricarica"
+    "update_btn": "Ricarica",
+    "menu": "Menu",
+    "close": "Chiudi",
+    "first_page": "Prima pagina",
+    "previous_page": "Pagina precedente",
+    "next_page": "Pagina successiva",
+    "last_page": "Ultima pagina"
   },
   "login": {
     "subtitle": "Monitoraggio cantiere",
@@ -395,7 +409,8 @@
     "action_read": "Vedere",
     "action_create": "Creare",
     "action_update": "Modificare",
-    "action_delete": "Eliminare"
+    "action_delete": "Eliminare",
+    "role_name_taken": "Esiste già un ruolo con questo nome"
   },
   "report": {
     "title": "Verbale di fine lavori",
@@ -434,7 +449,9 @@
     "delete_error": "Errore durante l'eliminazione",
     "photo_deleted": "Foto eliminata",
     "locked_notice": "Questo cantiere è bloccato. Le foto non possono più essere modificate.",
-    "back_to_project": "Torna al cantiere"
+    "back_to_project": "Torna al cantiere",
+    "title_before": "Foto prima",
+    "title_after": "Foto dopo"
   },
   "install": {
     "banner_title": "Installa l'app",

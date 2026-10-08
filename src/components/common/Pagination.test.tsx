@@ -1,7 +1,28 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import i18n from 'i18next'
 import { Pagination } from './Pagination'
+
+// ── Traductions ─────────────────────────────────────────────────────────────
+
+describe('Pagination — libellés accessibles', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('fr')
+  })
+
+  it.each([
+    ['fr', ['Première page', 'Page précédente', 'Page suivante', 'Dernière page']],
+    ['en', ['First page', 'Previous page', 'Next page', 'Last page']],
+    ['es', ['Primera página', 'Página anterior', 'Página siguiente', 'Última página']],
+    ['it', ['Prima pagina', 'Pagina precedente', 'Pagina successiva', 'Ultima pagina']],
+    ['de', ['Erste Seite', 'Vorherige Seite', 'Nächste Seite', 'Letzte Seite']],
+  ])('les 4 boutons sont traduits en %s', async (lang, labels) => {
+    await i18n.changeLanguage(lang)
+    render(<Pagination page={2} total={100} limit={10} onChange={vi.fn()} />)
+    labels.forEach((label) => expect(screen.getByRole('button', { name: label })).toBeInTheDocument())
+  })
+})
 
 // ── Retour null ─────────────────────────────────────────────────────────────
 

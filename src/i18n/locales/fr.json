@@ -46,7 +46,8 @@
     "empty_status_desc": "Aucun chantier avec ce statut",
     "empty_desc": "Aucun chantier pour le moment",
     "create": "Créer un chantier",
-    "express": "Intervention rapide"
+    "express": "Intervention rapide",
+    "clear_search": "Effacer la recherche"
   },
   "clients": {
     "title": "Clients",
@@ -67,7 +68,8 @@
     "AWAITING_SIGNATURE": "Signature",
     "AWAITING_RESERVE_LIFT": "Réserves en cours",
     "COMPLETED": "Terminé",
-    "DISPUTED": "Litige"
+    "DISPUTED": "Litige",
+    "step_reserve_lift": "Levée"
   },
   "settings": {
     "title": "Paramètres",
@@ -179,7 +181,13 @@
     "logo_deleted": "Logo supprimé",
     "logo_uploaded": "Logo mis à jour",
     "logo_error": "Erreur lors de l'import du logo",
-    "logo_type_error": "Seuls les formats JPEG, PNG et WebP sont acceptés"
+    "logo_type_error": "Seuls les formats JPEG, PNG et WebP sont acceptés",
+    "legal_form_micro": "Micro-entreprise",
+    "legal_form_association": "Association",
+    "payment_immediate": "À réception",
+    "payment_days": "{{days}} jours",
+    "org_late_penalties_placeholder": "3× le taux légal en vigueur",
+    "org_update_error": "Erreur lors de la mise à jour"
   },
   "common": {
     "back": "Retour",
@@ -212,7 +220,13 @@
     "inactive": "Inactif",
     "add": "Ajouter",
     "update_available": "Mise à jour disponible",
-    "update_btn": "Recharger"
+    "update_btn": "Recharger",
+    "menu": "Menu",
+    "close": "Fermer",
+    "first_page": "Première page",
+    "previous_page": "Page précédente",
+    "next_page": "Page suivante",
+    "last_page": "Dernière page"
   },
   "login": {
     "subtitle": "Suivi de chantier",
@@ -395,7 +409,8 @@
     "action_read": "Voir",
     "action_create": "Créer",
     "action_update": "Modifier",
-    "action_delete": "Supprimer"
+    "action_delete": "Supprimer",
+    "role_name_taken": "Un rôle avec ce nom existe déjà"
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",
@@ -434,7 +449,9 @@
     "delete_error": "Erreur lors de la suppression",
     "photo_deleted": "Photo supprimée",
     "locked_notice": "Ce chantier est verrouillé. Les photos ne peuvent plus être modifiées.",
-    "back_to_project": "Retour au chantier"
+    "back_to_project": "Retour au chantier",
+    "title_before": "Photos avant",
+    "title_after": "Photos après"
   },
   "install": {
     "banner_title": "Installer l'application",

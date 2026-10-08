@@ -208,7 +208,7 @@ export function SettingsEnterprisePage() {
                 onClick={() => setLogoPreviewOpen(true)}
                 className="shrink-0 rounded-lg border bg-muted overflow-hidden transition-opacity hover:opacity-80"
               >
-                <img src={org.logoUrl} alt="Logo" className="h-16 w-16 object-contain" />
+                <img src={org.logoUrl} alt={t('settings.logo_section')} className="h-16 w-16 object-contain" />
               </button>
             ) : (
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border bg-muted text-muted-foreground text-2xl font-bold">
@@ -305,14 +305,14 @@ export function SettingsEnterprisePage() {
                 <Field label={t('settings.org_legal_form')}>
                   <select value={form.legalForm} onChange={f('legalForm')} className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <option value="">—</option>
-                    <option>Micro-entreprise</option>
+                    <option value="Micro-entreprise">{t('settings.legal_form_micro')}</option>
                     <option>EI</option>
                     <option>EURL</option>
                     <option>SARL</option>
                     <option>SAS</option>
                     <option>SASU</option>
                     <option>SA</option>
-                    <option>Association</option>
+                    <option value="Association">{t('settings.legal_form_association')}</option>
                   </select>
                 </Field>
                 <Field label={t('settings.org_share_capital')}>
@@ -439,15 +439,15 @@ export function SettingsEnterprisePage() {
               <Field label={t('settings.org_payment_terms')}>
                 <select value={form.defaultPaymentTerms} onChange={f('defaultPaymentTerms')} className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <option value="">—</option>
-                  <option value="immediate">À réception</option>
-                  <option value="15">15 jours</option>
-                  <option value="30">30 jours</option>
-                  <option value="45">45 jours</option>
-                  <option value="60">60 jours</option>
+                  <option value="immediate">{t('settings.payment_immediate')}</option>
+                  <option value="15">{t('settings.payment_days', { days: 15 })}</option>
+                  <option value="30">{t('settings.payment_days', { days: 30 })}</option>
+                  <option value="45">{t('settings.payment_days', { days: 45 })}</option>
+                  <option value="60">{t('settings.payment_days', { days: 60 })}</option>
                 </select>
               </Field>
               <Field label={t('settings.org_late_penalties')}>
-                <Input className={inputCls} value={form.latePaymentPenalties} onChange={f('latePaymentPenalties')} maxLength={200} placeholder="3× le taux légal en vigueur" />
+                <Input className={inputCls} value={form.latePaymentPenalties} onChange={f('latePaymentPenalties')} maxLength={200} placeholder={t('settings.org_late_penalties_placeholder')} />
               </Field>
             </Card>
 
@@ -467,10 +467,10 @@ export function SettingsEnterprisePage() {
           onKeyDown={(e) => e.key === 'Escape' && setLogoPreviewOpen(false)}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm outline-none"
         >
-          <button onClick={() => setLogoPreviewOpen(false)} className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20" aria-label="Fermer">
+          <button onClick={() => setLogoPreviewOpen(false)} className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20" aria-label={t('common.close')}>
             <X className="h-5 w-5" />
           </button>
-          <img src={org.logoUrl} alt="Logo" className="max-h-full max-w-full rounded-xl object-contain shadow-2xl" onClick={(e) => e.stopPropagation()} />
+          <img src={org.logoUrl} alt={t('settings.logo_section')} className="max-h-full max-w-full rounded-xl object-contain shadow-2xl" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </>

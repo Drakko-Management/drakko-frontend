@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useOrganization } from '@/hooks/use-organization'
@@ -9,6 +10,7 @@ interface HeaderProps {
 }
 
 export function Header({ className }: HeaderProps) {
+  const { t } = useTranslation()
   const { data: org } = useOrganization()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -28,7 +30,7 @@ export function Header({ className }: HeaderProps) {
         <button
           onClick={() => setDrawerOpen(true)}
           className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="Menu"
+          aria-label={t('common.menu')}
         >
           <Menu className="h-5 w-5" />
         </button>

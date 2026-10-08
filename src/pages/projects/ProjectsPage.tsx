@@ -128,7 +128,7 @@ export function ProjectsPage() {
             {searchQuery && (
               <button
                 type="button"
-                aria-label="Effacer la recherche"
+                aria-label={t('projects.clear_search')}
                 onClick={() => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               >

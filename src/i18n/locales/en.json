@@ -46,7 +46,8 @@
     "empty_status_desc": "No projects with this status",
     "empty_desc": "No projects yet",
     "create": "Create a project",
-    "express": "Quick intervention"
+    "express": "Quick intervention",
+    "clear_search": "Clear search"
   },
   "clients": {
     "title": "Clients",
@@ -67,7 +68,8 @@
     "AWAITING_SIGNATURE": "Signature",
     "AWAITING_RESERVE_LIFT": "Snagging in progress",
     "COMPLETED": "Completed",
-    "DISPUTED": "Disputed"
+    "DISPUTED": "Disputed",
+    "step_reserve_lift": "Snagging"
   },
   "settings": {
     "title": "Settings",
@@ -179,7 +181,13 @@
     "logo_deleted": "Logo deleted",
     "logo_uploaded": "Logo updated",
     "logo_error": "Error uploading logo",
-    "logo_type_error": "Only JPEG, PNG and WebP formats are accepted"
+    "logo_type_error": "Only JPEG, PNG and WebP formats are accepted",
+    "legal_form_micro": "Micro-enterprise",
+    "legal_form_association": "Association",
+    "payment_immediate": "On receipt",
+    "payment_days": "{{days}} days",
+    "org_late_penalties_placeholder": "3× the legal rate in force",
+    "org_update_error": "Update error"
   },
   "common": {
     "back": "Back",
@@ -212,7 +220,13 @@
     "inactive": "Inactive",
     "add": "Add",
     "update_available": "Update available",
-    "update_btn": "Reload"
+    "update_btn": "Reload",
+    "menu": "Menu",
+    "close": "Close",
+    "first_page": "First page",
+    "previous_page": "Previous page",
+    "next_page": "Next page",
+    "last_page": "Last page"
   },
   "login": {
     "subtitle": "Site tracker",
@@ -395,7 +409,8 @@
     "action_read": "View",
     "action_create": "Create",
     "action_update": "Edit",
-    "action_delete": "Delete"
+    "action_delete": "Delete",
+    "role_name_taken": "A role with this name already exists"
   },
   "report": {
     "title": "Works Completion Certificate",
@@ -434,7 +449,9 @@
     "delete_error": "Delete error",
     "photo_deleted": "Photo deleted",
     "locked_notice": "This project is locked. Photos can no longer be modified.",
-    "back_to_project": "Back to project"
+    "back_to_project": "Back to project",
+    "title_before": "Before photos",
+    "title_after": "After photos"
   },
   "install": {
     "banner_title": "Install the app",

@@ -303,6 +303,7 @@ export function SettingsAppearancePage() {
                       </select>
                       <button
                         type="button"
+                        aria-label={t('settings.nav_remove_slot')}
                         onClick={() => handleRemoveSlot(i)}
                         className="text-[10px] text-muted-foreground hover:text-destructive"
                       >

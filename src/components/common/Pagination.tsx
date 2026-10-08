@@ -4,6 +4,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PaginationProps {
   page: number;
@@ -13,6 +14,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, total, limit, onChange }: PaginationProps) {
+  const { t } = useTranslation();
   const totalPages = Math.ceil(total / limit);
   if (totalPages <= 1) return null;
 
@@ -23,7 +25,7 @@ export function Pagination({ page, total, limit, onChange }: PaginationProps) {
           onClick={() => onChange(1)}
           disabled={page <= 1}
           className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card transition-colors disabled:opacity-40 active:bg-muted"
-          aria-label="Première page"
+          aria-label={t("common.first_page")}
         >
           <ChevronsLeft className="h-4 w-4" />
         </button>
@@ -33,7 +35,7 @@ export function Pagination({ page, total, limit, onChange }: PaginationProps) {
         onClick={() => onChange(page - 1)}
         disabled={page <= 1}
         className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card transition-colors disabled:opacity-40 active:bg-muted"
-        aria-label="Page précédente"
+        aria-label={t("common.previous_page")}
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -48,7 +50,7 @@ export function Pagination({ page, total, limit, onChange }: PaginationProps) {
         onClick={() => onChange(page + 1)}
         disabled={page >= totalPages}
         className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card transition-colors disabled:opacity-40 active:bg-muted"
-        aria-label="Page suivante"
+        aria-label={t("common.next_page")}
       >
         <ChevronRight className="h-4 w-4" />
       </button>
@@ -58,7 +60,7 @@ export function Pagination({ page, total, limit, onChange }: PaginationProps) {
           onClick={() => onChange(totalPages)}
           disabled={page >= totalPages}
           className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card transition-colors disabled:opacity-40 active:bg-muted"
-          aria-label="Dernière page"
+          aria-label={t("common.last_page")}
         >
           <ChevronsRight className="h-4 w-4" />
         </button>

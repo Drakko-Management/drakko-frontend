@@ -46,7 +46,8 @@
     "empty_status_desc": "Sin proyectos con este estado",
     "empty_desc": "Sin proyectos por el momento",
     "create": "Crear un proyecto",
-    "express": "Intervención rápida"
+    "express": "Intervención rápida",
+    "clear_search": "Borrar la búsqueda"
   },
   "clients": {
     "title": "Clientes",
@@ -67,7 +68,8 @@
     "AWAITING_SIGNATURE": "Firma",
     "AWAITING_RESERVE_LIFT": "Reservas en curso",
     "COMPLETED": "Terminado",
-    "DISPUTED": "Litigio"
+    "DISPUTED": "Litigio",
+    "step_reserve_lift": "Reservas"
   },
   "settings": {
     "title": "Ajustes",
@@ -179,7 +181,13 @@
     "logo_deleted": "Logo eliminado",
     "logo_uploaded": "Logo actualizado",
     "logo_error": "Error al importar el logo",
-    "logo_type_error": "Solo se aceptan formatos JPEG, PNG y WebP"
+    "logo_type_error": "Solo se aceptan formatos JPEG, PNG y WebP",
+    "legal_form_micro": "Microempresa",
+    "legal_form_association": "Asociación",
+    "payment_immediate": "Al recibir",
+    "payment_days": "{{days}} días",
+    "org_late_penalties_placeholder": "3 veces el tipo legal vigente",
+    "org_update_error": "Error al actualizar"
   },
   "common": {
     "back": "Volver",
@@ -212,7 +220,13 @@
     "inactive": "Inactivo",
     "add": "Añadir",
     "update_available": "Actualización disponible",
-    "update_btn": "Recargar"
+    "update_btn": "Recargar",
+    "menu": "Menú",
+    "close": "Cerrar",
+    "first_page": "Primera página",
+    "previous_page": "Página anterior",
+    "next_page": "Página siguiente",
+    "last_page": "Última página"
   },
   "login": {
     "subtitle": "Seguimiento de obra",
@@ -395,7 +409,8 @@
     "action_read": "Ver",
     "action_create": "Crear",
     "action_update": "Editar",
-    "action_delete": "Eliminar"
+    "action_delete": "Eliminar",
+    "role_name_taken": "Ya existe un rol con este nombre"
   },
   "report": {
     "title": "Acta de recepción de obras",
@@ -434,7 +449,9 @@
     "delete_error": "Error al eliminar",
     "photo_deleted": "Foto eliminada",
     "locked_notice": "Este proyecto está bloqueado. Las fotos ya no se pueden modificar.",
-    "back_to_project": "Volver al proyecto"
+    "back_to_project": "Volver al proyecto",
+    "title_before": "Fotos de antes",
+    "title_after": "Fotos de después"
   },
   "install": {
     "banner_title": "Instalar la aplicación",

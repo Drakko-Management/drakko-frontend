@@ -46,7 +46,8 @@
     "empty_status_desc": "Keine Projekte mit diesem Status",
     "empty_desc": "Noch keine Projekte",
     "create": "Projekt erstellen",
-    "express": "Schnellintervention"
+    "express": "Schnellintervention",
+    "clear_search": "Suche löschen"
   },
   "clients": {
     "title": "Kunden",
@@ -67,7 +68,8 @@
     "AWAITING_SIGNATURE": "Unterschrift",
     "AWAITING_RESERVE_LIFT": "Mängel in Bearbeitung",
     "COMPLETED": "Abgeschlossen",
-    "DISPUTED": "Streit"
+    "DISPUTED": "Streit",
+    "step_reserve_lift": "Mängel"
   },
   "settings": {
     "title": "Einstellungen",
@@ -179,7 +181,13 @@
     "logo_deleted": "Logo gelöscht",
     "logo_uploaded": "Logo aktualisiert",
     "logo_error": "Fehler beim Hochladen des Logos",
-    "logo_type_error": "Nur JPEG, PNG und WebP Formate werden akzeptiert"
+    "logo_type_error": "Nur JPEG, PNG und WebP Formate werden akzeptiert",
+    "legal_form_micro": "Kleinstunternehmen",
+    "legal_form_association": "Verein",
+    "payment_immediate": "Bei Erhalt",
+    "payment_days": "{{days}} Tage",
+    "org_late_penalties_placeholder": "3× der geltende gesetzliche Zinssatz",
+    "org_update_error": "Aktualisierungsfehler"
   },
   "common": {
     "back": "Zurück",
@@ -212,7 +220,13 @@
     "inactive": "Inaktiv",
     "add": "Hinzufügen",
     "update_available": "Update verfügbar",
-    "update_btn": "Neu laden"
+    "update_btn": "Neu laden",
+    "menu": "Menü",
+    "close": "Schließen",
+    "first_page": "Erste Seite",
+    "previous_page": "Vorherige Seite",
+    "next_page": "Nächste Seite",
+    "last_page": "Letzte Seite"
   },
   "login": {
     "subtitle": "Baustellenverfolgung",
@@ -395,7 +409,8 @@
     "action_read": "Ansehen",
     "action_create": "Erstellen",
     "action_update": "Bearbeiten",
-    "action_delete": "Löschen"
+    "action_delete": "Löschen",
+    "role_name_taken": "Eine Rolle mit diesem Namen existiert bereits"
   },
   "report": {
     "title": "Abnahmeprotokoll",
@@ -434,7 +449,9 @@
     "delete_error": "Löschfehler",
     "photo_deleted": "Foto gelöscht",
     "locked_notice": "Dieses Projekt ist gesperrt. Fotos können nicht mehr geändert werden.",
-    "back_to_project": "Zurück zum Projekt"
+    "back_to_project": "Zurück zum Projekt",
+    "title_before": "Fotos vorher",
+    "title_after": "Fotos nachher"
   },
   "install": {
     "banner_title": "App installieren",

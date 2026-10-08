@@ -1,6 +1,27 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import i18n from 'i18next'
 import { Stepper } from './Stepper'
+
+// ── Traductions ────────────────────────────────────────────────────────────
+
+describe('Stepper — traductions', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('fr')
+  })
+
+  it.each([
+    ['fr', ['Brouillon', 'Planifié', 'En cours', 'Signature', 'Levée', 'Terminé']],
+    ['en', ['Draft', 'Planned', 'In progress', 'Signature', 'Snagging', 'Completed']],
+    ['es', ['Borrador', 'Planificado', 'En curso', 'Firma', 'Reservas', 'Terminado']],
+    ['it', ['Bozza', 'Pianificato', 'In corso', 'Firma', 'Riserve', 'Completato']],
+    ['de', ['Entwurf', 'Geplant', 'In Bearbeitung', 'Unterschrift', 'Mängel', 'Abgeschlossen']],
+  ])('affiche les 6 étapes en %s', async (lang, labels) => {
+    await i18n.changeLanguage(lang)
+    render(<Stepper status="DRAFT" hasReserveLift />)
+    labels.forEach((label) => expect(screen.getByText(label)).toBeInTheDocument())
+  })
+})
 
 // ── Labels ─────────────────────────────────────────────────────────────────
 
