@@ -3,6 +3,18 @@ import { apiRequest } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
 import type { Report, ReportLine } from '@/types/api'
 
+const PDF_POLL_MS = 3_000
+const PDF_POLL_MAX_FETCHES = 40
+
+// Le PDF est généré en tâche de fond après la signature : on redemande jusqu'à ce qu'il existe (≈ 2 min max)
+export function pdfPollInterval(
+  pdfUrl: string | null | undefined,
+  fetchCount: number,
+): number | false {
+  if (pdfUrl !== null) return false
+  return fetchCount < PDF_POLL_MAX_FETCHES ? PDF_POLL_MS : false
+}
+
 export function useReport(projectId: string) {
   return useQuery({
     queryKey: ['report', projectId],
@@ -16,6 +28,8 @@ export function useReportPdfUrl(projectId: string, enabled: boolean) {
     queryKey: ['report-pdf', projectId],
     queryFn: () => apiRequest<{ pdfUrl: string | null }>(`/projects/${projectId}/report/pdf-url`),
     enabled: Boolean(projectId) && enabled,
+    refetchInterval: (query) =>
+      pdfPollInterval(query.state.data?.pdfUrl, query.state.dataUpdateCount),
   })
 }
 
@@ -65,6 +79,8 @@ export function useReserveLiftPdfUrl(projectId: string, enabled: boolean) {
     queryKey: ['reserve-lift-pdf', projectId],
     queryFn: () => apiRequest<{ pdfUrl: string | null }>(`/projects/${projectId}/report/reserve-lift/pdf-url`),
     enabled: Boolean(projectId) && enabled,
+    refetchInterval: (query) =>
+      pdfPollInterval(query.state.data?.pdfUrl, query.state.dataUpdateCount),
   })
 }
 

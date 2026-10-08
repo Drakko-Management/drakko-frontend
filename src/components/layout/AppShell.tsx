@@ -5,11 +5,12 @@ import { BottomNav } from './BottomNav'
 import { InstallBanner } from '@/components/common/InstallBanner'
 import { PwaUpdatePrompt } from '@/components/common/PwaUpdatePrompt'
 import { TutorialProvider } from '@/tutorials/TutorialProvider'
-import { useProjectUpdateSync } from '@/hooks/use-project-sync'
+import { useProjectLiveRefresh, useProjectUpdateSync } from '@/hooks/use-project-sync'
 import { useSessionSync } from '@/hooks/use-session-sync'
 
 export function AppShell() {
   useProjectUpdateSync()
+  useProjectLiveRefresh()
   useSessionSync()
   return (
     <TutorialProvider>
