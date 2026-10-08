@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { useRoles, useUpdateRole, useDeleteRole } from '@/hooks/use-roles'
 import { MODULES, ACTIONS } from '@/lib/permissions'
+import { apiErrorMessage } from '@/lib/api-error'
 import type { Role, Permissions, PermModule, PermAction } from '@/types/api'
 
 export function PermissionMatrix({
@@ -113,8 +114,7 @@ function RoleRow({ role, isAdmin }: { role: Role; isAdmin: boolean }) {
       await deleteRole.mutateAsync(role.id)
       toast.success(t('users.role_deleted'))
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : ''
-      toast.error(msg.includes('encore assigné') ? t('users.role_in_use') : t('users.role_delete_error'))
+      toast.error(apiErrorMessage(err, t, 'users.role_delete_error'))
     }
   }
 

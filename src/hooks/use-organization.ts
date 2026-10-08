@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import i18n from 'i18next'
 import { apiRequest } from '@/lib/api-client'
 import type { Organization } from '@/types/api'
 
@@ -22,7 +23,7 @@ export function useUpdateOrganization() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['organization'] })
     },
-    onError: () => toast.error('Erreur lors de la mise à jour'),
+    onError: () => toast.error(i18n.t('settings.org_update_error')),
   })
 }
 

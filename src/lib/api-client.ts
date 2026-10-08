@@ -6,10 +6,18 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly code?: string,
   ) {
     super(message)
     this.name = 'ApiError'
   }
+}
+
+/** Erreur à partir d'une réponse non-OK. Le message du serveur est technique : on ne l'affiche jamais, on se sert du code. */
+export async function apiErrorFromResponse(res: Response): Promise<ApiError> {
+  const body = (await res.json().catch(() => ({}))) as { message?: string | string[]; code?: string }
+  const message = Array.isArray(body.message) ? body.message.join(', ') : body.message
+  return new ApiError(res.status, message ?? res.statusText, body.code)
 }
 
 let isRefreshing = false
@@ -101,14 +109,11 @@ export async function apiRequest<T = unknown>(
       newToken = await doRefresh()
     }
 
-    if (!newToken) throw new ApiError(401, 'Session expirée')
+    if (!newToken) throw new ApiError(401, 'Session expired')
     res = await fetchWithAuth(path, options, newToken)
   }
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({})) as { message?: string }
-    throw new ApiError(res.status, body.message ?? res.statusText)
-  }
+  if (!res.ok) throw await apiErrorFromResponse(res)
 
   if (res.status === 204) return undefined as T
   return res.json() as Promise<T>

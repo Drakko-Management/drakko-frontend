@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ApiError } from '@/lib/api-client'
+import { apiErrorMessage } from '@/lib/api-error'
 import { useCreateRole } from '@/hooks/use-roles'
 import { EMPTY_PERMISSIONS } from '@/lib/permissions'
 import { PermissionMatrix } from './RolesTab'
@@ -26,8 +26,7 @@ export function CreateRolePage() {
       toast.success(t('users.role_created'))
       void navigate('/utilisateurs')
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : t('users.role_create_error')
-      toast.error(msg)
+      toast.error(apiErrorMessage(err, t, 'users.role_create_error'))
     }
   }
 

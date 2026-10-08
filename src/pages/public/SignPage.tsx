@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePublicReport, useSign, useSignLift, useRefuse } from '@/hooks/use-signature'
+import { ApiError } from '@/lib/api-client'
 import { formatDate } from '@/lib/utils'
 import { TutorialProvider } from '@/tutorials/TutorialProvider'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
@@ -125,6 +126,13 @@ export function SignPage() {
   const lang = SUPPORTED_LANGS.includes(browserLang) ? browserLang : 'fr'
   const t = i18n.getFixedT(lang)
 
+  // Le texte renvoyé par le serveur n'est jamais affiché ; 401 = lien déjà utilisé ou expiré
+  const signErrorMessage = (err: unknown, fallbackKey: string) =>
+    err instanceof ApiError && err.status === 401 ? t('sign.invalid_title') : t(fallbackKey)
+
+  // Page publique : sa langue est celle du navigateur, pas celle de l'appli
+  useEffect(() => { document.documentElement.lang = lang }, [lang])
+
   const { token } = useParams<{ token: string }>()
   const [searchParams] = useSearchParams()
   const isOnsite = searchParams.get('back') === '1'
@@ -180,7 +188,7 @@ export function SignPage() {
       window.opener?.postMessage({ type: 'project_updated', projectId: data?.project.id }, window.location.origin)
       setSigned(true)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t('sign.error_sign_failed'))
+      toast.error(signErrorMessage(err, 'sign.error_sign_failed'))
     }
   }
 
@@ -196,7 +204,7 @@ export function SignPage() {
       window.opener?.postMessage({ type: 'project_updated', projectId: data?.project.id }, window.location.origin)
       setSigned(true)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t('sign.error_sign_failed'))
+      toast.error(signErrorMessage(err, 'sign.error_sign_failed'))
     }
   }
 
@@ -560,7 +568,7 @@ export function SignPage() {
                   window.opener?.postMessage({ type: 'project_updated', projectId: data?.project.id }, window.location.origin)
                   setRefused(true)
                 } catch (err) {
-                  toast.error(err instanceof Error ? err.message : t('sign.error_refuse_failed'))
+                  toast.error(signErrorMessage(err, 'sign.error_refuse_failed'))
                 }
               }}
             >

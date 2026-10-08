@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { apiRequest } from '@/lib/api-client'
+import { apiRequest, apiErrorFromResponse } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
 import type { PublicReport, SignatureRequest } from '@/types/api'
 
@@ -32,7 +32,7 @@ export function usePublicReport(token: string) {
     queryKey: ['public', token],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/public/${token}`)
-      if (!res.ok) throw new Error('Lien invalide ou expiré')
+      if (!res.ok) throw await apiErrorFromResponse(res)
       return res.json() as Promise<PublicReport>
     },
     enabled: Boolean(token),
@@ -55,10 +55,7 @@ export function useSign(token: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto),
       })
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string }
-        throw new Error(body.message ?? 'Erreur lors de la signature')
-      }
+      if (!res.ok) throw await apiErrorFromResponse(res)
       return res.json()
     },
     onSuccess: () =>
@@ -80,10 +77,7 @@ export function useSignLift(token: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto),
       })
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string }
-        throw new Error(body.message ?? 'Erreur lors de la levée des réserves')
-      }
+      if (!res.ok) throw await apiErrorFromResponse(res)
       return res.json()
     },
     onSuccess: () =>
@@ -99,10 +93,7 @@ export function useRefuse(token: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto),
       })
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string }
-        throw new Error(body.message ?? 'Erreur lors du refus')
-      }
+      if (!res.ok) throw await apiErrorFromResponse(res)
       return res.json()
     },
     onSuccess: () =>
