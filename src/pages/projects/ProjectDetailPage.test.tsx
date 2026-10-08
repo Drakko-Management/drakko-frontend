@@ -7,10 +7,18 @@ import {
   useUpdateProjectStatus,
   useAssignUsers,
   useUnassignUser,
+  useDeleteProject,
 } from '@/hooks/use-projects'
 import { usePhotos } from '@/hooks/use-photos'
-import { useReport, useReportPdfUrl, useSendReport, useGenerateReport } from '@/hooks/use-report'
-import { useCreateSignatureRequest } from '@/hooks/use-signature'
+import {
+  useReport,
+  useReportPdfUrl,
+  useSendReport,
+  useGenerateReport,
+  useReserveLiftPdfUrl,
+  useSendReserveLiftReport,
+} from '@/hooks/use-report'
+import { useCreateSignatureRequest, useSendReserveLiftRequest } from '@/hooks/use-signature'
 import { useUsers } from '@/hooks/use-users'
 import { useAuthStore } from '@/store/auth.store'
 import { makePermissions, EMPTY_PERMISSIONS } from '@/lib/permissions'
@@ -32,6 +40,7 @@ vi.mock('@/hooks/use-projects', () => ({
   useUpdateProjectStatus: vi.fn(),
   useAssignUsers: vi.fn(),
   useUnassignUser: vi.fn(),
+  useDeleteProject: vi.fn(),
   useProjects: vi.fn(),
 }))
 
@@ -41,8 +50,13 @@ vi.mock('@/hooks/use-report', () => ({
   useReportPdfUrl: vi.fn(),
   useSendReport: vi.fn(),
   useGenerateReport: vi.fn(),
+  useReserveLiftPdfUrl: vi.fn(),
+  useSendReserveLiftReport: vi.fn(),
 }))
-vi.mock('@/hooks/use-signature', () => ({ useCreateSignatureRequest: vi.fn() }))
+vi.mock('@/hooks/use-signature', () => ({
+  useCreateSignatureRequest: vi.fn(),
+  useSendReserveLiftRequest: vi.fn(),
+}))
 vi.mock('@/hooks/use-users', () => ({ useUsers: vi.fn(), useCreateUser: vi.fn(), useUpdateUser: vi.fn() }))
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -105,14 +119,19 @@ beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   vi.mocked(useReportPdfUrl).mockReturnValue({ data: { pdfUrl: null } } as any)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  vi.mocked(useReserveLiftPdfUrl).mockReturnValue({ data: { pdfUrl: null } } as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   vi.mocked(useUsers).mockReturnValue({ data: [] } as any)
 
   vi.mocked(useUpdateProjectStatus).mockReturnValue(mockMutation() as never)
   vi.mocked(useAssignUsers).mockReturnValue(mockMutation() as never)
   vi.mocked(useUnassignUser).mockReturnValue(mockMutation() as never)
+  vi.mocked(useDeleteProject).mockReturnValue(mockMutation() as never)
   vi.mocked(useSendReport).mockReturnValue(mockMutation() as never)
   vi.mocked(useGenerateReport).mockReturnValue(mockMutation() as never)
   vi.mocked(useCreateSignatureRequest).mockReturnValue(mockMutation() as never)
+  vi.mocked(useSendReserveLiftRequest).mockReturnValue(mockMutation() as never)
+  vi.mocked(useSendReserveLiftReport).mockReturnValue(mockMutation() as never)
 
   useAuthStore.setState({
     accessToken: 'tok',
@@ -180,9 +199,10 @@ describe('ProjectDetailPage — rendu', () => {
   it('affiche le stepper pour un statut non-DISPUTED', () => {
     renderDetail()
     // StatusBadge affiche "Brouillon" pour DRAFT, mais Stepper affiche aussi d'autres étapes
-    // On vérifie un label présent uniquement dans le Stepper (pas dans le StatusBadge pour DRAFT)
-    expect(screen.getByText('Planifié')).toBeInTheDocument()
-    expect(screen.getByText('Terminé')).toBeInTheDocument()
+    // On vérifie un label présent uniquement dans le Stepper (pas dans le StatusBadge pour DRAFT).
+    // Le stepper est rendu deux fois (desktop en haut de page, mobile dans une carte) : jsdom ignore les classes responsive.
+    expect(screen.getAllByText('Planifié').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Terminé').length).toBeGreaterThan(0)
   })
 })
 
@@ -383,7 +403,7 @@ describe('ProjectDetailPage — lien de signature', () => {
     } as any)
     renderDetail()
     expect(
-      screen.getByRole('button', { name: 'Envoyer le lien de signature' }),
+      screen.getByRole('button', { name: /Envoyer le lien de signature/ }),
     ).toBeInTheDocument()
   })
 
@@ -402,7 +422,7 @@ describe('ProjectDetailPage — lien de signature', () => {
     } as any)
     renderDetail()
     expect(
-      screen.queryByRole('button', { name: 'Envoyer le lien de signature' }),
+      screen.queryByRole('button', { name: /Envoyer le lien de signature/ }),
     ).not.toBeInTheDocument()
   })
 })
