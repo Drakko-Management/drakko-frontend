@@ -26,6 +26,11 @@ export interface TutorialStepDef {
   blockInteraction?: boolean
   /** Si la cible n'existe pas (selon l'état de la page), l'étape est sautée au lieu d'arrêter le tutoriel */
   optional?: boolean
+  /**
+   * Sélecteur CSS : si un élément correspond au moment du lancement (ou dès que la page s'affiche),
+   * l'étape est déjà « faite » et elle est retirée (ex. l'onglet voulu est déjà ouvert).
+   */
+  skipWhen?: string
   /** Zone où l'utilisateur doit agir (saisir, choisir, signer) : contour coloré + repère dans la bulle */
   interactive?: boolean
   /** « Suivant » reste bloqué tant que les champs obligatoires de la zone ne sont pas remplis */
@@ -165,6 +170,7 @@ export const TUTORIALS: TutorialDef[] = [
     startRoute: '/utilisateurs',
     permission: { module: 'equipe', action: 'create' },
     steps: [
+      { id: 'tab', route: /^\/utilisateurs$/, target: 'team-membres-tab', advance: 'click', skipWhen: '[data-tutorial="team-membres-tab"][data-active="true"]' },
       { id: 'new', route: /^\/utilisateurs$/, target: 'team-new', advance: 'action' },
       { id: 'name', route: /^\/utilisateurs\/nouveau$/, target: 'user-name', advance: 'next', gate: true },
       { id: 'identifier', route: /^\/utilisateurs\/nouveau$/, target: 'user-identifier', advance: 'next', gate: true },
@@ -256,7 +262,7 @@ export const TUTORIALS: TutorialDef[] = [
     permission: { module: 'equipe', action: 'create' },
     adminOnly: true,
     steps: [
-      { id: 'tab', route: /^\/utilisateurs$/, target: 'team-roles-tab', advance: 'click' },
+      { id: 'tab', route: /^\/utilisateurs$/, target: 'team-roles-tab', advance: 'click', skipWhen: '[data-tutorial="team-roles-tab"][data-active="true"]' },
       { id: 'new', route: /^\/utilisateurs$/, target: 'team-new', advance: 'action' },
       { id: 'name', route: /^\/utilisateurs\/roles\/nouveau$/, target: 'role-name', advance: 'next', gate: true },
       { id: 'permissions', route: /^\/utilisateurs\/roles\/nouveau$/, target: 'role-permissions', advance: 'next', placement: 'top' },

@@ -102,14 +102,19 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
   const [activeId, setActiveId] = useState<TutorialId | null>(null)
   const [index, setIndex] = useState(0)
   const [variant, setVariant] = useState<TutorialVariant>('main')
+  // Joyride garde en mémoire qu'un guide a été abandonné (« Quitter ») et ne redémarre pas : on le remonte à chaque lancement
+  const [runKey, setRunKey] = useState(0)
   // Étapes réellement jouées : sur une page déjà affichée, celles dont l'élément n'existe pas sont retirées au démarrage
   const [stepsOverride, setStepsOverride] = useState<TutorialStepDef[] | null>(null)
+  // Page publique : tout est déjà affiché, une cible absente ne viendra pas (pas d'attente longue)
+  const [quickTargets, setQuickTargets] = useState(false)
   const [completed, setCompleted] = useState<TutorialId[]>(() => readCompleted(userId))
 
   const stop = useCallback(() => {
     setActiveId(null)
     setIndex(0)
     setStepsOverride(null)
+    setQuickTargets(false)
   }, [])
 
   const start = useCallback(
@@ -137,15 +142,22 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
         // Page déjà affichée (tutoriel public) : on retire tout de suite les étapes facultatives
         // dont l'élément est absent, plutôt que d'attendre le délai de la cible puis de les sauter
         // (retard au lancement + numérotation qui commence à « étape 2 »).
+        // Page déjà affichée (publique, ou page courante du tutoriel) : on retire aussi les étapes
+        // déjà « faites » (`skipWhen`, ex. l'onglet voulu est déjà ouvert).
+        const pageDisplayed = route === null || route === pathnameRef.current
         let playable: TutorialStepDef[] | null = null
-        if (route === null) {
-          playable = getSteps(def, nextVariant).filter(
-            (s) => !s.optional || s.target === 'center' || findVisible(s.target) !== null,
-          )
+        if (pageDisplayed) {
+          playable = getSteps(def, nextVariant).filter((s) => {
+            if (s.skipWhen && document.querySelector(s.skipWhen)) return false
+            if (route === null && s.optional && s.target !== 'center' && findVisible(s.target) === null) return false
+            return true
+          })
           if (playable.length === 0) return
         }
+        setQuickTargets(route === null)
         setStepsOverride(playable)
         setVariant(nextVariant)
+        setRunKey((k) => k + 1)
         setIndex(0)
         setActiveId(id)
         if (route) void navigate(route)
@@ -174,6 +186,21 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
     () => (activeId ? (stepsOverride ?? getSteps(getTutorial(activeId), variant)) : []),
     [activeId, stepsOverride, variant],
   )
+
+  // Étape déjà « faite » une fois la page affichée (ex. on arrive sur /utilisateurs : l'onglet voulu est
+  // ouvert par défaut) : on la retire de la liste, la numérotation reste juste.
+  useEffect(() => {
+    if (!activeId) return
+    const step = activeSteps[index]
+    const selector = step?.skipWhen
+    if (!selector) return
+    const check = () => {
+      if (document.querySelector(selector)) setStepsOverride(activeSteps.filter((_, i) => i !== index))
+    }
+    check()
+    const timer = window.setInterval(check, 200)
+    return () => { window.clearInterval(timer) }
+  }, [activeId, activeSteps, index])
 
   // Suit les changements de page : saute à l'étape correspondant à la route,
   // ou arrête le tutoriel si l'utilisateur est parti ailleurs.
@@ -241,10 +268,10 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
         // Zone d'action : contour dans la couleur de l'entreprise pour la distinguer d'une simple explication
         ...(s.interactive && { styles: { spotlight: { stroke: primaryColor(), strokeWidth: 3 } } }),
         // Page publique déjà affichée : l'élément est là ou ne viendra pas. Sur une page qui charge ses données, on garde l'attente par défaut.
-        ...(s.optional && stepsOverride && { targetWaitTimeout: 400 }),
+        ...(s.optional && quickTargets && { targetWaitTimeout: 400 }),
       }
     })
-  }, [activeId, activeSteps, stepsOverride, t, i18n, lang, textVariant])
+  }, [activeId, activeSteps, quickTargets, t, i18n, lang, textVariant])
 
   const onEvent = useCallback<EventHandler>(
     (data) => {
@@ -280,6 +307,7 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
     <TutorialContext.Provider value={value}>
       {children}
       <Joyride
+        key={runKey}
         run={activeId !== null}
         stepIndex={index}
         steps={steps}

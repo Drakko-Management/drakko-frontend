@@ -384,6 +384,7 @@
     "tab_membres": "Members",
     "tab_roles": "Roles",
     "new_role": "New role",
+    "new_member": "New member",
     "roles_empty": "No roles configured",
     "no_custom_roles": "No roles available",
     "role_name": "Role name",
@@ -732,7 +733,9 @@
     "create_member": {
       "title": "Create a team member",
       "desc": "Username, password and role",
-      "new_title": "New user",
+      "tab_title": "Members",
+      "tab_body": "To add a member, first open the “Members” tab: tap it.",
+      "new_title": "New member",
       "new_body": "Tap this button to add a member to the team.",
       "name_title": "Identity",
       "name_body": "Enter the member's first and last name.",

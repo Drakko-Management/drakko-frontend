@@ -256,7 +256,7 @@ export function UsersPage() {
               onClick={() => void navigate(tab === 'roles' ? '/utilisateurs/roles/nouveau' : '/utilisateurs/nouveau')}
             >
               <Plus className="mr-1 h-4 w-4" />
-              {t('common.new')}
+              {tab === 'roles' ? t('users.new_role') : t('users.new_member')}
             </Button>
           )}
         </div>
@@ -269,7 +269,8 @@ export function UsersPage() {
             <button
               key={t_}
               onClick={() => setTab(t_)}
-              data-tutorial={t_ === 'roles' ? 'team-roles-tab' : undefined}
+              data-tutorial={`team-${t_}-tab`}
+              data-active={tab === t_}
               className={[
                 'flex-1 rounded-lg py-2 text-sm font-medium transition-colors',
                 tab === t_

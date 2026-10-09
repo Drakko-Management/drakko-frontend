@@ -384,6 +384,7 @@
     "tab_membres": "Mitglieder",
     "tab_roles": "Rollen",
     "new_role": "Neue Rolle",
+    "new_member": "Neues Mitglied",
     "roles_empty": "Keine Rollen konfiguriert",
     "no_custom_roles": "Keine Rollen verfügbar",
     "role_name": "Rollenname",
@@ -732,7 +733,9 @@
     "create_member": {
       "title": "Teammitglied anlegen",
       "desc": "Benutzername, Passwort und Rolle",
-      "new_title": "Neuer Benutzer",
+      "tab_title": "Mitglieder",
+      "tab_body": "Um ein Mitglied hinzuzufügen, öffnen Sie zuerst den Tab „Mitglieder“: tippen Sie darauf.",
+      "new_title": "Neues Mitglied",
       "new_body": "Tippen Sie auf diese Schaltfläche, um ein Teammitglied hinzuzufügen.",
       "name_title": "Name",
       "name_body": "Geben Sie Vor- und Nachnamen des Mitglieds ein.",

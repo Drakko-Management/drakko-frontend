@@ -146,18 +146,17 @@ describe('UsersPage — navigation par onglets', () => {
 // ── Création (pages dédiées) ───────────────────────────────────────────────
 
 describe('UsersPage — bouton Nouveau', () => {
-  it('sur l\'onglet Membres, Nouveau ouvre la création d\'un membre', async () => {
+  it('sur l\'onglet Membres, le bouton de l\'en-tête s\'appelle « Nouveau membre » et ouvre la création d\'un membre', async () => {
     renderUsers()
-    const [header] = screen.getAllByRole('button', { name: 'Nouveau' })
-    await userEvent.click(header)
+    await userEvent.click(screen.getByRole('button', { name: 'Nouveau membre' }))
     expect(screen.getByText('Page création membre')).toBeInTheDocument()
   })
 
-  it('sur l\'onglet Rôles, Nouveau ouvre la création d\'un rôle', async () => {
+  it('sur l\'onglet Rôles, le bouton de l\'en-tête s\'appelle « Nouveau rôle » et ouvre la création d\'un rôle', async () => {
     renderUsers()
     await userEvent.click(screen.getByRole('button', { name: 'Rôles' }))
-    const [header] = screen.getAllByRole('button', { name: 'Nouveau' })
-    await userEvent.click(header)
+    expect(screen.queryByRole('button', { name: 'Nouveau membre' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Nouveau rôle' }))
     expect(screen.getByText('Page création rôle')).toBeInTheDocument()
   })
 
@@ -171,13 +170,15 @@ describe('UsersPage — bouton Nouveau', () => {
   it('MEMBER avec equipe.create : boutons Nouveau visibles', () => {
     useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: makePermissions({ equipe: ['read', 'create'] }) })
     renderUsers()
-    expect(screen.getAllByRole('button', { name: 'Nouveau' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Nouveau membre' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Nouveau' })).toBeInTheDocument()   // bouton flottant mobile
   })
 
   it('MEMBER avec equipe.read seulement : aucun bouton Nouveau', () => {
     useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: makePermissions({ equipe: ['read'] }) })
     renderUsers()
     expect(screen.queryByRole('button', { name: 'Nouveau' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Nouveau membre' })).not.toBeInTheDocument()
   })
 })
 

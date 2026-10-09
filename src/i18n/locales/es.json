@@ -384,6 +384,7 @@
     "tab_membres": "Miembros",
     "tab_roles": "Roles",
     "new_role": "Nuevo rol",
+    "new_member": "Nuevo miembro",
     "roles_empty": "Sin roles configurados",
     "no_custom_roles": "Sin roles disponibles",
     "role_name": "Nombre del rol",
@@ -732,7 +733,9 @@
     "create_member": {
       "title": "Crear un miembro del equipo",
       "desc": "Identificador, contraseña y rol",
-      "new_title": "Nuevo usuario",
+      "tab_title": "Miembros",
+      "tab_body": "Para añadir un miembro, abre primero la pestaña «Miembros»: tócala.",
+      "new_title": "Nuevo miembro",
       "new_body": "Toca este botón para añadir un miembro al equipo.",
       "name_title": "Identidad",
       "name_body": "Introduce el nombre y los apellidos del miembro.",
