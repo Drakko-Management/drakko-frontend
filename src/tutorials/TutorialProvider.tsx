@@ -125,11 +125,11 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
         const def = getTutorial(id)
         let route: string | null = def.startRoute
         let nextVariant: TutorialVariant = 'main'
+        let projectId: string | null = null
         if (def.needs) {
           try {
             // Lancé depuis la page d'un chantier : on reste sur CE chantier s'il convient
             const here = currentProjectId(pathnameRef.current)
-            let projectId: string | null = null
             if (here) {
               const current = await apiRequest<{ status: string }>(`/projects/${here}`)
               if ((STATUSES_BY_NEED[def.needs] as readonly string[]).includes(current.status)) projectId = here
@@ -141,22 +141,31 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
             nextVariant = 'fallback'
           }
         }
-        // Page déjà affichée (tutoriel public) : on retire tout de suite les étapes facultatives
-        // dont l'élément est absent, plutôt que d'attendre le délai de la cible puis de les sauter
-        // (retard au lancement + numérotation qui commence à « étape 2 »).
-        // Page déjà affichée (publique, ou page courante du tutoriel) : on retire aussi les étapes
-        // déjà « faites » (`skipWhen`, ex. l'onglet voulu est déjà ouvert).
+        const allSteps = getSteps(def, nextVariant)
+        // Déjà au milieu du parcours (ex. sur le formulaire de création, sur la page des photos) : on continue
+        // d'ici, sans retourner à la page de départ ni perdre ce qui est saisi. Les étapes déjà derrière nous
+        // sont retirées, la numérotation reste juste.
+        const midIndex = nextVariant === 'main' ? allSteps.findIndex((s) => s.route.test(pathnameRef.current)) : -1
+        const sameData = !def.needs || (projectId !== null && projectId === currentProjectId(pathnameRef.current))
+        const startAt = midIndex > 0 && sameData ? midIndex : 0
+        if (startAt > 0) route = null
+        // Page déjà affichée (page publique, page courante du tutoriel, ou milieu de parcours) : on retire tout de
+        // suite les étapes déjà « faites » (`skipWhen`, ex. l'onglet voulu est déjà ouvert) et, sans route à ouvrir,
+        // les étapes facultatives dont l'élément est absent, plutôt que d'attendre le délai de la cible puis de les
+        // sauter (retard au lancement + numérotation qui commence à « étape 2 »).
         const pageDisplayed = route === null || route === pathnameRef.current
         let playable: TutorialStepDef[] | null = null
         if (pageDisplayed) {
-          playable = getSteps(def, nextVariant).filter((s) => {
+          playable = allSteps.slice(startAt).filter((s) => {
             if (s.skipWhen && document.querySelector(s.skipWhen)) return false
-            if (route === null && s.optional && s.target !== 'center' && findVisible(s.target) === null) return false
+            // seulement pour les étapes de la page affichée : celles des pages suivantes n'existent pas encore
+            if (route === null && s.optional && s.target !== 'center' && s.route.test(pathnameRef.current) && findVisible(s.target) === null) return false
             return true
           })
           if (playable.length === 0) return
         }
-        setQuickTargets(route === null)
+        // Page publique : tout est déjà affiché, une cible absente ne viendra pas
+        setQuickTargets(def.startRoute === null)
         setStepsOverride(playable)
         setVariant(nextVariant)
         setRunKey((k) => k + 1)

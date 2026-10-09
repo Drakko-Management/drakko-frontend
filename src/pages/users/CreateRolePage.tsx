@@ -11,6 +11,7 @@ import { useCreateRole } from '@/hooks/use-roles'
 import { EMPTY_PERMISSIONS } from '@/lib/permissions'
 import { PermissionMatrix } from './RolesTab'
 import type { Permissions } from '@/types/api'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 export function CreateRolePage() {
   const navigate = useNavigate()
@@ -40,6 +41,7 @@ export function CreateRolePage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('users.new_role')}</h1>
+        <TutorialHelpButton scope="role_form" className="ml-auto h-10 w-10 shrink-0" />
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">

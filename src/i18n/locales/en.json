@@ -635,7 +635,7 @@
       "new_body": "Tap this button to create a project.",
       "title_title": "Reference and title",
       "title_body": "The reference is required: enter the one you want to identify the project. Also give it a clear title, for example “Terrace and planting”.",
-      "title_body_autoref": "The reference is numbered automatically: you have nothing to enter (you can change it if needed). Just give the project a clear title, for example “Terrace and planting”.",
+      "title_body_autoref": "The reference is required, but it is numbered automatically: you have nothing to enter (you can change it if needed). Just give the project a clear title, for example “Terrace and planting”.",
       "client_title": "Client",
       "client_body": "Search for the client by name and pick them from the list. No client yet? Quit this guide and run \"Create a client\" first.",
       "address_title": "Project address",

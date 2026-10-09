@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateService } from '@/hooks/use-services'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 export function CreateServicePage() {
   const navigate = useNavigate()
@@ -41,6 +42,7 @@ export function CreateServicePage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('services.form_add_title')}</h1>
+        <TutorialHelpButton scope="service_form" className="ml-auto h-10 w-10 shrink-0" />
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">

@@ -14,6 +14,7 @@ import { useOrganization } from '@/hooks/use-organization'
 import { useClients } from '@/hooks/use-clients'
 import { buildAddress, parseAddress, fullName } from '@/lib/utils'
 import type { Client } from '@/types/api'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 function ClientSearch({
   value,
@@ -214,13 +215,14 @@ export function CreateProjectPage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('create_project.title')}</h1>
+        <TutorialHelpButton scope="project_form" className="ml-auto h-10 w-10 shrink-0" />
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
         <div className="space-y-4" data-tutorial="project-title">
         <div className="space-y-2">
           <Label htmlFor="reference">
-            {t('create_project.label_reference')} {autoRef ? '' : '*'}
+            {t('create_project.label_reference')} *
           </Label>
           <Input
             id="reference"

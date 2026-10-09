@@ -635,7 +635,7 @@
       "new_body": "Toca este botón para crear una obra.",
       "title_title": "Referencia y título",
       "title_body": "La referencia es obligatoria: escribe la que quieras para identificar la obra. Ponle también un título claro, por ejemplo «Terraza y plantaciones».",
-      "title_body_autoref": "La referencia se numera automáticamente: no tienes que escribir nada (puedes modificarla si hace falta). Solo ponle un título claro a la obra, por ejemplo «Terraza y plantaciones».",
+      "title_body_autoref": "La referencia es obligatoria, pero se numera automáticamente: no tienes que escribir nada (puedes modificarla si hace falta). Solo ponle un título claro a la obra, por ejemplo «Terraza y plantaciones».",
       "client_title": "Cliente",
       "client_body": "Busca al cliente por su nombre y elígelo en la lista. ¿Aún no tienes cliente? Sal de esta guía y empieza por «Crear un cliente».",
       "address_title": "Dirección de la obra",

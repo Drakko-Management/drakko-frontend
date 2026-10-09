@@ -9,6 +9,7 @@ import { usePhotos, useUploadPhoto, useDeletePhoto } from '@/hooks/use-photos'
 import { useProject } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { Photo, PhotoType } from '@/types/api'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 function PhotoSection({
   type,
@@ -181,6 +182,7 @@ export function PhotosPage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('photos.title')}</h1>
+        <TutorialHelpButton scope="photos" className="ml-auto h-10 w-10 shrink-0" />
       </div>
 
       {locked && (

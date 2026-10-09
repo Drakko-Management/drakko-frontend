@@ -3,7 +3,10 @@ import type { PermAction, PermModule } from '@/types/api'
 export type TutorialId = 'create_client' | 'create_project' | 'express_project' | 'create_role' | 'send_signature' | 'sign_page' | 'create_service' | 'install_app' | 'run_project' | 'fill_report' | 'create_member'
 
 /** Page (ou module) à laquelle un tutoriel est rattaché : sert au bouton « ? » de la page. */
-export type TutorialScope = 'clients' | 'projects' | 'project' | 'report' | 'team' | 'sign' | 'services' | 'settings'
+export type TutorialScope =
+  | 'clients' | 'projects' | 'project' | 'report' | 'team' | 'sign' | 'services' | 'settings'
+  // pages de formulaire / d'étape : le « ? » y propose le tutoriel qui correspond, qui continue depuis la page
+  | 'client_form' | 'project_form' | 'express_form' | 'user_form' | 'role_form' | 'service_form' | 'photos'
 
 /**
  * - `next`   : l'utilisateur appuie sur « Suivant » dans la bulle.
@@ -87,7 +90,7 @@ const PROJECT_DETAIL = /^\/chantiers\/(?!nouveau$|express$)[^/]+$/
 export const TUTORIALS: TutorialDef[] = [
   {
     id: 'create_client',
-    scope: 'clients',
+    scope: ['clients', 'client_form'],
     startRoute: '/clients',
     permission: { module: 'clients', action: 'create' },
     steps: [
@@ -103,7 +106,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_project',
-    scope: 'projects',
+    scope: ['projects', 'project_form'],
     startRoute: '/chantiers',
     permission: { module: 'chantiers', action: 'create' },
     steps: [
@@ -119,7 +122,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'express_project',
-    scope: 'projects',
+    scope: ['projects', 'express_form'],
     startRoute: '/chantiers',
     permission: { module: 'chantiers', action: 'create' },
     steps: [
@@ -152,7 +155,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_service',
-    scope: 'services',
+    scope: ['services', 'service_form'],
     startRoute: '/prestations',
     permission: { module: 'prestations', action: 'create' },
     steps: [
@@ -166,7 +169,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_member',
-    scope: 'team',
+    scope: ['team', 'user_form'],
     startRoute: '/utilisateurs',
     permission: { module: 'equipe', action: 'create' },
     steps: [
@@ -194,7 +197,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'run_project',
-    scope: ['projects', 'project'],
+    scope: ['projects', 'project', 'photos'],
     startRoute: '/chantiers',
     dataRoute: '/chantiers/:id',
     permission: { module: 'chantiers', action: 'update' },
@@ -257,7 +260,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_role',
-    scope: 'team',
+    scope: ['team', 'role_form'],
     startRoute: '/utilisateurs',
     permission: { module: 'equipe', action: 'create' },
     adminOnly: true,

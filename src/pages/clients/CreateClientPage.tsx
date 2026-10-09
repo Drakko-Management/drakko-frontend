@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
 import { useCreateClient } from '@/hooks/use-clients'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 export function CreateClientPage() {
   const navigate = useNavigate()
@@ -73,6 +74,7 @@ export function CreateClientPage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('create_client.title')}</h1>
+        <TutorialHelpButton scope="client_form" className="ml-auto h-10 w-10 shrink-0" />
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">

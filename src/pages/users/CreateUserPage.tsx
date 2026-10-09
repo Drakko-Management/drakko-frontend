@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { useCreateUser } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
 import type { UserRole } from '@/types/api'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 function RoleSelect({
   value,
@@ -103,6 +104,7 @@ export function CreateUserPage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('users.new_user')}</h1>
+        <TutorialHelpButton scope="user_form" className="ml-auto h-10 w-10 shrink-0" />
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">

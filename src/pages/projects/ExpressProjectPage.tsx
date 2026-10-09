@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Zap, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCreateExpressProject } from '@/hooks/use-projects'
+import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 export function ExpressProjectPage() {
   const navigate = useNavigate()
@@ -59,6 +60,7 @@ export function ExpressProjectPage() {
           </div>
           <p className="text-sm text-muted-foreground">{t('express_project.subtitle')}</p>
         </div>
+        <TutorialHelpButton scope="express_form" className="ml-auto h-10 w-10 shrink-0" />
       </div>
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
