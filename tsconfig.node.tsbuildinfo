@@ -1,1 +1,1 @@
-{"root":["./vite.config.ts","./vitest.config.ts","./playwright.config.ts","./e2e/auth.spec.ts","./e2e/helpers.ts","./e2e/project-detail.spec.ts","./e2e/projects.spec.ts","./e2e/sign.spec.ts"],"version":"5.9.3"}
+{"root":["./vite.config.ts","./vitest.config.ts","./playwright.config.ts","./e2e/auth.spec.ts","./e2e/helpers.ts","./e2e/live-refresh.spec.ts","./e2e/project-detail.spec.ts","./e2e/projects.spec.ts","./e2e/sign.spec.ts"],"version":"5.9.3"}
