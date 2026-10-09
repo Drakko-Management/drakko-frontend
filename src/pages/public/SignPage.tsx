@@ -411,7 +411,7 @@ export function SignPage() {
 
   // ── SIGNATURE INITIALE ──
   return (
-    <TutorialProvider lang={lang} textVariant={isOnsite ? 'onsite' : undefined}>
+    <TutorialProvider lang={lang} textVariants={isOnsite ? ['onsite'] : []}>
     <div className="mx-auto max-w-lg space-y-6 p-4 pb-12">
       <div className="flex items-center gap-2 pt-2">
         {isOnsite && (

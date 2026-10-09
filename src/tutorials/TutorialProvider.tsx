@@ -87,11 +87,13 @@ interface TutorialProviderProps {
   children: React.ReactNode
   /** Langue forcée (pages publiques qui choisissent leur langue d'après le navigateur) */
   lang?: string
-  /** Suffixe de texte spécifique (ex. `onsite`) : `<clé>_onsite` est utilisé s'il existe */
-  textVariant?: string
+  /** Variantes de texte (ex. `onsite`, `autoref`) : `<clé>_<variante>` est utilisé s'il existe, dans l'ordre */
+  textVariants?: string[]
 }
 
-export function TutorialProvider({ children, lang, textVariant }: TutorialProviderProps) {
+export function TutorialProvider({ children, lang, textVariants }: TutorialProviderProps) {
+  // Clé stable : un tableau recréé à chaque rendu ne doit pas recalculer les étapes
+  const variantsKey = (textVariants ?? []).join(',')
   const { t: globalT, i18n } = useTranslation()
   const t = useMemo(() => (lang ? i18n.getFixedT(lang) : globalT), [lang, i18n, globalT])
   const navigate = useNavigate()
@@ -233,8 +235,11 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
     const imageLang = ['fr', 'en', 'es', 'it', 'de'].includes(uiLang) ? uiLang : 'fr'
     // Texte spécifique à un mode (ex. face à face) s'il existe, sinon texte commun
     const text = (key: string) => {
-      const variantKey = textVariant ? `${key}_${textVariant}` : null
-      return variantKey && i18n.exists(variantKey, { lng: uiLang }) ? t(variantKey) : t(key)
+      for (const variant of variantsKey ? variantsKey.split(',') : []) {
+        const variantKey = `${key}_${variant}`
+        if (i18n.exists(variantKey, { lng: uiLang })) return t(variantKey)
+      }
+      return t(key)
     }
     return defSteps.map((s, i) => {
       const data: TutorialStepData = {
@@ -271,7 +276,7 @@ export function TutorialProvider({ children, lang, textVariant }: TutorialProvid
         ...(s.optional && quickTargets && { targetWaitTimeout: 400 }),
       }
     })
-  }, [activeId, activeSteps, quickTargets, t, i18n, lang, textVariant])
+  }, [activeId, activeSteps, quickTargets, t, i18n, lang, variantsKey])
 
   const onEvent = useCallback<EventHandler>(
     (data) => {
