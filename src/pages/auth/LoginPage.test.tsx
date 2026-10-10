@@ -196,3 +196,10 @@ describe('LoginPage — validation', () => {
     expect(vi.mocked(apiRequest)).not.toHaveBeenCalled()
   })
 })
+
+describe('LoginPage — mot de passe oublié', () => {
+  it('propose le lien vers la demande de réinitialisation', () => {
+    renderLogin()
+    expect(screen.getByRole('link', { name: 'Mot de passe oublié ?' })).toHaveAttribute('href', '/mot-de-passe-oublie')
+  })
+})

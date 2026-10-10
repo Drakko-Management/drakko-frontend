@@ -4,6 +4,8 @@ import { CanRoute } from './CanRoute'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScrollLayout } from '@/components/layout/ScrollLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { ProjectsPage } from '@/pages/projects/ProjectsPage'
 import { ProjectDetailPage } from '@/pages/projects/ProjectDetailPage'
@@ -32,6 +34,14 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/mot-de-passe-oublie',
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: '/reinitialiser-mot-de-passe',
+    element: <ResetPasswordPage />,
   },
   {
     path: '/sign/:token',

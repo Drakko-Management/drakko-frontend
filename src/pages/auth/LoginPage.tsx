@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -135,6 +135,13 @@ export function LoginPage() {
           >
             {loading ? t('login.connecting') : t('login.submit')}
           </Button>
+
+          <Link
+            to="/mot-de-passe-oublie"
+            className="block text-center text-sm text-muted-foreground underline-offset-4 hover:underline"
+          >
+            {t('login.forgot_link')}
+          </Link>
         </form>
       </div>
     </div>

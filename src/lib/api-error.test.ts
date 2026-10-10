@@ -115,6 +115,18 @@ describe('apiErrorMessage', () => {
     }
   })
 
+  it('traduit INVALID_RESET_TOKEN (lien de réinitialisation expiré ou déjà utilisé) dans chaque langue', () => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(400, 'Texte technique', 'INVALID_RESET_TOKEN'), i18n.getFixedT(lng), 'password_reset.error')
+    const fallback = (lng: string) => i18n.getFixedT(lng)('password_reset.error')
+
+    expect(message('fr')).toBe("Ce lien n'est plus valable : il a expiré ou a déjà été utilisé")
+    for (const lng of ['fr', 'en', 'es', 'it', 'de']) {
+      expect(message(lng)).not.toBe(fallback(lng))
+      expect(message(lng)).not.toContain('technique')
+    }
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 
