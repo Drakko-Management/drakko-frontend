@@ -31,3 +31,9 @@ Thumbs.db
 dev-dist/
 .vercel
 .env*
+
+# Fichiers générés (jamais commités)
+*.tsbuildinfo
+playwright-report/
+test-results/
+coverage/
