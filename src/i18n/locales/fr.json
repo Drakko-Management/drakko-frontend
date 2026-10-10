@@ -325,7 +325,10 @@
     "reference_placeholder": "Ex : CH-2026-001",
     "reference_auto_placeholder": "Auto-généré",
     "reference_auto_hint": "Générée automatiquement, modifiable si besoin",
-    "title_placeholder": "Ex : Aménagement terrasse"
+    "title_placeholder": "Ex : Aménagement terrasse",
+    "create_client": "Créer « {{name}} »",
+    "client_required": "Choisissez un client dans la liste, ou créez-le",
+    "client_not_found": "Client introuvable. Choisissez-en un autre ou créez-le."
   },
   "edit_project": {
     "title": "Modifier le chantier",

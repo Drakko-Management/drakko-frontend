@@ -5,6 +5,7 @@ import { ApiError } from '@/lib/api-client'
 const API_ERROR_KEYS: Record<string, string> = {
   ROLE_NAME_TAKEN: 'users.role_name_taken',
   ROLE_IN_USE: 'users.role_in_use',
+  CLIENT_NOT_FOUND: 'create_project.client_not_found',
 }
 
 /** Message traduit pour une erreur API : celui du code connu, sinon le message générique de repli. */

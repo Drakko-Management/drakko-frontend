@@ -51,6 +51,15 @@ describe('apiErrorMessage', () => {
     )
   })
 
+  it('traduit CLIENT_NOT_FOUND (client absent de l\'organisation) dans chaque langue', () => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(404, 'Client introuvable', 'CLIENT_NOT_FOUND'), i18n.getFixedT(lng), 'create_project.error')
+
+    expect(message('fr')).toBe('Client introuvable. Choisissez-en un autre ou créez-le.')
+    expect(message('en')).toBe('Client not found. Pick another one or create it.')
+    expect(message('de')).toContain('Kunde nicht gefunden')
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 

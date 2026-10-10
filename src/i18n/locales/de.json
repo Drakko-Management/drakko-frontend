@@ -325,7 +325,10 @@
     "reference_placeholder": "Bsp.: BA-2026-001",
     "reference_auto_placeholder": "Automatisch generiert",
     "reference_auto_hint": "Automatisch generiert, bei Bedarf änderbar",
-    "title_placeholder": "Bsp.: Terrassengestaltung"
+    "title_placeholder": "Bsp.: Terrassengestaltung",
+    "create_client": "„{{name}}“ anlegen",
+    "client_required": "Wählen Sie einen Kunden aus der Liste oder legen Sie ihn neu an",
+    "client_not_found": "Kunde nicht gefunden. Wählen Sie einen anderen oder legen Sie ihn neu an."
   },
   "edit_project": {
     "title": "Projekt bearbeiten",

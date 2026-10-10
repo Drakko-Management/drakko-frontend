@@ -325,7 +325,10 @@
     "reference_placeholder": "Ej.: OB-2026-001",
     "reference_auto_placeholder": "Auto-generada",
     "reference_auto_hint": "Generada automáticamente, editable si es necesario",
-    "title_placeholder": "Ej.: Acondicionamiento de terraza"
+    "title_placeholder": "Ej.: Acondicionamiento de terraza",
+    "create_client": "Crear «{{name}}»",
+    "client_required": "Elige un cliente de la lista o créalo",
+    "client_not_found": "Cliente no encontrado. Elige otro o créalo."
   },
   "edit_project": {
     "title": "Modificar proyecto",

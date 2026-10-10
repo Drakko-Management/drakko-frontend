@@ -2,26 +2,33 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Loader2, Search, X, Check } from 'lucide-react'
+import { ArrowLeft, Loader2, Search, X, Check, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
+import { ClientCreateDialog } from '@/components/clients/ClientCreateDialog'
 import { useCreateProject, useNextProjectReference } from '@/hooks/use-projects'
 import { useOrganization } from '@/hooks/use-organization'
 import { useClients } from '@/hooks/use-clients'
-import { buildAddress, parseAddress, fullName } from '@/lib/utils'
+import { apiErrorMessage } from '@/lib/api-error'
+import { buildAddress, parseAddress, fullName, cn } from '@/lib/utils'
 import type { Client } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 function ClientSearch({
   value,
   onChange,
+  onCreate,
+  invalid,
 }: {
   value: Client | null
   onChange: (client: Client | null) => void
+  /** Ouvre la création d'un client ; reçoit le texte tapé */
+  onCreate: (name: string) => void
+  invalid: boolean
 }) {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
@@ -78,14 +85,20 @@ function ClientSearch({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          className="min-h-[44px] pl-9 pr-9"
+          id="client-search"
+          className={cn('min-h-[44px] pl-9 pr-9', invalid && 'border-destructive focus-visible:ring-destructive')}
+          aria-invalid={invalid}
+          aria-describedby={invalid ? 'client-error' : undefined}
           placeholder={t('create_project.search_client')}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
             setOpen(true)
           }}
-          onFocus={() => setOpen(true)}
+          // en erreur, le focus vient de la validation : la liste masquerait le message juste dessous,
+          // elle s'ouvre au toucher (onClick) ou dès qu'on tape
+          onFocus={() => { if (!invalid) setOpen(true) }}
+          onClick={() => setOpen(true)}
           autoComplete="off"
         />
         {search && (
@@ -108,7 +121,23 @@ function ClientSearch({
             </li>
           )}
           {!isFetching && data?.data.length === 0 && (
-            <li className="px-3 py-2.5 text-sm text-muted-foreground">{t('create_project.no_client')}</li>
+            <>
+              <li className="px-3 py-2.5 text-sm text-muted-foreground">{t('create_project.no_client')}</li>
+              {debouncedSearch === search && (
+                <li className="border-t">
+                  <button
+                    type="button"
+                    className="flex min-h-[44px] w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-primary hover:bg-muted active:bg-muted"
+                    onClick={() => { setOpen(false); onCreate(search.trim()) }}
+                  >
+                    <UserPlus className="h-4 w-4 shrink-0" />
+                    <span className="min-w-0 truncate">
+                      {search.trim() ? t('create_project.create_client', { name: search.trim() }) : t('create_client.title')}
+                    </span>
+                  </button>
+                </li>
+              )}
+            </>
           )}
           {data?.data.map((client) => (
             <li key={client.id} className="border-b last:border-0">
@@ -139,6 +168,10 @@ export function CreateProjectPage() {
   const { data: nextRef } = useNextProjectReference(autoRef)
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  // Nombre d'envois refusés faute de client (0 = rien à signaler) : chaque refus remet le curseur sur le champ
+  const [clientAttempts, setClientAttempts] = useState(0)
+  // Texte tapé dans la recherche quand la fenêtre de création de client est ouverte (null = fermée)
+  const [newClientName, setNewClientName] = useState<string | null>(null)
   const [form, setForm] = useState({
     reference: '',
     title: '',
@@ -152,6 +185,15 @@ export function CreateProjectPage() {
     expectedEndDate: '',
   })
   const [sameAsBilling, setSameAsBilling] = useState(false)
+  const clientError = clientAttempts > 0 && !selectedClient
+
+  // Après le rendu en erreur : le champ sait qu'il est invalide et n'ouvre pas la liste, qui masquerait le message
+  useEffect(() => {
+    if (!clientError) return
+    const field = document.getElementById('client-search')
+    field?.focus()
+    field?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+  }, [clientAttempts, clientError])
 
   function set(key: string, value: string) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -159,6 +201,7 @@ export function CreateProjectPage() {
 
   function handleClientChange(client: Client | null) {
     setSelectedClient(client)
+    setClientAttempts(0)
     if (client?.address) {
       const { street, postalCode, city } = parseAddress(client.address)
       setForm((f) => ({ ...f, street, postalCode, city }))
@@ -166,6 +209,11 @@ export function CreateProjectPage() {
     } else {
       setSameAsBilling(false)
     }
+  }
+
+  function handleClientCreated(client: Client) {
+    setNewClientName(null)
+    handleClientChange(client)
   }
 
   function handleSameAsBillingChange(checked: boolean) {
@@ -184,6 +232,8 @@ export function CreateProjectPage() {
     const refValue = form.reference.trim() || (autoRef ? undefined : '')
     if ((!autoRef && !form.reference) || !form.title || !address || !selectedClient) {
       toast.error(t('create_project.required_error'))
+      // le champ client n'est pas un champ natif « required » : on le signale nous-mêmes
+      if (!selectedClient) setClientAttempts((n) => n + 1)
       return
     }
     try {
@@ -200,8 +250,8 @@ export function CreateProjectPage() {
       })
       toast.success(t('create_project.success'))
       void navigate(`/chantiers/${project.id}`)
-    } catch {
-      toast.error(t('create_project.error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'create_project.error'))
     }
   }
 
@@ -252,8 +302,18 @@ export function CreateProjectPage() {
         </div>
 
         <div className="space-y-2" data-tutorial="project-client" data-tutorial-ready={selectedClient ? 'true' : 'false'}>
-          <Label>{t('create_project.label_client')} *</Label>
-          <ClientSearch value={selectedClient} onChange={handleClientChange} />
+          <Label htmlFor="client-search">{t('create_project.label_client')} *</Label>
+          <ClientSearch
+            value={selectedClient}
+            onChange={handleClientChange}
+            onCreate={setNewClientName}
+            invalid={clientError}
+          />
+          {clientError && (
+            <p id="client-error" role="alert" className="text-xs text-destructive">
+              {t('create_project.client_required')}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2" data-tutorial="project-address">
@@ -373,6 +433,14 @@ export function CreateProjectPage() {
           {t('create_project.submit')}
         </Button>
       </form>
+
+      {newClientName !== null && (
+        <ClientCreateDialog
+          name={newClientName}
+          onClose={() => setNewClientName(null)}
+          onCreated={handleClientCreated}
+        />
+      )}
     </div>
   )
 }

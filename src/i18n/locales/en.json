@@ -325,7 +325,10 @@
     "reference_placeholder": "E.g.: WS-2026-001",
     "reference_auto_placeholder": "Auto-generated",
     "reference_auto_hint": "Generated automatically, editable if needed",
-    "title_placeholder": "E.g.: Terrace development"
+    "title_placeholder": "E.g.: Terrace development",
+    "create_client": "Create “{{name}}”",
+    "client_required": "Pick a client from the list, or create one",
+    "client_not_found": "Client not found. Pick another one or create it."
   },
   "edit_project": {
     "title": "Edit project",

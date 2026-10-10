@@ -325,7 +325,10 @@
     "reference_placeholder": "Es.: CL-2026-001",
     "reference_auto_placeholder": "Auto-generato",
     "reference_auto_hint": "Generato automaticamente, modificabile se necessario",
-    "title_placeholder": "Es.: Sistemazione terrazza"
+    "title_placeholder": "Es.: Sistemazione terrazza",
+    "create_client": "Crea «{{name}}»",
+    "client_required": "Scegli un cliente dalla lista o crealo",
+    "client_not_found": "Cliente non trovato. Scegline un altro o crealo."
   },
   "edit_project": {
     "title": "Modifica cantiere",
