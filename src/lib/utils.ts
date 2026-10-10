@@ -34,6 +34,16 @@ export function initials(user: { firstName: string; lastName: string }): string 
   return `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
 }
 
+/**
+ * Date reçue de l'API → valeur d'un champ <input type="date">.
+ * Une colonne SQL de type date est renvoyée avec une heure (« 2026-06-01T00:00:00.000Z ») que le champ refuse
+ * (il resterait vide) ; il n'accepte que « 2026-06-01 ». On garde les 10 premiers caractères, sans passer par
+ * un `Date` pour ne pas risquer de décalage de fuseau horaire.
+ */
+export function toDateInput(value: string | null | undefined): string {
+  return value?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? ''
+}
+
 export function buildAddress(street: string, postalCode: string, city: string): string | undefined {
   const parts = [street.trim(), [postalCode.trim(), city.trim()].filter(Boolean).join(' ')].filter(Boolean)
   return parts.join(', ') || undefined

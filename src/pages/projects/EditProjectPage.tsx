@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
 import { useProject, useUpdateProject } from '@/hooks/use-projects'
-import { buildAddress, parseAddress } from '@/lib/utils'
+import { buildAddress, parseAddress, toDateInput } from '@/lib/utils'
 
 export function EditProjectPage() {
   const { id } = useParams<{ id: string }>()
@@ -48,8 +48,8 @@ export function EditProjectPage() {
       description: project.description ?? '',
       notes: project.notes ?? '',
       quoteAmount: project.quoteAmount ?? '',
-      startDate: project.startDate ?? '',
-      expectedEndDate: project.expectedEndDate ?? '',
+      startDate: toDateInput(project.startDate),
+      expectedEndDate: toDateInput(project.expectedEndDate),
     })
   }, [project])
 
@@ -163,6 +163,8 @@ export function EditProjectPage() {
             <Input
               id="startDate"
               type="date"
+              // le calendrier grise les jours après la fin prévue (et inversement pour la date de fin)
+              max={form.expectedEndDate || undefined}
               className="min-h-[44px]"
               value={form.startDate}
               onChange={(e) => set('startDate', e.target.value)}
@@ -173,6 +175,7 @@ export function EditProjectPage() {
             <Input
               id="expectedEndDate"
               type="date"
+              min={form.startDate || undefined}
               className="min-h-[44px]"
               value={form.expectedEndDate}
               onChange={(e) => set('expectedEndDate', e.target.value)}

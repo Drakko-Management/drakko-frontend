@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -329,5 +329,56 @@ describe('CreateProjectPage — erreur du serveur', () => {
     await submitWithDupont()
 
     expect(toast.error).toHaveBeenCalledWith('Erreur lors de la création')
+  })
+})
+
+// ── Dates : chacune limite l'autre ─────────────────────────────────────────
+
+describe('CreateProjectPage — dates', () => {
+  const startField = () => document.getElementById('startDate') as HTMLInputElement
+  const endField = () => document.getElementById('expectedEndDate') as HTMLInputElement
+  const pick = (field: HTMLInputElement, value: string) => fireEvent.change(field, { target: { value } })
+
+  it('sans date saisie, aucun jour n\'est interdit', () => {
+    renderPage()
+
+    expect(startField()).not.toHaveAttribute('max')
+    expect(endField()).not.toHaveAttribute('min')
+  })
+
+  it('la date de fin ne peut pas précéder la date de début : le calendrier grise les jours avant', () => {
+    renderPage()
+
+    pick(startField(), '2026-10-20')
+
+    expect(endField()).toHaveAttribute('min', '2026-10-20')
+  })
+
+  it('la date de début ne peut pas suivre la date de fin : le calendrier grise les jours après', () => {
+    renderPage()
+
+    pick(endField(), '2026-11-05')
+
+    expect(startField()).toHaveAttribute('max', '2026-11-05')
+  })
+
+  it('les deux contraintes se posent ensemble', () => {
+    renderPage()
+
+    pick(startField(), '2026-10-20')
+    pick(endField(), '2026-11-05')
+
+    expect(startField()).toHaveAttribute('max', '2026-11-05')
+    expect(endField()).toHaveAttribute('min', '2026-10-20')
+  })
+
+  it('effacer une date lève la contrainte posée sur l\'autre', () => {
+    renderPage()
+    pick(startField(), '2026-10-20')
+    expect(endField()).toHaveAttribute('min', '2026-10-20')
+
+    pick(startField(), '')
+
+    expect(endField()).not.toHaveAttribute('min')
   })
 })

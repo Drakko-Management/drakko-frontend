@@ -1,6 +1,27 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import i18n from 'i18next'
-import { formatDate, formatCurrency, fullName, initials, avatarColor } from './utils'
+import { formatDate, formatCurrency, fullName, initials, avatarColor, toDateInput } from './utils'
+
+// ── toDateInput ────────────────────────────────────────────────────────────
+
+describe('toDateInput', () => {
+  it('garde le jour d\'une date renvoyée avec une heure par l\'API (colonne SQL de type date)', () => {
+    expect(toDateInput('2026-06-01T00:00:00.000Z')).toBe('2026-06-01')
+  })
+
+  it('laisse une date sans heure telle quelle', () => {
+    expect(toDateInput('2026-06-01')).toBe('2026-06-01')
+  })
+
+  it('ne dépend pas du fuseau horaire : le jour reste celui de la chaîne', () => {
+    expect(toDateInput('2026-12-31T23:59:59.000Z')).toBe('2026-12-31')
+    expect(toDateInput('2026-01-01T00:00:00.000+02:00')).toBe('2026-01-01')
+  })
+
+  it.each([null, undefined, '', 'pas une date', '01/06/2026', '2026-6-1'])('%j → champ vide', (value) => {
+    expect(toDateInput(value)).toBe('')
+  })
+})
 
 // ── formatDate ─────────────────────────────────────────────────────────────
 

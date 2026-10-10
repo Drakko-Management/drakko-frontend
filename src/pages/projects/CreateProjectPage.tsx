@@ -367,6 +367,8 @@ export function CreateProjectPage() {
             <Input
               id="startDate"
               type="date"
+              // le calendrier grise les jours après la fin prévue (et inversement pour la date de fin)
+              max={form.expectedEndDate || undefined}
               className="min-h-[44px]"
               value={form.startDate}
               onChange={(e) => set('startDate', e.target.value)}
@@ -377,6 +379,7 @@ export function CreateProjectPage() {
             <Input
               id="expectedEndDate"
               type="date"
+              min={form.startDate || undefined}
               className="min-h-[44px]"
               value={form.expectedEndDate}
               onChange={(e) => set('expectedEndDate', e.target.value)}
