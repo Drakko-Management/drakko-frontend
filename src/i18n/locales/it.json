@@ -429,7 +429,9 @@
     "owner_protected": "Solo il proprietario può modificare il proprio account",
     "owner_transfer_required": "Trasferisci prima la proprietà per disattivare questo account o togliergli il ruolo di amministratore",
     "owner_required": "Solo il proprietario può trasferire la proprietà",
-    "owner_target_invalid": "La proprietà può essere trasferita solo a un amministratore attivo"
+    "owner_target_invalid": "La proprietà può essere trasferita solo a un amministratore attivo",
+    "role_exceeds_permissions": "Non puoi assegnare un ruolo che concede permessi che non hai",
+    "user_exceeds_permissions": "Questo account ha permessi che non hai: non puoi modificarlo"
   },
   "report": {
     "title": "Verbale di fine lavori",

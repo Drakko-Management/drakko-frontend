@@ -429,7 +429,9 @@
     "owner_protected": "Solo el propietario puede modificar su cuenta",
     "owner_transfer_required": "Transfiere primero la propiedad para desactivar esta cuenta o quitarle el rol de administrador",
     "owner_required": "Solo el propietario puede transferir la propiedad",
-    "owner_target_invalid": "La propiedad solo puede transferirse a un administrador activo"
+    "owner_target_invalid": "La propiedad solo puede transferirse a un administrador activo",
+    "role_exceeds_permissions": "No puedes asignar un rol que otorga permisos que no tienes",
+    "user_exceeds_permissions": "Esta cuenta tiene permisos que no tienes: no puedes modificarla"
   },
   "report": {
     "title": "Acta de recepción de obras",

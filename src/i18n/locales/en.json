@@ -429,7 +429,9 @@
     "owner_protected": "Only the owner can edit their account",
     "owner_transfer_required": "Transfer ownership first to deactivate this account or remove its administrator role",
     "owner_required": "Only the owner can transfer ownership",
-    "owner_target_invalid": "Ownership can only be transferred to an active administrator"
+    "owner_target_invalid": "Ownership can only be transferred to an active administrator",
+    "role_exceeds_permissions": "You can't assign a role that grants permissions you don't have",
+    "user_exceeds_permissions": "This account has permissions you don't have: you can't edit it"
   },
   "report": {
     "title": "Works Completion Certificate",

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useCreateUser } from '@/hooks/use-users'
-import { useRoles } from '@/hooks/use-roles'
+import { useAssignableRoles } from '@/hooks/use-roles'
 import { useAuthStore } from '@/store/auth.store'
 import { makePermissions } from '@/lib/permissions'
 import { ApiError } from '@/lib/api-client'
@@ -23,7 +23,7 @@ vi.mock('@/hooks/use-users', () => ({
 }))
 
 vi.mock('@/hooks/use-roles', () => ({
-  useRoles: vi.fn(),
+  useAssignableRoles: vi.fn(),
 }))
 
 function renderPage() {
@@ -52,7 +52,7 @@ async function fillRequiredFields() {
 beforeEach(() => {
   vi.clearAllMocks()
   useAuthStore.setState({ accessToken: 'tok', username: 'admin', role: 'ADMIN', userId: 'u0', permissions: null })
-  vi.mocked(useRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useRoles>)
+  vi.mocked(useAssignableRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useAssignableRoles>)
   vi.mocked(useCreateUser).mockReturnValue({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false } as never)
 })
 

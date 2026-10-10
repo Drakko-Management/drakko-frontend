@@ -9,6 +9,17 @@ export function useRoles() {
   })
 }
 
+/**
+ * Rôles que l'utilisateur connecté peut attribuer : tous pour un administrateur, ceux qui n'accordent rien de
+ * plus que ses propres droits pour un membre. GET /roles, lui, est réservé aux administrateurs.
+ */
+export function useAssignableRoles() {
+  return useQuery<Pick<Role, 'id' | 'name' | 'permissions'>[]>({
+    queryKey: ['roles', 'assignable'],
+    queryFn: () => apiRequest<Pick<Role, 'id' | 'name' | 'permissions'>[]>('/users/assignable-roles'),
+  })
+}
+
 export function useCreateRole() {
   const qc = useQueryClient()
   return useMutation({

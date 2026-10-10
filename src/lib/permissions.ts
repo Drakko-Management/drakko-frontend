@@ -29,3 +29,19 @@ export function can(
 export function makePermissions(partial: Partial<Permissions>): Permissions {
   return { ...EMPTY_PERMISSIONS, ...partial }
 }
+
+/**
+ * Vrai quand tout ce que `candidate` accorde, `allowed` l'accorde aussi, module par module.
+ * Même règle que l'API : un membre n'accorde pas plus de droits que les siens.
+ */
+export function isWithinPermissions(
+  candidate: Partial<Permissions> | null | undefined,
+  allowed: Partial<Permissions> | null | undefined,
+): boolean {
+  return MODULES.every((module) => {
+    const granted = allowed?.[module] ?? []
+    return (candidate?.[module] ?? [])
+      .filter((action) => ACTIONS.includes(action))
+      .every((action) => granted.includes(action))
+  })
+}

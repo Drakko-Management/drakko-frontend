@@ -7,6 +7,8 @@ const API_ERROR_KEYS: Record<string, string> = {
   ROLE_IN_USE: 'users.role_in_use',
   ROLE_NOT_FOUND: 'users.role_not_found',
   ADMIN_REQUIRED: 'users.admin_required',
+  ROLE_EXCEEDS_PERMISSIONS: 'users.role_exceeds_permissions',
+  USER_EXCEEDS_PERMISSIONS: 'users.user_exceeds_permissions',
   OWNER_PROTECTED: 'users.owner_protected',
   OWNER_TRANSFER_REQUIRED: 'users.owner_transfer_required',
   OWNER_REQUIRED: 'users.owner_required',

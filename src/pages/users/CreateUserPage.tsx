@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateUser } from '@/hooks/use-users'
-import { useRoles } from '@/hooks/use-roles'
+import { useAssignableRoles } from '@/hooks/use-roles'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import type { UserRole } from '@/types/api'
@@ -23,7 +23,7 @@ function RoleSelect({
   onChange: (role: UserRole, customRoleId: string | null) => void
 }) {
   const { t } = useTranslation()
-  const { data: roles } = useRoles()
+  const { data: roles } = useAssignableRoles()
   const { isAdmin } = usePermissions()
 
   const selectValue = value === 'ADMIN' ? 'ADMIN' : (customRoleId ?? '')

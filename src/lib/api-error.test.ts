@@ -87,6 +87,8 @@ describe('apiErrorMessage', () => {
     ['OWNER_TRANSFER_REQUIRED', 'Transférez d\'abord la propriété pour désactiver ce compte ou lui retirer le rôle d\'administrateur'],
     ['OWNER_REQUIRED', 'Seul le propriétaire peut transférer la propriété'],
     ['OWNER_TARGET_INVALID', 'La propriété ne peut être transférée qu\'à un administrateur actif'],
+    ['ROLE_EXCEEDS_PERMISSIONS', 'Vous ne pouvez pas attribuer un rôle qui donne des droits que vous n\'avez pas'],
+    ['USER_EXCEEDS_PERMISSIONS', 'Ce compte a des droits que vous n\'avez pas : vous ne pouvez pas le modifier'],
   ])('traduit %s dans chaque langue (jamais le message de repli)', (code, french) => {
     const message = (lng: string) =>
       apiErrorMessage(new ApiError(403, 'Texte technique', code), i18n.getFixedT(lng), 'users.update_error')

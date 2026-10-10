@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useUsers, useCreateUser, useUpdateUser, useTransferOwnership } from '@/hooks/use-users'
-import { useRoles } from '@/hooks/use-roles'
+import { useRoles, useAssignableRoles } from '@/hooks/use-roles'
 import { useAuthStore } from '@/store/auth.store'
 import { ApiError } from '@/lib/api-client'
 import { makePermissions } from '@/lib/permissions'
@@ -26,6 +26,7 @@ vi.mock('@/hooks/use-users', () => ({
 
 vi.mock('@/hooks/use-roles', () => ({
   useRoles: vi.fn(),
+  useAssignableRoles: vi.fn(),
   useCreateRole: vi.fn(),
   useUpdateRole: vi.fn(),
   useDeleteRole: vi.fn(),
@@ -90,6 +91,7 @@ beforeEach(() => {
   vi.mocked(useUsers).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useUsers>)
    
   vi.mocked(useRoles).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useRoles>)
+  vi.mocked(useAssignableRoles).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useAssignableRoles>)
   vi.mocked(useCreateUser).mockReturnValue(mockMutation() as never)
   vi.mocked(useUpdateUser).mockReturnValue(mockMutation() as never)
   vi.mocked(useTransferOwnership).mockReturnValue(mockMutation() as never)
@@ -283,7 +285,7 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
 
 describe('UsersPage — rôle affiché dans la fiche d\'un membre', () => {
   beforeEach(() => {
-    vi.mocked(useRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useRoles>)
+    vi.mocked(useAssignableRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useAssignableRoles>)
   })
 
   function selectedOption() {
@@ -324,7 +326,7 @@ describe('UsersPage — comptes administrateurs', () => {
 
   beforeEach(() => {
     vi.mocked(useUsers).mockReturnValue({ data: [USER_ADMIN, USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
-    vi.mocked(useRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useRoles>)
+    vi.mocked(useAssignableRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useAssignableRoles>)
   })
 
   it('ADMIN : ouvre la fiche d\'un administrateur et propose « Administrateur » comme rôle', async () => {
@@ -359,6 +361,100 @@ describe('UsersPage — comptes administrateurs', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Seul un administrateur peut créer ou modifier un compte administrateur')
+    })
+  })
+})
+
+// ── Un membre n'accorde pas plus de droits que les siens ────────────────────
+
+describe('UsersPage — droits bornés par ceux de l\'appelant', () => {
+  const WORKER_PERMISSIONS = makePermissions({ chantiers: ['read'] })
+  const BOSS_PERMISSIONS = makePermissions({ chantiers: ['read', 'update'], clients: ['read'], equipe: ['read', 'update'] })
+
+  const USER_WORKER: User = {
+    ...USER_ACTIVE,
+    id: 'u-worker',
+    username: 'lea.ouvrier',
+    firstName: 'Léa',
+    lastName: 'Ouvrier',
+    customRoleId: 'r-worker',
+    customRole: { id: 'r-worker', name: 'Ouvrier', permissions: WORKER_PERMISSIONS },
+  }
+  const USER_BOSS: User = {
+    ...USER_ACTIVE,
+    id: 'u-boss',
+    username: 'marc.direction',
+    firstName: 'Marc',
+    lastName: 'Direction',
+    customRoleId: 'r-boss',
+    customRole: { id: 'r-boss', name: 'Direction', permissions: BOSS_PERMISSIONS },
+  }
+
+  // un responsable : lit les chantiers et gère l'équipe, rien de plus
+  function manager() {
+    useAuthStore.setState({
+      accessToken: 'tok',
+      username: 'responsable',
+      role: 'MEMBER',
+      userId: 'u-manager',
+      permissions: makePermissions({ chantiers: ['read'], equipe: ['read', 'update'] }),
+    })
+  }
+
+  beforeEach(() => {
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_WORKER, USER_BOSS], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+  })
+
+  it('MEMBER : ouvre la fiche d\'un collègue dont les droits n\'excèdent pas les siens', async () => {
+    manager()
+    renderUsers()
+    await userEvent.click(screen.getByText('Léa Ouvrier'))
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
+  })
+
+  it('MEMBER : la fiche d\'un collègue plus puissant ne s\'ouvre pas (ni mot de passe, ni désactivation)', async () => {
+    manager()
+    renderUsers()
+    await userEvent.click(screen.getByText('Marc Direction'))
+    expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Désactiver le compte' })).not.toBeInTheDocument()
+  })
+
+  it('ADMIN : ouvre toutes les fiches, la plus puissante comprise', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByText('Marc Direction'))
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
+  })
+
+  it('le choix du rôle propose les rôles attribuables fournis par l\'API, pas la liste complète des rôles', async () => {
+    manager()
+    vi.mocked(useRoles).mockReturnValue({
+      data: [{ id: 'r-worker', name: 'Ouvrier' }, { id: 'r-boss', name: 'Direction' }],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useRoles>)
+    vi.mocked(useAssignableRoles).mockReturnValue({
+      data: [{ id: 'r-worker', name: 'Ouvrier' }],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useAssignableRoles>)
+    renderUsers()
+    await userEvent.click(screen.getByText('Léa Ouvrier'))
+
+    expect(screen.getByRole('option', { name: 'Ouvrier' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Direction' })).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['ROLE_EXCEEDS_PERMISSIONS', 'Vous ne pouvez pas attribuer un rôle qui donne des droits que vous n\'avez pas'],
+    ['USER_EXCEEDS_PERMISSIONS', 'Ce compte a des droits que vous n\'avez pas : vous ne pouvez pas le modifier'],
+  ])('affiche le message traduit quand l\'API répond %s (liste ou droits devenus périmés)', async (code, message) => {
+    manager()
+    const mutateAsync = vi.fn().mockRejectedValue(new ApiError(403, 'Texte technique', code))
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Léa Ouvrier'))
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(message)
     })
   })
 })

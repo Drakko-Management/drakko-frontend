@@ -429,7 +429,9 @@
     "owner_protected": "Seul le propriétaire peut modifier son compte",
     "owner_transfer_required": "Transférez d'abord la propriété pour désactiver ce compte ou lui retirer le rôle d'administrateur",
     "owner_required": "Seul le propriétaire peut transférer la propriété",
-    "owner_target_invalid": "La propriété ne peut être transférée qu'à un administrateur actif"
+    "owner_target_invalid": "La propriété ne peut être transférée qu'à un administrateur actif",
+    "role_exceeds_permissions": "Vous ne pouvez pas attribuer un rôle qui donne des droits que vous n'avez pas",
+    "user_exceeds_permissions": "Ce compte a des droits que vous n'avez pas : vous ne pouvez pas le modifier"
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { can, makePermissions, EMPTY_PERMISSIONS, FULL_PERMISSIONS, MODULES, ACTIONS } from './permissions'
+import { can, makePermissions, isWithinPermissions, EMPTY_PERMISSIONS, FULL_PERMISSIONS, MODULES, ACTIONS } from './permissions'
 import type { Permissions } from '@/types/api'
 
 // ── can() ─────────────────────────────────────────────────────────────────
@@ -126,5 +126,42 @@ describe('MODULES et ACTIONS', () => {
     MODULES.forEach((mod) => {
       expect(FULL_PERMISSIONS[mod]).toEqual(expect.arrayContaining([...ACTIONS]))
     })
+  })
+})
+
+// ── isWithinPermissions() : un membre n'accorde pas plus de droits que les siens ──
+
+describe('isWithinPermissions', () => {
+  const reader = makePermissions({ chantiers: ['read'] })
+  const editor = makePermissions({ chantiers: ['read', 'update'], clients: ['read'] })
+  const manager = makePermissions({ equipe: ['read', 'update'] })
+
+  it('des droits identiques, ou moindres, sont inclus', () => {
+    expect(isWithinPermissions(editor, editor)).toBe(true)
+    expect(isWithinPermissions(reader, editor)).toBe(true)
+  })
+
+  it('une action de plus n\'est pas incluse', () => {
+    expect(isWithinPermissions(editor, reader)).toBe(false)
+  })
+
+  it('les droits d\'un autre module ne sont pas inclus, même s\'ils sont moins nombreux', () => {
+    expect(isWithinPermissions(reader, manager)).toBe(false)
+  })
+
+  it('tout est inclus dans les permissions complètes', () => {
+    expect(isWithinPermissions(editor, FULL_PERMISSIONS)).toBe(true)
+    expect(isWithinPermissions(FULL_PERMISSIONS, FULL_PERMISSIONS)).toBe(true)
+  })
+
+  it.each([null, undefined, {}, EMPTY_PERMISSIONS])('des droits absents ou vides (%j) sont inclus dans tout', (blank) => {
+    expect(isWithinPermissions(blank, reader)).toBe(true)
+    expect(isWithinPermissions(blank, blank)).toBe(true)
+    expect(isWithinPermissions(reader, blank)).toBe(false)
+  })
+
+  it('ignore une action inconnue du serveur', () => {
+    const odd = { chantiers: ['read', 'teleport'] } as unknown as Partial<typeof reader>
+    expect(isWithinPermissions(odd, reader)).toBe(true)
   })
 })

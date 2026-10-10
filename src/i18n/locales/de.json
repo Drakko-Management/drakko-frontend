@@ -429,7 +429,9 @@
     "owner_protected": "Nur der Inhaber kann sein Konto ändern",
     "owner_transfer_required": "Übertragen Sie zuerst die Inhaberschaft, um dieses Konto zu deaktivieren oder ihm die Administratorrolle zu entziehen",
     "owner_required": "Nur der Inhaber kann die Inhaberschaft übertragen",
-    "owner_target_invalid": "Die Inhaberschaft kann nur an einen aktiven Administrator übertragen werden"
+    "owner_target_invalid": "Die Inhaberschaft kann nur an einen aktiven Administrator übertragen werden",
+    "role_exceeds_permissions": "Sie können keine Rolle zuweisen, die Rechte gewährt, die Sie nicht haben",
+    "user_exceeds_permissions": "Dieses Konto hat Rechte, die Sie nicht haben: Sie können es nicht bearbeiten"
   },
   "report": {
     "title": "Abnahmeprotokoll",

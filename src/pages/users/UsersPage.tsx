@@ -22,10 +22,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useUsers, useUpdateUser, useTransferOwnership } from '@/hooks/use-users'
-import { useRoles } from '@/hooks/use-roles'
+import { useAssignableRoles } from '@/hooks/use-roles'
 import { usePermissions } from '@/hooks/use-permissions'
 import { useAuthStore } from '@/store/auth.store'
 import { apiErrorMessage } from '@/lib/api-error'
+import { isWithinPermissions } from '@/lib/permissions'
 import { fullName } from '@/lib/utils'
 import { RolesTab } from './RolesTab'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
@@ -43,7 +44,7 @@ function RoleSelect({
   disabled?: boolean
 }) {
   const { t } = useTranslation()
-  const { data: roles } = useRoles()
+  const { data: roles } = useAssignableRoles()
   const { isAdmin } = usePermissions()
 
   const selectValue = value === 'ADMIN' ? 'ADMIN' : (customRoleId ?? '')
@@ -307,7 +308,7 @@ type Tab = 'membres' | 'roles'
 export function UsersPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { can, isAdmin } = usePermissions()
+  const { can, isAdmin, permissions } = usePermissions()
   const { data: users, isLoading } = useUsers()
   const [tab, setTab] = useState<Tab>('membres')
 
@@ -315,9 +316,13 @@ export function UsersPage() {
   const canUpdate = isAdmin || can('equipe', 'update')
   const viewerId = useAuthStore((s) => s.userId)
   const viewerIsOwner = users?.some((u) => u.id === viewerId && u.isOwner) ?? false
-  // Seul un administrateur modifie un compte administrateur, et seul le propriétaire modifie le sien
-  // (règles aussi appliquées par l'API)
-  const canEdit = (u: User) => canUpdate && (isAdmin || u.role !== 'ADMIN') && (!u.isOwner || u.id === viewerId)
+  // Seul un administrateur modifie un compte administrateur, et seul le propriétaire modifie le sien. Un membre
+  // ne modifie que les comptes dont les droits n'excèdent pas les siens (règles aussi appliquées par l'API)
+  const canEdit = (u: User) =>
+    canUpdate &&
+    (isAdmin || u.role !== 'ADMIN') &&
+    (!u.isOwner || u.id === viewerId) &&
+    (isAdmin || isWithinPermissions(u.customRole?.permissions, permissions))
 
   const active = users?.filter((u) => u.active) ?? []
   const inactive = users?.filter((u) => !u.active) ?? []
