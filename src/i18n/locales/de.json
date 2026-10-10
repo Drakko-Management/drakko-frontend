@@ -304,6 +304,7 @@
     "delete_confirm_message": "Diese Aktion kann nicht rückgängig gemacht werden. Die Baustelle und alle zugehörigen Daten werden dauerhaft gelöscht.",
     "delete_success": "Baustelle gelöscht",
     "delete_error": "Baustelle konnte nicht gelöscht werden",
+    "locked_error": "Diese Baustelle ist gesperrt: Sie wurde zur Unterschrift gesendet oder ist unterschrieben und kann nicht mehr geändert oder gelöscht werden",
     "send_reserve_lift": "Mängelbeseitigung senden",
     "reserve_notes_label": "Gemeldete Mängel"
   },

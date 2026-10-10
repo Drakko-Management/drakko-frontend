@@ -10,6 +10,7 @@ import { useProject } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { Photo, PhotoType } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
+import { apiErrorMessage } from '@/lib/api-error'
 
 function PhotoSection({
   type,
@@ -47,8 +48,8 @@ function PhotoSection({
         order: filtered.length,
       })
       toast.success(t('photos.photo_added'))
-    } catch {
-      toast.error(t('photos.upload_error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'photos.upload_error'))
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''
@@ -120,8 +121,8 @@ function PhotoSection({
                     try {
                       await deletePhoto.mutateAsync(photo.id)
                       toast.success(t('photos.photo_deleted'))
-                    } catch {
-                      toast.error(t('photos.delete_error'))
+                    } catch (err) {
+                      toast.error(apiErrorMessage(err, t, 'photos.delete_error'))
                     } finally {
                       setDeletingId(null)
                     }

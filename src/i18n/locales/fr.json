@@ -304,6 +304,7 @@
     "delete_confirm_message": "Cette action est irréversible. Le chantier et toutes ses données seront définitivement supprimés.",
     "delete_success": "Chantier supprimé",
     "delete_error": "Impossible de supprimer le chantier",
+    "locked_error": "Ce chantier est verrouillé : il a été envoyé à la signature ou signé, il ne peut plus être modifié ni supprimé",
     "send_reserve_lift": "Envoyer levée des réserves",
     "reserve_notes_label": "Réserves signalées"
   },

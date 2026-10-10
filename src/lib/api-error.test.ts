@@ -101,6 +101,20 @@ describe('apiErrorMessage', () => {
     }
   })
 
+  it('traduit PROJECT_LOCKED (chantier envoyé à la signature ou signé) dans chaque langue, jamais le message de repli', () => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(409, 'Texte technique', 'PROJECT_LOCKED'), i18n.getFixedT(lng), 'project.delete_error')
+    const fallback = (lng: string) => i18n.getFixedT(lng)('project.delete_error')
+
+    expect(message('fr')).toBe(
+      'Ce chantier est verrouillé : il a été envoyé à la signature ou signé, il ne peut plus être modifié ni supprimé',
+    )
+    for (const lng of ['fr', 'en', 'es', 'it', 'de']) {
+      expect(message(lng)).not.toBe(fallback(lng))
+      expect(message(lng)).not.toContain('technique')
+    }
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 

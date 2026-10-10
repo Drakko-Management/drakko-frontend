@@ -14,6 +14,7 @@ const API_ERROR_KEYS: Record<string, string> = {
   OWNER_REQUIRED: 'users.owner_required',
   OWNER_TARGET_INVALID: 'users.owner_target_invalid',
   CLIENT_NOT_FOUND: 'create_project.client_not_found',
+  PROJECT_LOCKED: 'project.locked_error',
 }
 
 /** Message traduit pour une erreur API : celui du code connu, sinon le message générique de repli. */

@@ -14,6 +14,7 @@ import { useProject } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { ReportLine } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
+import { apiErrorMessage } from '@/lib/api-error'
 
 function ReportLineCard({
   line,
@@ -148,15 +149,19 @@ export function ReportPage() {
   }, [report?.comment])
 
   const canEdit = can('chantiers', 'update')
-  const isLocked = project?.status === 'AWAITING_SIGNATURE' || project?.status === 'COMPLETED' || project?.status === 'DISPUTED'
+  const isLocked =
+    project?.status === 'AWAITING_SIGNATURE' ||
+    project?.status === 'AWAITING_RESERVE_LIFT' ||
+    project?.status === 'COMPLETED' ||
+    project?.status === 'DISPUTED'
 
   async function handleSave() {
     try {
       await updateReport.mutateAsync(comment)
       setDirty(false)
       toast.success(t('report.report_saved'))
-    } catch {
-      toast.error(t('report.save_error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'report.save_error'))
     }
   }
 

@@ -304,6 +304,7 @@
     "delete_confirm_message": "This action cannot be undone. The project and all its data will be permanently deleted.",
     "delete_success": "Project deleted",
     "delete_error": "Failed to delete project",
+    "locked_error": "This project is locked: it has been sent for signature or signed, so it can no longer be changed or deleted",
     "send_reserve_lift": "Send snagging list clearance",
     "reserve_notes_label": "Reported snagging items"
   },

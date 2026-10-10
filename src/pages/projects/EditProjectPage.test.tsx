@@ -65,6 +65,28 @@ function renderPage() {
 const startField = () => document.getElementById('startDate') as HTMLInputElement
 const endField = () => document.getElementById('expectedEndDate') as HTMLInputElement
 
+// ── Chantier verrouillé ────────────────────────────────────────────────────
+
+describe('EditProjectPage — chantier verrouillé', () => {
+  it.each(['AWAITING_SIGNATURE', 'AWAITING_RESERVE_LIFT', 'COMPLETED', 'DISPUTED'])(
+    'renvoie vers la fiche quand le chantier est %s (le serveur refuserait aussi la modification)',
+    async (status) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(useProject).mockReturnValue({ data: { ...PROJECT, status }, isLoading: false } as any)
+      renderPage()
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/chantiers/proj-1', { replace: true }))
+    },
+  )
+
+  it.each(['DRAFT', 'PLANNED', 'IN_PROGRESS'])('reste sur la page quand le chantier est %s', async (status) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useProject).mockReturnValue({ data: { ...PROJECT, status }, isLoading: false } as any)
+    renderPage()
+    await screen.findByDisplayValue('Aménagement Jardin Dupont')
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+})
+
 // ── Dates ──────────────────────────────────────────────────────────────────
 
 describe('EditProjectPage — dates', () => {

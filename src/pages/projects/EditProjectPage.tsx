@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
 import { useProject, useUpdateProject } from '@/hooks/use-projects'
 import { buildAddress, parseAddress, toDateInput, dateRangeBounds } from '@/lib/utils'
+import { apiErrorMessage } from '@/lib/api-error'
 
 export function EditProjectPage() {
   const { id } = useParams<{ id: string }>()
@@ -34,7 +35,9 @@ export function EditProjectPage() {
 
   useEffect(() => {
     if (!project) return
-    if (['AWAITING_SIGNATURE', 'COMPLETED', 'DISPUTED'].includes(project.status)) {
+    if (['AWAITING_SIGNATURE', 'AWAITING_RESERVE_LIFT', 'COMPLETED', 'DISPUTED'].includes(
+        project.status,
+      )) {
       void navigate(`/chantiers/${id}`, { replace: true })
       return
     }
@@ -77,8 +80,8 @@ export function EditProjectPage() {
       })
       toast.success(t('edit_project.success'))
       void navigate(`/chantiers/${id ?? ''}`)
-    } catch {
-      toast.error(t('edit_project.error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'edit_project.error'))
     }
   }
 

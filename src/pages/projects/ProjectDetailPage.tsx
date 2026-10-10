@@ -52,6 +52,7 @@ import { formatDate, formatCurrency, fullName } from "@/lib/utils";
 import type { Photo, ProjectStatus } from "@/types/api";
 import { PhotoLightbox } from "@/components/common/PhotoLightbox";
 import { TutorialHelpButton } from "@/tutorials/TutorialHelpButton";
+import { apiErrorMessage } from "@/lib/api-error";
 
 const NEXT_STATUS: Partial<Record<ProjectStatus, ProjectStatus>> = {
   DRAFT: "PLANNED",
@@ -135,6 +136,8 @@ export function ProjectDetailPage() {
   const isLocked = ["AWAITING_SIGNATURE", "AWAITING_RESERVE_LIFT", "COMPLETED", "DISPUTED"].includes(
     project.status,
   );
+  // Un chantier signé ne se supprime pas : la signature, le PDF et les photos font foi
+  const isSigned = project.status === "COMPLETED" || project.status === "AWAITING_RESERVE_LIFT";
 
   async function handleTransition() {
     const next = NEXT_STATUS[project!.status];
@@ -187,8 +190,8 @@ export function ProjectDetailPage() {
     try {
       await assignUsers.mutateAsync([userId]);
       toast.success(t('project.member_added'));
-    } catch {
-      toast.error(t('project.member_add_error'));
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'project.member_add_error'));
     }
   }
 
@@ -196,8 +199,8 @@ export function ProjectDetailPage() {
     try {
       await unassignUser.mutateAsync(userId);
       toast.success(t('project.member_removed'));
-    } catch {
-      toast.error(t('project.member_remove_error'));
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'project.member_remove_error'));
     }
   }
 
@@ -238,7 +241,7 @@ export function ProjectDetailPage() {
             <Pencil className="h-4 w-4" />
           </button>
         )}
-        {can('chantiers', 'delete') && (
+        {can('chantiers', 'delete') && !isSigned && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button
@@ -262,8 +265,8 @@ export function ProjectDetailPage() {
                       await deleteProject.mutateAsync(id!);
                       toast.success(t('project.delete_success'));
                       void navigate('/chantiers');
-                    } catch {
-                      toast.error(t('project.delete_error'));
+                    } catch (err) {
+                      toast.error(apiErrorMessage(err, t, 'project.delete_error'));
                     }
                   }}
                 >

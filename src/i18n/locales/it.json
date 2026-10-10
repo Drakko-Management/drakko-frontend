@@ -304,6 +304,7 @@
     "delete_confirm_message": "Questa azione è irreversibile. Il cantiere e tutti i suoi dati verranno eliminati definitivamente.",
     "delete_success": "Cantiere eliminato",
     "delete_error": "Impossibile eliminare il cantiere",
+    "locked_error": "Questo cantiere è bloccato: è stato inviato alla firma o è già firmato e non può più essere modificato né eliminato",
     "send_reserve_lift": "Invia revoca delle riserve",
     "reserve_notes_label": "Riserve segnalate"
   },

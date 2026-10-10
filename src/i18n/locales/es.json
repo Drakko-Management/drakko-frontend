@@ -304,6 +304,7 @@
     "delete_confirm_message": "Esta acción es irreversible. La obra y todos sus datos se eliminarán permanentemente.",
     "delete_success": "Obra eliminada",
     "delete_error": "No se pudo eliminar la obra",
+    "locked_error": "Esta obra está bloqueada: se ha enviado a firma o ya está firmada, y ya no se puede modificar ni eliminar",
     "send_reserve_lift": "Enviar levantamiento de reservas",
     "reserve_notes_label": "Reservas indicadas"
   },

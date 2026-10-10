@@ -21,6 +21,8 @@ import {
 import { useCreateSignatureRequest, useSendReserveLiftRequest } from '@/hooks/use-signature'
 import { useUsers } from '@/hooks/use-users'
 import { useAuthStore } from '@/store/auth.store'
+import { ApiError } from '@/lib/api-client'
+import { toast } from 'sonner'
 import { makePermissions, EMPTY_PERMISSIONS } from '@/lib/permissions'
 import { ProjectDetailPage } from './ProjectDetailPage'
 import type { Project, User } from '@/types/api'
@@ -247,6 +249,50 @@ describe('ProjectDetailPage — bouton modifier (RBAC)', () => {
     } as unknown as ReturnType<typeof useProject>)
     renderDetail()
     expect(screen.queryByLabelText('Modifier le chantier')).not.toBeInTheDocument()
+  })
+})
+
+// ── Bouton supprimer — un chantier signé se conserve ──────────────────────
+
+describe('ProjectDetailPage — bouton supprimer', () => {
+  function withStatus(status: Project['status']) {
+    vi.mocked(useProject).mockReturnValue({
+      data: { ...PROJECT_DRAFT, status },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useProject>)
+  }
+
+  it.each(['DRAFT', 'PLANNED', 'IN_PROGRESS', 'AWAITING_SIGNATURE', 'DISPUTED'] as const)(
+    'visible pour ADMIN sur un chantier %s (non signé)',
+    (status) => {
+      withStatus(status)
+      renderDetail()
+      expect(screen.getByLabelText('Supprimer')).toBeInTheDocument()
+    },
+  )
+
+  it.each(['COMPLETED', 'AWAITING_RESERVE_LIFT'] as const)(
+    'absent sur un chantier signé (%s), même pour ADMIN',
+    (status) => {
+      withStatus(status)
+      renderDetail()
+      expect(screen.queryByLabelText('Supprimer')).not.toBeInTheDocument()
+    },
+  )
+
+  it('affiche le message de verrouillage, pas le message générique, quand le serveur refuse (409)', async () => {
+    const mutateAsync = vi.fn().mockRejectedValue(new ApiError(409, 'Project is locked', 'PROJECT_LOCKED'))
+    vi.mocked(useDeleteProject).mockReturnValue(mockMutation({ mutateAsync }) as never)
+    renderDetail()
+
+    await userEvent.click(screen.getByLabelText('Supprimer'))
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'Ce chantier est verrouillé : il a été envoyé à la signature ou signé, il ne peut plus être modifié ni supprimé',
+      ),
+    )
   })
 })
 
