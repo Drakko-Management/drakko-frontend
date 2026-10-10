@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, tests et build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Consignes IA (AGENTS.md importé par CLAUDE.md, taille maîtrisée)
+        run: |
+          test -f AGENTS.md
+          grep -qx '@AGENTS.md' CLAUDE.md
+          size=$(wc -c < AGENTS.md)
+          echo "AGENTS.md : ${size} octets (limite 24576 : Codex lit au plus 32 KiB au total)"
+          [ "$size" -le 24576 ]
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npx vitest run
+      - run: npm run build
