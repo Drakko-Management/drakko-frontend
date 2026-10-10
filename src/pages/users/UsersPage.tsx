@@ -10,9 +10,21 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Fab } from '@/components/common/Fab'
 import { Avatar } from '@/components/common/Avatar'
-import { useUsers, useUpdateUser } from '@/hooks/use-users'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { useUsers, useUpdateUser, useTransferOwnership } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
 import { usePermissions } from '@/hooks/use-permissions'
+import { useAuthStore } from '@/store/auth.store'
 import { apiErrorMessage } from '@/lib/api-error'
 import { fullName } from '@/lib/utils'
 import { RolesTab } from './RolesTab'
@@ -67,7 +79,15 @@ function RoleSelect({
   )
 }
 
-function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
+function UserRow({
+  user,
+  canUpdate,
+  viewerIsOwner,
+}: {
+  user: User
+  canUpdate: boolean
+  viewerIsOwner: boolean
+}) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [form, setForm] = useState({
@@ -80,6 +100,7 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
     password: '',
   })
   const update = useUpdateUser(user.id)
+  const transfer = useTransferOwnership(user.id)
 
   function setField(key: string, value: unknown) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -116,6 +137,15 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
     }
   }
 
+  async function handleTransfer() {
+    try {
+      await transfer.mutateAsync()
+      toast.success(t('users.transfer_success', { name: fullName(user) }))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'users.transfer_error'))
+    }
+  }
+
   const roleLabel = user.customRole?.name ?? (user.role === 'ADMIN' ? t('users.role_admin') : t('users.role_member'))
 
   return (
@@ -128,6 +158,11 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold">{fullName(user)}</p>
+            {user.isOwner && (
+              <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-foreground">
+                {t('users.owner_badge')}
+              </span>
+            )}
             {!user.active && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                 {t('common.inactive')}
@@ -145,7 +180,8 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
         ))}
       </button>
 
-      {expanded && (
+      {/* canUpdate peut changer pendant que la ligne est ouverte (transfert de propriété) */}
+      {canUpdate && expanded && (
         <div className="space-y-3 bg-muted/30 p-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -195,7 +231,7 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
               value={form.role}
               customRoleId={form.customRoleId}
               onChange={(role, customRoleId) => setForm((f) => ({ ...f, role, customRoleId }))}
-              disabled={update.isPending}
+              disabled={update.isPending || user.isOwner}
             />
           </div>
           <div className="space-y-1.5">
@@ -217,15 +253,49 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
           >
             {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('common.save')}
           </Button>
-          <Button
-            variant={user.active ? 'destructive' : 'outline'}
-            size="sm"
-            className="w-full min-h-[44px]"
-            onClick={() => void handleToggleActive()}
-            disabled={update.isPending}
-          >
-            {user.active ? t('users.deactivate_account') : t('users.activate_account')}
-          </Button>
+          {user.isOwner ? (
+            <p className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-foreground">{t('users.owner_hint')}</p>
+          ) : (
+            <Button
+              variant={user.active ? 'destructive' : 'outline'}
+              size="sm"
+              className="w-full min-h-[44px]"
+              onClick={() => void handleToggleActive()}
+              disabled={update.isPending}
+            >
+              {user.active ? t('users.deactivate_account') : t('users.activate_account')}
+            </Button>
+          )}
+          {viewerIsOwner && !user.isOwner && user.active && (
+            user.role === 'ADMIN' ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full min-h-[44px]"
+                    disabled={update.isPending || transfer.isPending}
+                  >
+                    {t('users.transfer_ownership')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('users.transfer_title', { name: fullName(user) })}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('users.transfer_body')}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => void handleTransfer()}>
+                      {t('users.transfer_confirm')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t('users.transfer_hint_member')}</p>
+            )
+          )}
         </div>
       )}
     </div>
@@ -243,8 +313,11 @@ export function UsersPage() {
 
   const canCreate = isAdmin || can('equipe', 'create')
   const canUpdate = isAdmin || can('equipe', 'update')
-  // Seul un administrateur modifie un compte administrateur (règle aussi appliquée par l'API)
-  const canEdit = (u: User) => canUpdate && (isAdmin || u.role !== 'ADMIN')
+  const viewerId = useAuthStore((s) => s.userId)
+  const viewerIsOwner = users?.some((u) => u.id === viewerId && u.isOwner) ?? false
+  // Seul un administrateur modifie un compte administrateur, et seul le propriétaire modifie le sien
+  // (règles aussi appliquées par l'API)
+  const canEdit = (u: User) => canUpdate && (isAdmin || u.role !== 'ADMIN') && (!u.isOwner || u.id === viewerId)
 
   const active = users?.filter((u) => u.active) ?? []
   const inactive = users?.filter((u) => !u.active) ?? []
@@ -303,7 +376,7 @@ export function UsersPage() {
           )}
           {active.length > 0 && (
             <div className="overflow-hidden rounded-xl border bg-card">
-              {active.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} />)}
+              {active.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} viewerIsOwner={viewerIsOwner} />)}
             </div>
           )}
           {inactive.length > 0 && (
@@ -312,7 +385,7 @@ export function UsersPage() {
                 {t('users.inactive_accounts')}
               </p>
               <div className="overflow-hidden rounded-xl border bg-card opacity-60">
-                {inactive.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} />)}
+                {inactive.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} viewerIsOwner={viewerIsOwner} />)}
               </div>
             </div>
           )}

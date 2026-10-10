@@ -82,6 +82,23 @@ describe('apiErrorMessage', () => {
     expect(message('de')).toBe('Nur ein Administrator kann ein Administratorkonto erstellen oder ändern')
   })
 
+  it.each([
+    ['OWNER_PROTECTED', 'Seul le propriétaire peut modifier son compte'],
+    ['OWNER_TRANSFER_REQUIRED', 'Transférez d\'abord la propriété pour désactiver ce compte ou lui retirer le rôle d\'administrateur'],
+    ['OWNER_REQUIRED', 'Seul le propriétaire peut transférer la propriété'],
+    ['OWNER_TARGET_INVALID', 'La propriété ne peut être transférée qu\'à un administrateur actif'],
+  ])('traduit %s dans chaque langue (jamais le message de repli)', (code, french) => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(403, 'Texte technique', code), i18n.getFixedT(lng), 'users.update_error')
+    const fallback = (lng: string) => i18n.getFixedT(lng)('users.update_error')
+
+    expect(message('fr')).toBe(french)
+    for (const lng of ['fr', 'en', 'es', 'it', 'de']) {
+      expect(message(lng)).not.toBe(fallback(lng))
+      expect(message(lng)).not.toContain('technique')
+    }
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 

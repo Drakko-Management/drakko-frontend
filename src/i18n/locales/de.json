@@ -416,7 +416,20 @@
     "role_not_found": "Rolle nicht gefunden. Wählen Sie eine andere.",
     "admin_required": "Nur ein Administrator kann ein Administratorkonto erstellen oder ändern",
     "choose_role": "Rolle auswählen",
-    "role_required": "Wählen Sie eine Rolle für dieses Mitglied"
+    "role_required": "Wählen Sie eine Rolle für dieses Mitglied",
+    "owner_badge": "Inhaber",
+    "owner_hint": "Sie sind der Inhaber: Um dieses Konto zu deaktivieren oder ihm die Administratorrolle zu entziehen, übertragen Sie zuerst die Inhaberschaft an einen anderen Administrator.",
+    "transfer_ownership": "Inhaberschaft übertragen",
+    "transfer_title": "Inhaberschaft an {{name}} übertragen?",
+    "transfer_body": "Diese Person wird Inhaber: Nur sie kann ihr Konto ändern. Sie bleiben Administrator, Ihr Konto ist aber nicht mehr geschützt.",
+    "transfer_confirm": "Übertragen",
+    "transfer_success": "Inhaberschaft an {{name}} übertragen",
+    "transfer_error": "Fehler bei der Übertragung",
+    "transfer_hint_member": "Um diesem Mitglied die Inhaberschaft zu übertragen, ernennen Sie es zuerst zum Administrator.",
+    "owner_protected": "Nur der Inhaber kann sein Konto ändern",
+    "owner_transfer_required": "Übertragen Sie zuerst die Inhaberschaft, um dieses Konto zu deaktivieren oder ihm die Administratorrolle zu entziehen",
+    "owner_required": "Nur der Inhaber kann die Inhaberschaft übertragen",
+    "owner_target_invalid": "Die Inhaberschaft kann nur an einen aktiven Administrator übertragen werden"
   },
   "report": {
     "title": "Abnahmeprotokoll",

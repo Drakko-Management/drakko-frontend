@@ -68,3 +68,11 @@ export function useUpdateUser(id: string) {
     },
   })
 }
+
+export function useTransferOwnership(id: string) {
+  return useMutation({
+    mutationFn: () => apiRequest<User>(`/users/${id}/transfer-ownership`, { method: 'POST' }),
+    // Le propriétaire change : le badge et les droits de modification de chaque ligne en dépendent
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  })
+}

@@ -416,7 +416,20 @@
     "role_not_found": "Rol no encontrado. Elige otro.",
     "admin_required": "Solo un administrador puede crear o modificar una cuenta de administrador",
     "choose_role": "Elegir un rol",
-    "role_required": "Elige un rol para este miembro"
+    "role_required": "Elige un rol para este miembro",
+    "owner_badge": "Propietario",
+    "owner_hint": "Eres el propietario: para desactivar esta cuenta o quitarle el rol de administrador, transfiere primero la propiedad a otro administrador.",
+    "transfer_ownership": "Transferir la propiedad",
+    "transfer_title": "¿Transferir la propiedad a {{name}}?",
+    "transfer_body": "Esta persona será la propietaria: solo ella podrá modificar su cuenta. Seguirás siendo administrador, pero tu cuenta ya no estará protegida.",
+    "transfer_confirm": "Transferir",
+    "transfer_success": "Propiedad transferida a {{name}}",
+    "transfer_error": "Error al transferir",
+    "transfer_hint_member": "Para transferirle la propiedad, nómbralo primero administrador.",
+    "owner_protected": "Solo el propietario puede modificar su cuenta",
+    "owner_transfer_required": "Transfiere primero la propiedad para desactivar esta cuenta o quitarle el rol de administrador",
+    "owner_required": "Solo el propietario puede transferir la propiedad",
+    "owner_target_invalid": "La propiedad solo puede transferirse a un administrador activo"
   },
   "report": {
     "title": "Acta de recepción de obras",

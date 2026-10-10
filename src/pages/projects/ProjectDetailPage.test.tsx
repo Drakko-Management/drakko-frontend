@@ -93,6 +93,7 @@ const USER_MEMBER: User = {
   role: 'MEMBER',
   customRoleId: null,
   active: true,
+  isOwner: false,
   navSlots: [],
   language: 'fr',
   theme: 'light',

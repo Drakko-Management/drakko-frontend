@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { toast } from 'sonner'
-import { useUsers, useCreateUser, useUpdateUser } from '@/hooks/use-users'
+import { useUsers, useCreateUser, useUpdateUser, useTransferOwnership } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
 import { useAuthStore } from '@/store/auth.store'
 import { ApiError } from '@/lib/api-client'
@@ -21,6 +21,7 @@ vi.mock('@/hooks/use-users', () => ({
   useUsers: vi.fn(),
   useCreateUser: vi.fn(),
   useUpdateUser: vi.fn(),
+  useTransferOwnership: vi.fn(),
 }))
 
 vi.mock('@/hooks/use-roles', () => ({
@@ -41,6 +42,7 @@ const USER_ACTIVE: User = {
   role: 'MEMBER',
   customRoleId: null,
   active: true,
+  isOwner: false,
   navSlots: [],
   language: 'fr',
   theme: 'light',
@@ -63,16 +65,20 @@ function mockMutation(overrides = {}) {
 }
 
 // Routeur réel avec des pages repères : on vérifie la destination de la navigation, pas un appel simulé
-function renderUsers() {
-  return render(
+function usersTree() {
+  return (
     <MemoryRouter initialEntries={['/utilisateurs']}>
       <Routes>
         <Route path="/utilisateurs" element={<UsersPage />} />
         <Route path="/utilisateurs/nouveau" element={<p>Page création membre</p>} />
         <Route path="/utilisateurs/roles/nouveau" element={<p>Page création rôle</p>} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   )
+}
+
+function renderUsers() {
+  return render(usersTree())
 }
 
 // ── Reset ──────────────────────────────────────────────────────────────────
@@ -86,6 +92,7 @@ beforeEach(() => {
   vi.mocked(useRoles).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof useRoles>)
   vi.mocked(useCreateUser).mockReturnValue(mockMutation() as never)
   vi.mocked(useUpdateUser).mockReturnValue(mockMutation() as never)
+  vi.mocked(useTransferOwnership).mockReturnValue(mockMutation() as never)
 })
 
 // ── Rendu de base ──────────────────────────────────────────────────────────
@@ -352,6 +359,166 @@ describe('UsersPage — comptes administrateurs', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Seul un administrateur peut créer ou modifier un compte administrateur')
+    })
+  })
+})
+
+// ── Propriétaire : protégé, et seul à pouvoir transférer la propriété ─────────
+
+describe('UsersPage — propriétaire', () => {
+  const OWNER: User = {
+    ...USER_ACTIVE,
+    id: 'u-owner',
+    username: 'julien',
+    firstName: 'Julien',
+    lastName: 'Thibault',
+    role: 'ADMIN',
+    isOwner: true,
+  }
+  const OTHER_ADMIN: User = {
+    ...USER_ACTIVE,
+    id: 'u-admin2',
+    username: 'anne.chef',
+    firstName: 'Anne',
+    lastName: 'Chef',
+    role: 'ADMIN',
+  }
+  const THIRD_ADMIN: User = { ...OTHER_ADMIN, id: 'u-admin3', username: 'paul.ancien', firstName: 'Paul', lastName: 'Ancien' }
+  const INACTIVE_ADMIN: User = { ...THIRD_ADMIN, id: 'u-admin4', firstName: 'Luc', lastName: 'Parti', active: false }
+
+  function signInAs(user: User) {
+    useAuthStore.setState({ accessToken: 'tok', username: user.username, role: user.role, userId: user.id, permissions: null })
+  }
+
+  function mockTransfer(mutateAsync = vi.fn().mockResolvedValue({})) {
+    vi.mocked(useTransferOwnership).mockReturnValue({ mutateAsync, isPending: false } as never)
+    return mutateAsync
+  }
+
+  beforeEach(() => {
+    vi.mocked(useUsers).mockReturnValue({
+      data: [OWNER, OTHER_ADMIN, THIRD_ADMIN, USER_ACTIVE, INACTIVE_ADMIN],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useUsers>)
+    signInAs(OWNER)
+  })
+
+  it('affiche le badge « Propriétaire » sur la fiche du propriétaire, et sur elle seule', () => {
+    renderUsers()
+    expect(screen.getAllByText('Propriétaire')).toHaveLength(1)
+  })
+
+  it('un autre administrateur ne peut pas ouvrir la fiche du propriétaire, mais ouvre celle d\'un membre', async () => {
+    signInAs(OTHER_ADMIN)
+    renderUsers()
+    await userEvent.click(screen.getByText('Julien Thibault'))
+    expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
+  })
+
+  it('le propriétaire ouvre sa fiche : rôle verrouillé, pas de désactivation, indication affichée', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByText('Julien Thibault'))
+    expect(screen.getByRole('combobox')).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Désactiver le compte' })).not.toBeInTheDocument()
+    expect(screen.getByText(/transférez d'abord la propriété/i)).toBeInTheDocument()
+    // il peut en revanche enregistrer le reste de sa fiche
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
+  })
+
+  it('le propriétaire enregistre sa fiche en gardant le rôle administrateur', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Julien Thibault'))
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ role: 'ADMIN' }))
+  })
+
+  it('un autre administrateur reste désactivable par le propriétaire (aucune protection)', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByText('Anne Chef'))
+    expect(screen.getByRole('button', { name: 'Désactiver le compte' })).toBeInTheDocument()
+  })
+
+  describe('transfert de la propriété', () => {
+    it('proposé par le propriétaire sur la fiche d\'un administrateur actif', async () => {
+      renderUsers()
+      await userEvent.click(screen.getByText('Anne Chef'))
+      expect(screen.getByRole('button', { name: 'Transférer la propriété' })).toBeInTheDocument()
+    })
+
+    it('pas proposé sur la fiche d\'un membre : une indication demande de le nommer administrateur d\'abord', async () => {
+      renderUsers()
+      await userEvent.click(screen.getByText('Jean Dupont'))
+      expect(screen.queryByRole('button', { name: 'Transférer la propriété' })).not.toBeInTheDocument()
+      expect(screen.getByText(/nommez-le d'abord administrateur/i)).toBeInTheDocument()
+    })
+
+    it('pas proposé sur la fiche d\'un administrateur désactivé', async () => {
+      renderUsers()
+      await userEvent.click(screen.getByText('Luc Parti'))
+      expect(screen.queryByRole('button', { name: 'Transférer la propriété' })).not.toBeInTheDocument()
+      expect(screen.queryByText(/nommez-le d'abord administrateur/i)).not.toBeInTheDocument()
+    })
+
+    it('pas proposé à un administrateur qui n\'est pas le propriétaire', async () => {
+      signInAs(OTHER_ADMIN)
+      renderUsers()
+      await userEvent.click(screen.getByText('Paul Ancien'))
+      expect(screen.queryByRole('button', { name: 'Transférer la propriété' })).not.toBeInTheDocument()
+    })
+
+    it('demande confirmation, puis transfère et confirme par un message', async () => {
+      const mutateAsync = mockTransfer()
+      renderUsers()
+      await userEvent.click(screen.getByText('Anne Chef'))
+      await userEvent.click(screen.getByRole('button', { name: 'Transférer la propriété' }))
+
+      const dialog = await screen.findByRole('alertdialog')
+      expect(dialog).toHaveTextContent('Transférer la propriété à Anne Chef ?')
+      expect(mutateAsync).not.toHaveBeenCalled()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Transférer' }))
+      await waitFor(() => { expect(mutateAsync).toHaveBeenCalledTimes(1) })
+      expect(toast.success).toHaveBeenCalledWith('Propriété transférée à Anne Chef')
+    })
+
+    it('après le transfert, la fiche ouverte du nouveau propriétaire se referme : elle n\'est plus modifiable', async () => {
+      const view = renderUsers()
+      await userEvent.click(screen.getByText('Anne Chef'))
+      expect(screen.getByRole('button', { name: 'Transférer la propriété' })).toBeInTheDocument()
+
+      // l'API a transféré la propriété à Anne : la liste rechargée la désigne, et plus l'appelant
+      vi.mocked(useUsers).mockReturnValue({
+        data: [{ ...OWNER, isOwner: false }, { ...OTHER_ADMIN, isOwner: true }, THIRD_ADMIN, USER_ACTIVE, INACTIVE_ADMIN],
+        isLoading: false,
+      } as unknown as ReturnType<typeof useUsers>)
+      view.rerender(usersTree())
+
+      expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Transférer la propriété' })).not.toBeInTheDocument()
+    })
+
+    it('annuler ne transfère rien', async () => {
+      const mutateAsync = mockTransfer()
+      renderUsers()
+      await userEvent.click(screen.getByText('Anne Chef'))
+      await userEvent.click(screen.getByRole('button', { name: 'Transférer la propriété' }))
+      await userEvent.click(await screen.findByRole('button', { name: 'Annuler' }))
+      expect(mutateAsync).not.toHaveBeenCalled()
+    })
+
+    it('affiche le message traduit quand l\'API refuse le transfert', async () => {
+      mockTransfer(vi.fn().mockRejectedValue(new ApiError(400, 'Texte technique', 'OWNER_TARGET_INVALID')))
+      renderUsers()
+      await userEvent.click(screen.getByText('Anne Chef'))
+      await userEvent.click(screen.getByRole('button', { name: 'Transférer la propriété' }))
+      await userEvent.click(await screen.findByRole('button', { name: 'Transférer' }))
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('La propriété ne peut être transférée qu\'à un administrateur actif')
+      })
     })
   })
 })

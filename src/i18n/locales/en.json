@@ -416,7 +416,20 @@
     "role_not_found": "Role not found. Pick another one.",
     "admin_required": "Only an administrator can create or edit an administrator account",
     "choose_role": "Choose a role",
-    "role_required": "Choose a role for this member"
+    "role_required": "Choose a role for this member",
+    "owner_badge": "Owner",
+    "owner_hint": "You are the owner: to deactivate this account or remove its administrator role, first transfer ownership to another administrator.",
+    "transfer_ownership": "Transfer ownership",
+    "transfer_title": "Transfer ownership to {{name}}?",
+    "transfer_body": "This person will become the owner: only they will be able to edit their account. You will remain an administrator, but your account will no longer be protected.",
+    "transfer_confirm": "Transfer",
+    "transfer_success": "Ownership transferred to {{name}}",
+    "transfer_error": "Transfer failed",
+    "transfer_hint_member": "To transfer ownership to this member, make them an administrator first.",
+    "owner_protected": "Only the owner can edit their account",
+    "owner_transfer_required": "Transfer ownership first to deactivate this account or remove its administrator role",
+    "owner_required": "Only the owner can transfer ownership",
+    "owner_target_invalid": "Ownership can only be transferred to an active administrator"
   },
   "report": {
     "title": "Works Completion Certificate",

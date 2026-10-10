@@ -416,7 +416,20 @@
     "role_not_found": "Ruolo non trovato. Scegline un altro.",
     "admin_required": "Solo un amministratore può creare o modificare un account amministratore",
     "choose_role": "Scegli un ruolo",
-    "role_required": "Scegli un ruolo per questo membro"
+    "role_required": "Scegli un ruolo per questo membro",
+    "owner_badge": "Proprietario",
+    "owner_hint": "Sei il proprietario: per disattivare questo account o togliergli il ruolo di amministratore, trasferisci prima la proprietà a un altro amministratore.",
+    "transfer_ownership": "Trasferisci la proprietà",
+    "transfer_title": "Trasferire la proprietà a {{name}}?",
+    "transfer_body": "Questa persona diventerà la proprietaria: solo lei potrà modificare il proprio account. Resterai amministratore, ma il tuo account non sarà più protetto.",
+    "transfer_confirm": "Trasferisci",
+    "transfer_success": "Proprietà trasferita a {{name}}",
+    "transfer_error": "Errore durante il trasferimento",
+    "transfer_hint_member": "Per trasferirgli la proprietà, nominalo prima amministratore.",
+    "owner_protected": "Solo il proprietario può modificare il proprio account",
+    "owner_transfer_required": "Trasferisci prima la proprietà per disattivare questo account o togliergli il ruolo di amministratore",
+    "owner_required": "Solo il proprietario può trasferire la proprietà",
+    "owner_target_invalid": "La proprietà può essere trasferita solo a un amministratore attivo"
   },
   "report": {
     "title": "Verbale di fine lavori",

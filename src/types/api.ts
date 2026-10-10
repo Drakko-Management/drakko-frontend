@@ -96,6 +96,8 @@ export interface User {
   customRole?: Pick<Role, 'id' | 'name' | 'permissions'>
   navSlots: string[]
   active: boolean
+  /** Propriétaire de l'organisation : toujours administrateur et actif, personne d'autre ne modifie son compte */
+  isOwner: boolean
   language: string
   theme: string
   accentColor: string
