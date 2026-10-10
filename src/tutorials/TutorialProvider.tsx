@@ -110,6 +110,8 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
   const [stepsOverride, setStepsOverride] = useState<TutorialStepDef[] | null>(null)
   // Page publique : tout est déjà affiché, une cible absente ne viendra pas (pas d'attente longue)
   const [quickTargets, setQuickTargets] = useState(false)
+  // Hauteur dont la zone éclairée dépasse la cible tant qu'une liste déroulante (`floating`) est ouverte
+  const [floatingExtra, setFloatingExtra] = useState(0)
   const [completed, setCompleted] = useState<TutorialId[]>(() => readCompleted(userId))
 
   const stop = useCallback(() => {
@@ -198,6 +200,24 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
     [activeId, stepsOverride, variant],
   )
 
+  // Liste déroulante ouverte dans la zone ciblée : la zone éclairée s'agrandit de sa hauteur (et revient à
+  // la normale quand elle se ferme), pour que ses lignes restent cliquables sans éclairer le reste de la page.
+  useEffect(() => {
+    setFloatingExtra(0)
+    if (!activeId) return
+    const step = activeSteps[index]
+    if (!step?.floating) return
+    const measure = () => {
+      const zone = findVisible(step.target)
+      const floating = zone?.querySelector<HTMLElement>(step.floating!)
+      const extra = zone && floating ? Math.max(0, floating.getBoundingClientRect().bottom - zone.getBoundingClientRect().bottom) : 0
+      setFloatingExtra((prev) => (Math.abs(prev - extra) < 2 ? prev : Math.round(extra)))
+    }
+    measure()
+    const timer = window.setInterval(measure, 150)
+    return () => { window.clearInterval(timer) }
+  }, [activeId, activeSteps, index])
+
   // Étape déjà « faite » une fois la page affichée (ex. on arrive sur /utilisateurs : l'onglet voulu est
   // ouvert par défaut) : on la retire de la liste, la numérotation reste juste.
   useEffect(() => {
@@ -277,7 +297,9 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
           text(`tutorials.${activeId}.${s.id}_body`)
         ),
         data,
-        ...(s.spotlightPadding && { spotlightPadding: s.spotlightPadding }),
+        ...((s.spotlightPadding || s.floating) && {
+          spotlightPadding: { ...s.spotlightPadding, ...(s.floating && { bottom: (s.spotlightPadding?.bottom ?? 8) + floatingExtra }) },
+        }),
         ...(s.blockInteraction && { blockTargetInteraction: true }),
         // Zone d'action : contour dans la couleur de l'entreprise pour la distinguer d'une simple explication
         ...(s.interactive && { styles: { spotlight: { stroke: primaryColor(), strokeWidth: 3 } } }),
@@ -285,7 +307,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
         ...(s.optional && quickTargets && { targetWaitTimeout: 400 }),
       }
     })
-  }, [activeId, activeSteps, quickTargets, t, i18n, lang, variantsKey])
+  }, [activeId, activeSteps, quickTargets, floatingExtra, t, i18n, lang, variantsKey])
 
   const onEvent = useCallback<EventHandler>(
     (data) => {

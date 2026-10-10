@@ -43,6 +43,12 @@ export interface TutorialStepDef {
   placement?: 'top' | 'bottom' | 'left' | 'right'
   /** Marge de la zone cliquable autour de la cible (ex. pour inclure une liste déroulante) */
   spotlightPadding?: { top?: number; right?: number; bottom?: number; left?: number }
+  /**
+   * Sélecteur (dans la cible) d'un élément flottant qui dépasse de la zone, comme une liste déroulante.
+   * La zone éclairée ne s'agrandit que tant qu'il est affiché, juste de sa hauteur : sans cela le fond
+   * sombre bloquerait les clics sur la liste, et l'agrandir en permanence éclairerait tout le formulaire.
+   */
+  floating?: string
 }
 
 export interface TutorialDef {
@@ -113,7 +119,7 @@ export const TUTORIALS: TutorialDef[] = [
       { id: 'new', route: /^\/chantiers$/, target: 'projects-new', advance: 'action' },
       { id: 'title', route: /^\/chantiers\/nouveau$/, target: 'project-title', advance: 'next', gate: true },
       // La liste déroulante des clients dépasse de la cible : on étend la zone cliquable vers le bas
-      { id: 'client', route: /^\/chantiers\/nouveau$/, target: 'project-client', advance: 'next', placement: 'top', spotlightPadding: { bottom: 340 }, gate: true },
+      { id: 'client', route: /^\/chantiers\/nouveau$/, target: 'project-client', advance: 'next', placement: 'top', floating: 'ul', gate: true },
       { id: 'address', route: /^\/chantiers\/nouveau$/, target: 'project-address', advance: 'next', gate: true },
       { id: 'planning', route: /^\/chantiers\/nouveau$/, target: 'project-planning', advance: 'next' },
       { id: 'submit', route: /^\/chantiers\/nouveau$/, target: 'project-submit', advance: 'action', placement: 'top' },
