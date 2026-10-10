@@ -13,6 +13,7 @@ import { Avatar } from '@/components/common/Avatar'
 import { useUsers, useUpdateUser } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
 import { usePermissions } from '@/hooks/use-permissions'
+import { apiErrorMessage } from '@/lib/api-error'
 import { fullName } from '@/lib/utils'
 import { RolesTab } from './RolesTab'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
@@ -97,8 +98,8 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
       })
       setForm((f) => ({ ...f, password: '' }))
       toast.success(t('users.updated'))
-    } catch {
-      toast.error(t('users.update_error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'users.update_error'))
     }
   }
 

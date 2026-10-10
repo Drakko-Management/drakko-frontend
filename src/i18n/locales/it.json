@@ -412,7 +412,8 @@
     "action_create": "Creare",
     "action_update": "Modificare",
     "action_delete": "Eliminare",
-    "role_name_taken": "Esiste già un ruolo con questo nome"
+    "role_name_taken": "Esiste già un ruolo con questo nome",
+    "role_not_found": "Ruolo non trovato. Scegline un altro."
   },
   "report": {
     "title": "Verbale di fine lavori",

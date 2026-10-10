@@ -412,7 +412,8 @@
     "action_create": "Erstellen",
     "action_update": "Bearbeiten",
     "action_delete": "Löschen",
-    "role_name_taken": "Eine Rolle mit diesem Namen existiert bereits"
+    "role_name_taken": "Eine Rolle mit diesem Namen existiert bereits",
+    "role_not_found": "Rolle nicht gefunden. Wählen Sie eine andere."
   },
   "report": {
     "title": "Abnahmeprotokoll",

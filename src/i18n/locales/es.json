@@ -412,7 +412,8 @@
     "action_create": "Crear",
     "action_update": "Editar",
     "action_delete": "Eliminar",
-    "role_name_taken": "Ya existe un rol con este nombre"
+    "role_name_taken": "Ya existe un rol con este nombre",
+    "role_not_found": "Rol no encontrado. Elige otro."
   },
   "report": {
     "title": "Acta de recepción de obras",

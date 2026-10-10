@@ -60,6 +60,17 @@ describe('apiErrorMessage', () => {
     expect(message('de')).toContain('Kunde nicht gefunden')
   })
 
+  it('traduit ROLE_NOT_FOUND (rôle absent de l\'organisation) dans chaque langue', () => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(404, 'Rôle introuvable', 'ROLE_NOT_FOUND'), i18n.getFixedT(lng), 'users.update_error')
+
+    expect(message('fr')).toBe('Rôle introuvable. Choisissez-en un autre.')
+    expect(message('en')).toBe('Role not found. Pick another one.')
+    expect(message('es')).toBe('Rol no encontrado. Elige otro.')
+    expect(message('it')).toBe('Ruolo non trovato. Scegline un altro.')
+    expect(message('de')).toBe('Rolle nicht gefunden. Wählen Sie eine andere.')
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 

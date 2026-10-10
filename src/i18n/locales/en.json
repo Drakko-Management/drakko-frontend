@@ -412,7 +412,8 @@
     "action_create": "Create",
     "action_update": "Edit",
     "action_delete": "Delete",
-    "role_name_taken": "A role with this name already exists"
+    "role_name_taken": "A role with this name already exists",
+    "role_not_found": "Role not found. Pick another one."
   },
   "report": {
     "title": "Works Completion Certificate",

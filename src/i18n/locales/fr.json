@@ -412,7 +412,8 @@
     "action_create": "Créer",
     "action_update": "Modifier",
     "action_delete": "Supprimer",
-    "role_name_taken": "Un rôle avec ce nom existe déjà"
+    "role_name_taken": "Un rôle avec ce nom existe déjà",
+    "role_not_found": "Rôle introuvable. Choisissez-en un autre."
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",

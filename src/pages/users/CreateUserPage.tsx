@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateUser } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
+import { apiErrorMessage } from '@/lib/api-error'
 import type { UserRole } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
@@ -89,8 +90,8 @@ export function CreateUserPage() {
       })
       toast.success(t('users.created'))
       void navigate('/utilisateurs')
-    } catch {
-      toast.error(t('users.create_error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'users.create_error'))
     }
   }
 
