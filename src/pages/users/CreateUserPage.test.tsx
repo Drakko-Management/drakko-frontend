@@ -8,6 +8,8 @@ import { useRoles } from '@/hooks/use-roles'
 import { useAuthStore } from '@/store/auth.store'
 import { makePermissions } from '@/lib/permissions'
 import { ApiError } from '@/lib/api-client'
+import { isZoneFilled } from '@/tutorials/dom'
+import { TUTORIALS } from '@/tutorials/definitions'
 import { CreateUserPage } from './CreateUserPage'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -32,11 +34,17 @@ function renderPage() {
   )
 }
 
-async function fillRequiredFields() {
+async function fillIdentity() {
   await userEvent.type(screen.getByLabelText(/Prénom/), 'Marie')
   await userEvent.type(screen.getByLabelText(/^Nom/), 'Durand')
   await userEvent.type(screen.getByLabelText(/Identifiant/), 'marie.durand')
   await userEvent.type(screen.getByLabelText(/Mot de passe/), 'motdepasse1')
+}
+
+// Le rôle est obligatoire : le sélecteur n'a rien de choisi au départ
+async function fillRequiredFields() {
+  await fillIdentity()
+  await userEvent.selectOptions(screen.getByRole('combobox'), 'r1')
 }
 
 // ── Reset ──────────────────────────────────────────────────────────────────
@@ -62,6 +70,81 @@ describe('CreateUserPage — choix du rôle', () => {
     renderPage()
     expect(screen.queryByRole('option', { name: 'Administrateur' })).not.toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Chef d\'équipe' })).toBeInTheDocument()
+  })
+})
+
+// ── Rôle obligatoire : ce que l'on voit est ce qui est envoyé ───────────────
+
+describe('CreateUserPage — rôle obligatoire', () => {
+  function roleSelect() {
+    return screen.getByRole('combobox') as HTMLSelectElement
+  }
+
+  it('affiche « Choisir un rôle » tant qu\'aucun rôle n\'est choisi', () => {
+    renderPage()
+    const select = roleSelect()
+    expect(select.value).toBe('')
+    expect(select.options[select.selectedIndex].textContent).toBe('Choisir un rôle')
+    expect(select).toBeRequired()
+  })
+
+  it('refuse l\'enregistrement sans rôle : rien n\'est envoyé à l\'API', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useCreateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderPage()
+    await fillIdentity()
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('sans validation native (WebView) : message traduit et rien n\'est envoyé', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useCreateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    const { container } = renderPage()
+    // Une WebView n'affiche pas les bulles de validation du navigateur : le formulaire se défend seul
+    container.querySelector('form')?.setAttribute('novalidate', '')
+    await fillIdentity()
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(toast.error).toHaveBeenCalledWith('Choisissez un rôle pour ce membre')
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('envoie le rôle personnalisé choisi', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useCreateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderPage()
+    await fillRequiredFields()
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'MEMBER', customRoleId: 'r1' }),
+      )
+    })
+  })
+
+  it('ADMIN : envoie le rôle administrateur choisi, sans rôle personnalisé', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useCreateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderPage()
+    await fillIdentity()
+    await userEvent.selectOptions(roleSelect(), 'ADMIN')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'ADMIN', customRoleId: null }),
+      )
+    })
+  })
+
+  it('le tutoriel « Créer un membre » ne laisse pas passer l\'étape du rôle tant qu\'aucun n\'est choisi', async () => {
+    renderPage()
+    const zone = document.querySelector<HTMLElement>('[data-tutorial="user-role"]')
+    expect(isZoneFilled(zone)).toBe(false)
+    await userEvent.selectOptions(roleSelect(), 'r1')
+    expect(isZoneFilled(zone)).toBe(true)
+
+    const step = TUTORIALS.find((t) => t.id === 'create_member')?.steps.find((s) => s.id === 'role')
+    expect(step?.gate).toBe(true)
   })
 })
 

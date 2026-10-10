@@ -40,8 +40,11 @@ function RoleSelect({
     <select
       value={selectValue}
       onChange={(e) => handleChange(e.target.value)}
+      required
       className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
+      {/* Sans cette option, le navigateur afficherait la suivante alors que rien n'est choisi */}
+      <option value="" disabled>{t('users.choose_role')}</option>
       {/* Seul un administrateur attribue le rôle administrateur (règle aussi appliquée par l'API) */}
       {isAdmin && <option value="ADMIN">{t('users.role_admin')}</option>}
       {roles?.map((r) => (
@@ -79,6 +82,10 @@ export function CreateUserPage() {
     e.preventDefault()
     if (form.password.length < 8) {
       toast.error(t('users.password_min_error'))
+      return
+    }
+    if (form.role !== 'ADMIN' && !form.customRoleId) {
+      toast.error(t('users.role_required'))
       return
     }
     try {

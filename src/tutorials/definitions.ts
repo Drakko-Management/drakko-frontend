@@ -185,7 +185,7 @@ export const TUTORIALS: TutorialDef[] = [
       { id: 'identifier', route: /^\/utilisateurs\/nouveau$/, target: 'user-identifier', advance: 'next', gate: true },
       { id: 'email', route: /^\/utilisateurs\/nouveau$/, target: 'user-email', advance: 'next' },
       { id: 'password', route: /^\/utilisateurs\/nouveau$/, target: 'user-password', advance: 'next', gate: true },
-      { id: 'role', route: /^\/utilisateurs\/nouveau$/, target: 'user-role', advance: 'next' },
+      { id: 'role', route: /^\/utilisateurs\/nouveau$/, target: 'user-role', advance: 'next', gate: true },
       { id: 'submit', route: /^\/utilisateurs\/nouveau$/, target: 'user-submit', advance: 'action', placement: 'top' },
       { id: 'done', route: /^\/utilisateurs$/, target: 'center', advance: 'next' },
     ],

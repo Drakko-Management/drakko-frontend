@@ -414,7 +414,9 @@
     "action_delete": "Delete",
     "role_name_taken": "A role with this name already exists",
     "role_not_found": "Role not found. Pick another one.",
-    "admin_required": "Only an administrator can create or edit an administrator account"
+    "admin_required": "Only an administrator can create or edit an administrator account",
+    "choose_role": "Choose a role",
+    "role_required": "Choose a role for this member"
   },
   "report": {
     "title": "Works Completion Certificate",
@@ -752,7 +754,7 @@
       "password_title": "Password",
       "password_body": "Choose a password of at least 8 characters and give it to the member.",
       "role_title": "Role",
-      "role_body": "The role defines what the member can do in the app. You can create roles in the “Roles” tab.",
+      "role_body": "Choose the member's role: it defines what they can do in the app. You can create roles in the “Roles” tab.",
       "submit_title": "Save",
       "submit_body": "Tap here to create the account.",
       "done_title": "Member added!",

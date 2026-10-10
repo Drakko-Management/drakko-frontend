@@ -272,6 +272,33 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
   })
 })
 
+// ── Sélecteur de rôle de la fiche : ce que l'on voit est le rôle réel ────────
+
+describe('UsersPage — rôle affiché dans la fiche d\'un membre', () => {
+  beforeEach(() => {
+    vi.mocked(useRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useRoles>)
+  })
+
+  function selectedOption() {
+    const select = screen.getByRole('combobox') as HTMLSelectElement
+    return select.options[select.selectedIndex].textContent
+  }
+
+  it('un membre sans rôle personnalisé affiche « Choisir un rôle », pas « Administrateur »', async () => {
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+    expect(selectedOption()).toBe('Choisir un rôle')
+  })
+
+  it('un membre avec un rôle personnalisé affiche ce rôle', async () => {
+    vi.mocked(useUsers).mockReturnValue({ data: [{ ...USER_ACTIVE, customRoleId: 'r1' }], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+    expect(selectedOption()).toBe('Chef d\'équipe')
+  })
+})
+
 // ── Comptes administrateurs : seul un ADMIN les modifie ou attribue ADMIN ───
 
 describe('UsersPage — comptes administrateurs', () => {

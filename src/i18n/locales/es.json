@@ -414,7 +414,9 @@
     "action_delete": "Eliminar",
     "role_name_taken": "Ya existe un rol con este nombre",
     "role_not_found": "Rol no encontrado. Elige otro.",
-    "admin_required": "Solo un administrador puede crear o modificar una cuenta de administrador"
+    "admin_required": "Solo un administrador puede crear o modificar una cuenta de administrador",
+    "choose_role": "Elegir un rol",
+    "role_required": "Elige un rol para este miembro"
   },
   "report": {
     "title": "Acta de recepción de obras",
@@ -752,7 +754,7 @@
       "password_title": "Contraseña",
       "password_body": "Elige una contraseña de al menos 8 caracteres y comunícasela al miembro.",
       "role_title": "Rol",
-      "role_body": "El rol define lo que el miembro puede hacer en la aplicación. Puedes crear roles en la pestaña «Roles».",
+      "role_body": "Elige el rol del miembro: define lo que puede hacer en la aplicación. Puedes crear roles en la pestaña «Roles».",
       "submit_title": "Guardar",
       "submit_body": "Toca aquí para crear la cuenta.",
       "done_title": "¡Miembro añadido!",

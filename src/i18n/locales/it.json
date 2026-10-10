@@ -414,7 +414,9 @@
     "action_delete": "Eliminare",
     "role_name_taken": "Esiste già un ruolo con questo nome",
     "role_not_found": "Ruolo non trovato. Scegline un altro.",
-    "admin_required": "Solo un amministratore può creare o modificare un account amministratore"
+    "admin_required": "Solo un amministratore può creare o modificare un account amministratore",
+    "choose_role": "Scegli un ruolo",
+    "role_required": "Scegli un ruolo per questo membro"
   },
   "report": {
     "title": "Verbale di fine lavori",
@@ -752,7 +754,7 @@
       "password_title": "Password",
       "password_body": "Scegli una password di almeno 8 caratteri e comunicala al membro.",
       "role_title": "Ruolo",
-      "role_body": "Il ruolo definisce cosa può fare il membro nell'app. Puoi creare i ruoli nella scheda «Ruoli».",
+      "role_body": "Scegli il ruolo del membro: definisce cosa può fare nell'app. Puoi creare i ruoli nella scheda «Ruoli».",
       "submit_title": "Salva",
       "submit_body": "Tocca qui per creare l'account.",
       "done_title": "Membro aggiunto!",

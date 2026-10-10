@@ -51,6 +51,8 @@ function RoleSelect({
       disabled={disabled}
       className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
+      {/* Un membre sans rôle personnalisé affiche cette option, pas la suivante */}
+      <option value="" disabled>{t('users.choose_role')}</option>
       {/* Seul un administrateur attribue le rôle administrateur (règle aussi appliquée par l'API) */}
       {isAdmin && <option value="ADMIN">{t('users.role_admin')}</option>}
       {roles?.map((r) => (

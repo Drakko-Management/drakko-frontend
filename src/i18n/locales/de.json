@@ -414,7 +414,9 @@
     "action_delete": "Löschen",
     "role_name_taken": "Eine Rolle mit diesem Namen existiert bereits",
     "role_not_found": "Rolle nicht gefunden. Wählen Sie eine andere.",
-    "admin_required": "Nur ein Administrator kann ein Administratorkonto erstellen oder ändern"
+    "admin_required": "Nur ein Administrator kann ein Administratorkonto erstellen oder ändern",
+    "choose_role": "Rolle auswählen",
+    "role_required": "Wählen Sie eine Rolle für dieses Mitglied"
   },
   "report": {
     "title": "Abnahmeprotokoll",
@@ -752,7 +754,7 @@
       "password_title": "Passwort",
       "password_body": "Wählen Sie ein Passwort mit mindestens 8 Zeichen und teilen Sie es dem Mitglied mit.",
       "role_title": "Rolle",
-      "role_body": "Die Rolle legt fest, was das Mitglied in der App tun darf. Rollen legen Sie im Tab „Rollen“ an.",
+      "role_body": "Wählen Sie die Rolle des Mitglieds: Sie legt fest, was es in der App tun darf. Rollen legen Sie im Tab „Rollen“ an.",
       "submit_title": "Speichern",
       "submit_body": "Tippen Sie hier, um das Konto anzulegen.",
       "done_title": "Mitglied angelegt!",

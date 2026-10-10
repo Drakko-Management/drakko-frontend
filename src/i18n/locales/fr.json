@@ -414,7 +414,9 @@
     "action_delete": "Supprimer",
     "role_name_taken": "Un rôle avec ce nom existe déjà",
     "role_not_found": "Rôle introuvable. Choisissez-en un autre.",
-    "admin_required": "Seul un administrateur peut créer ou modifier un compte administrateur"
+    "admin_required": "Seul un administrateur peut créer ou modifier un compte administrateur",
+    "choose_role": "Choisir un rôle",
+    "role_required": "Choisissez un rôle pour ce membre"
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",
@@ -752,7 +754,7 @@
       "password_title": "Mot de passe",
       "password_body": "Choisissez un mot de passe d'au moins 8 caractères et communiquez-le au membre.",
       "role_title": "Rôle",
-      "role_body": "Le rôle définit ce que le membre peut faire dans l'application. Vous pouvez en créer dans l'onglet « Rôles ».",
+      "role_body": "Choisissez le rôle du membre : il définit ce qu'il peut faire dans l'application. Vous pouvez en créer dans l'onglet « Rôles ».",
       "submit_title": "Enregistrer",
       "submit_body": "Appuyez ici pour créer le compte.",
       "done_title": "Membre ajouté !",
