@@ -14,7 +14,7 @@ import { useCreateProject, useNextProjectReference } from '@/hooks/use-projects'
 import { useOrganization } from '@/hooks/use-organization'
 import { useClients } from '@/hooks/use-clients'
 import { apiErrorMessage } from '@/lib/api-error'
-import { buildAddress, parseAddress, fullName, cn } from '@/lib/utils'
+import { buildAddress, parseAddress, fullName, cn, dateRangeBounds } from '@/lib/utils'
 import type { Client } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
@@ -186,6 +186,7 @@ export function CreateProjectPage() {
   })
   const [sameAsBilling, setSameAsBilling] = useState(false)
   const clientError = clientAttempts > 0 && !selectedClient
+  const dates = dateRangeBounds(form.startDate, form.expectedEndDate)
 
   // Après le rendu en erreur : le champ sait qu'il est invalide et n'ouvre pas la liste, qui masquerait le message
   useEffect(() => {
@@ -368,7 +369,8 @@ export function CreateProjectPage() {
               id="startDate"
               type="date"
               // le calendrier grise les jours après la fin prévue (et inversement pour la date de fin)
-              max={form.expectedEndDate || undefined}
+              min={dates.start.min}
+              max={dates.start.max}
               className="min-h-[44px]"
               value={form.startDate}
               onChange={(e) => set('startDate', e.target.value)}
@@ -379,7 +381,8 @@ export function CreateProjectPage() {
             <Input
               id="expectedEndDate"
               type="date"
-              min={form.startDate || undefined}
+              min={dates.end.min}
+              max={dates.end.max}
               className="min-h-[44px]"
               value={form.expectedEndDate}
               onChange={(e) => set('expectedEndDate', e.target.value)}

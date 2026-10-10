@@ -44,6 +44,27 @@ export function toDateInput(value: string | null | undefined): string {
   return value?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? ''
 }
 
+/**
+ * Bornes d'un champ de date : l'année tient toujours sur 4 chiffres.
+ * Sans `max`, Chrome réserve la place de 6 chiffres (jusqu'à l'an 275 760) : le champ rétrécit de 15 px, et
+ * l'icône du calendrier avec lui, dès qu'un `max` apparaît. Une année saisie avec 5 ou 6 chiffres par erreur
+ * serait aussi acceptée.
+ */
+export const DATE_INPUT_MIN = '1900-01-01'
+export const DATE_INPUT_MAX = '2100-12-31'
+
+/**
+ * Bornes des deux champs d'une paire de dates (début / fin) : chacune limite l'autre, et les bornes
+ * générales s'appliquent tant que l'autre date n'est pas choisie. Chaque champ a toujours un `min` et un
+ * `max` (voir DATE_INPUT_MAX).
+ */
+export function dateRangeBounds(start: string, end: string) {
+  return {
+    start: { min: DATE_INPUT_MIN, max: end || DATE_INPUT_MAX },
+    end: { min: start || DATE_INPUT_MIN, max: DATE_INPUT_MAX },
+  }
+}
+
 export function buildAddress(street: string, postalCode: string, city: string): string | undefined {
   const parts = [street.trim(), [postalCode.trim(), city.trim()].filter(Boolean).join(' ')].filter(Boolean)
   return parts.join(', ') || undefined

@@ -339,11 +339,13 @@ describe('CreateProjectPage — dates', () => {
   const endField = () => document.getElementById('expectedEndDate') as HTMLInputElement
   const pick = (field: HTMLInputElement, value: string) => fireEvent.change(field, { target: { value } })
 
-  it('sans date saisie, aucun jour n\'est interdit', () => {
+  it('sans date saisie, seules les bornes générales (années à 4 chiffres) s\'appliquent', () => {
     renderPage()
 
-    expect(startField()).not.toHaveAttribute('max')
-    expect(endField()).not.toHaveAttribute('min')
+    expect(startField()).toHaveAttribute('min', '1900-01-01')
+    expect(startField()).toHaveAttribute('max', '2100-12-31')
+    expect(endField()).toHaveAttribute('min', '1900-01-01')
+    expect(endField()).toHaveAttribute('max', '2100-12-31')
   })
 
   it('la date de fin ne peut pas précéder la date de début : le calendrier grise les jours avant', () => {
@@ -352,6 +354,7 @@ describe('CreateProjectPage — dates', () => {
     pick(startField(), '2026-10-20')
 
     expect(endField()).toHaveAttribute('min', '2026-10-20')
+    expect(startField()).toHaveAttribute('max', '2100-12-31')
   })
 
   it('la date de début ne peut pas suivre la date de fin : le calendrier grise les jours après', () => {
@@ -360,6 +363,24 @@ describe('CreateProjectPage — dates', () => {
     pick(endField(), '2026-11-05')
 
     expect(startField()).toHaveAttribute('max', '2026-11-05')
+    expect(endField()).toHaveAttribute('min', '1900-01-01')
+  })
+
+  // Chrome réserve la place d'une année à 6 chiffres tant qu'un champ n'a pas de max : quand la date de fin
+  // apparaît, le champ de début rétrécissait de 15 px et son icône de calendrier glissait avec lui
+  it('chaque champ garde un max à tout moment : l\'icône du calendrier ne bouge pas quand l\'autre date est choisie', () => {
+    renderPage()
+    const maxes = () => [startField().getAttribute('max'), endField().getAttribute('max')]
+    expect(maxes()).not.toContain(null)
+
+    pick(startField(), '2026-10-10')
+    expect(maxes()).not.toContain(null)
+
+    pick(endField(), '2026-10-24')
+    expect(maxes()).not.toContain(null)
+
+    pick(endField(), '')
+    expect(maxes()).not.toContain(null)
   })
 
   it('les deux contraintes se posent ensemble', () => {
@@ -379,6 +400,6 @@ describe('CreateProjectPage — dates', () => {
 
     pick(startField(), '')
 
-    expect(endField()).not.toHaveAttribute('min')
+    expect(endField()).toHaveAttribute('min', '1900-01-01')
   })
 })

@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import i18n from 'i18next'
-import { formatDate, formatCurrency, fullName, initials, avatarColor, toDateInput } from './utils'
+import { formatDate, formatCurrency, fullName, initials, avatarColor, toDateInput, dateRangeBounds, DATE_INPUT_MIN, DATE_INPUT_MAX } from './utils'
 
 // ── toDateInput ────────────────────────────────────────────────────────────
 
@@ -20,6 +20,38 @@ describe('toDateInput', () => {
 
   it.each([null, undefined, '', 'pas une date', '01/06/2026', '2026-6-1'])('%j → champ vide', (value) => {
     expect(toDateInput(value)).toBe('')
+  })
+})
+
+// ── dateRangeBounds ────────────────────────────────────────────────────────
+
+describe('dateRangeBounds', () => {
+  it('sans date choisie : les bornes générales, à 4 chiffres d\'année', () => {
+    expect(dateRangeBounds('', '')).toEqual({
+      start: { min: '1900-01-01', max: '2100-12-31' },
+      end: { min: '1900-01-01', max: '2100-12-31' },
+    })
+  })
+
+  it('le début choisi devient le plus petit jour possible pour la fin', () => {
+    expect(dateRangeBounds('2026-10-20', '')).toEqual({
+      start: { min: DATE_INPUT_MIN, max: DATE_INPUT_MAX },
+      end: { min: '2026-10-20', max: DATE_INPUT_MAX },
+    })
+  })
+
+  it('la fin choisie devient le plus grand jour possible pour le début', () => {
+    expect(dateRangeBounds('', '2026-11-05')).toEqual({
+      start: { min: DATE_INPUT_MIN, max: '2026-11-05' },
+      end: { min: DATE_INPUT_MIN, max: DATE_INPUT_MAX },
+    })
+  })
+
+  it('chaque champ garde toujours un min ET un max : sans max, Chrome élargit le champ et l\'icône du calendrier bouge', () => {
+    for (const [start, end] of [['', ''], ['2026-10-20', ''], ['', '2026-11-05'], ['2026-10-20', '2026-11-05']]) {
+      const { start: s, end: e } = dateRangeBounds(start, end)
+      for (const bound of [s.min, s.max, e.min, e.max]) expect(bound).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    }
   })
 })
 

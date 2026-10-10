@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
 import { useProject, useUpdateProject } from '@/hooks/use-projects'
-import { buildAddress, parseAddress, toDateInput } from '@/lib/utils'
+import { buildAddress, parseAddress, toDateInput, dateRangeBounds } from '@/lib/utils'
 
 export function EditProjectPage() {
   const { id } = useParams<{ id: string }>()
@@ -101,6 +101,8 @@ export function EditProjectPage() {
     )
   }
 
+  const dates = dateRangeBounds(form.startDate, form.expectedEndDate)
+
   return (
     <div className="space-y-4 pb-8">
       <div className="flex items-center gap-3">
@@ -164,7 +166,8 @@ export function EditProjectPage() {
               id="startDate"
               type="date"
               // le calendrier grise les jours après la fin prévue (et inversement pour la date de fin)
-              max={form.expectedEndDate || undefined}
+              min={dates.start.min}
+              max={dates.start.max}
               className="min-h-[44px]"
               value={form.startDate}
               onChange={(e) => set('startDate', e.target.value)}
@@ -175,7 +178,8 @@ export function EditProjectPage() {
             <Input
               id="expectedEndDate"
               type="date"
-              min={form.startDate || undefined}
+              min={dates.end.min}
+              max={dates.end.max}
               className="min-h-[44px]"
               value={form.expectedEndDate}
               onChange={(e) => set('expectedEndDate', e.target.value)}

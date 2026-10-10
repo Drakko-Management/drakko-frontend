@@ -91,4 +91,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Champs de date : chiffres de largeur fixe. Chrome place l'icône du calendrier juste après le texte,
+     dont la largeur varie sinon avec les chiffres choisis : l'icône se décalait de quelques pixels. */
+  input[type="date"] {
+    font-variant-numeric: tabular-nums;
+  }
 }

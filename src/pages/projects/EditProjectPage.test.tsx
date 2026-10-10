@@ -110,7 +110,9 @@ describe('EditProjectPage — dates', () => {
 
     await waitFor(() => expect(document.getElementById('title')).toHaveValue('Aménagement Jardin Dupont'))
     expect(startField()).toHaveValue('')
-    expect(startField()).not.toHaveAttribute('max')
-    expect(endField()).not.toHaveAttribute('min')
+    // seules les bornes générales s'appliquent, mais chaque champ garde un max (voir la page de création)
+    expect(startField()).toHaveAttribute('max', '2100-12-31')
+    expect(endField()).toHaveAttribute('min', '1900-01-01')
+    expect(endField()).toHaveAttribute('max', '2100-12-31')
   })
 })
