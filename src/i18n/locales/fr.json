@@ -413,7 +413,8 @@
     "action_update": "Modifier",
     "action_delete": "Supprimer",
     "role_name_taken": "Un rôle avec ce nom existe déjà",
-    "role_not_found": "Rôle introuvable. Choisissez-en un autre."
+    "role_not_found": "Rôle introuvable. Choisissez-en un autre.",
+    "admin_required": "Seul un administrateur peut créer ou modifier un compte administrateur"
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",

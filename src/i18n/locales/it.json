@@ -413,7 +413,8 @@
     "action_update": "Modificare",
     "action_delete": "Eliminare",
     "role_name_taken": "Esiste già un ruolo con questo nome",
-    "role_not_found": "Ruolo non trovato. Scegline un altro."
+    "role_not_found": "Ruolo non trovato. Scegline un altro.",
+    "admin_required": "Solo un amministratore può creare o modificare un account amministratore"
   },
   "report": {
     "title": "Verbale di fine lavori",

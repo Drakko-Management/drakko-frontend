@@ -2,9 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useUsers, useCreateUser, useUpdateUser } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
 import { useAuthStore } from '@/store/auth.store'
+import { ApiError } from '@/lib/api-client'
 import { makePermissions } from '@/lib/permissions'
 import { UsersPage } from './UsersPage'
 import type { User } from '@/types/api'
@@ -267,5 +269,62 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
     renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
     expect(screen.getByRole('button', { name: 'Désactiver le compte' })).toBeInTheDocument()
+  })
+})
+
+// ── Comptes administrateurs : seul un ADMIN les modifie ou attribue ADMIN ───
+
+describe('UsersPage — comptes administrateurs', () => {
+  const USER_ADMIN: User = {
+    ...USER_ACTIVE,
+    id: 'u-admin',
+    username: 'anne.chef',
+    firstName: 'Anne',
+    lastName: 'Chef',
+    role: 'ADMIN',
+  }
+
+  function memberWithEquipeUpdate() {
+    useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: makePermissions({ equipe: ['read', 'update'] }) })
+  }
+
+  beforeEach(() => {
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ADMIN, USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+    vi.mocked(useRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useRoles>)
+  })
+
+  it('ADMIN : ouvre la fiche d\'un administrateur et propose « Administrateur » comme rôle', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByText('Anne Chef'))
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Administrateur' })).toBeInTheDocument()
+  })
+
+  it('MEMBER avec equipe.update : la fiche d\'un administrateur ne s\'ouvre pas', async () => {
+    memberWithEquipeUpdate()
+    renderUsers()
+    await userEvent.click(screen.getByText('Anne Chef'))
+    expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Désactiver le compte' })).not.toBeInTheDocument()
+  })
+
+  it('MEMBER avec equipe.update : modifie un membre, sans que « Administrateur » soit proposé comme rôle', async () => {
+    memberWithEquipeUpdate()
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Administrateur' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Chef d\'équipe' })).toBeInTheDocument()
+  })
+
+  it('affiche le message traduit quand l\'API répond ADMIN_REQUIRED (liste devenue périmée)', async () => {
+    const mutateAsync = vi.fn().mockRejectedValue(new ApiError(403, 'Seul un administrateur', 'ADMIN_REQUIRED'))
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Seul un administrateur peut créer ou modifier un compte administrateur')
+    })
   })
 })

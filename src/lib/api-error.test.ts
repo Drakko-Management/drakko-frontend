@@ -71,6 +71,17 @@ describe('apiErrorMessage', () => {
     expect(message('de')).toBe('Rolle nicht gefunden. Wählen Sie eine andere.')
   })
 
+  it('traduit ADMIN_REQUIRED (compte administrateur réservé aux administrateurs) dans chaque langue', () => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(403, 'Seul un administrateur', 'ADMIN_REQUIRED'), i18n.getFixedT(lng), 'users.update_error')
+
+    expect(message('fr')).toBe('Seul un administrateur peut créer ou modifier un compte administrateur')
+    expect(message('en')).toBe('Only an administrator can create or edit an administrator account')
+    expect(message('es')).toBe('Solo un administrador puede crear o modificar una cuenta de administrador')
+    expect(message('it')).toBe('Solo un amministratore può creare o modificare un account amministratore')
+    expect(message('de')).toBe('Nur ein Administrator kann ein Administratorkonto erstellen oder ändern')
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 

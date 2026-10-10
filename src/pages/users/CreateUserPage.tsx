@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateUser } from '@/hooks/use-users'
 import { useRoles } from '@/hooks/use-roles'
+import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import type { UserRole } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
@@ -23,6 +24,7 @@ function RoleSelect({
 }) {
   const { t } = useTranslation()
   const { data: roles } = useRoles()
+  const { isAdmin } = usePermissions()
 
   const selectValue = value === 'ADMIN' ? 'ADMIN' : (customRoleId ?? '')
 
@@ -40,7 +42,8 @@ function RoleSelect({
       onChange={(e) => handleChange(e.target.value)}
       className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <option value="ADMIN">{t('users.role_admin')}</option>
+      {/* Seul un administrateur attribue le rôle administrateur (règle aussi appliquée par l'API) */}
+      {isAdmin && <option value="ADMIN">{t('users.role_admin')}</option>}
       {roles?.map((r) => (
         <option key={r.id} value={r.id}>
           {r.name}

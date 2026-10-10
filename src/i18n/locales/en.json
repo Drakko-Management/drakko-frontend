@@ -413,7 +413,8 @@
     "action_update": "Edit",
     "action_delete": "Delete",
     "role_name_taken": "A role with this name already exists",
-    "role_not_found": "Role not found. Pick another one."
+    "role_not_found": "Role not found. Pick another one.",
+    "admin_required": "Only an administrator can create or edit an administrator account"
   },
   "report": {
     "title": "Works Completion Certificate",

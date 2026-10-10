@@ -6,6 +6,7 @@ const API_ERROR_KEYS: Record<string, string> = {
   ROLE_NAME_TAKEN: 'users.role_name_taken',
   ROLE_IN_USE: 'users.role_in_use',
   ROLE_NOT_FOUND: 'users.role_not_found',
+  ADMIN_REQUIRED: 'users.admin_required',
   CLIENT_NOT_FOUND: 'create_project.client_not_found',
 }
 

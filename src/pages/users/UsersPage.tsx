@@ -32,6 +32,7 @@ function RoleSelect({
 }) {
   const { t } = useTranslation()
   const { data: roles } = useRoles()
+  const { isAdmin } = usePermissions()
 
   const selectValue = value === 'ADMIN' ? 'ADMIN' : (customRoleId ?? '')
 
@@ -50,7 +51,8 @@ function RoleSelect({
       disabled={disabled}
       className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <option value="ADMIN">{t('users.role_admin')}</option>
+      {/* Seul un administrateur attribue le rôle administrateur (règle aussi appliquée par l'API) */}
+      {isAdmin && <option value="ADMIN">{t('users.role_admin')}</option>}
       {roles?.map((r) => (
         <option key={r.id} value={r.id}>
           {r.name}
@@ -107,8 +109,8 @@ function UserRow({ user, canUpdate }: { user: User; canUpdate: boolean }) {
     try {
       await update.mutateAsync({ active: !user.active })
       toast.success(user.active ? t('users.deactivated_account') : t('users.activated'))
-    } catch {
-      toast.error(t('users.toggle_error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'users.toggle_error'))
     }
   }
 
@@ -239,6 +241,8 @@ export function UsersPage() {
 
   const canCreate = isAdmin || can('equipe', 'create')
   const canUpdate = isAdmin || can('equipe', 'update')
+  // Seul un administrateur modifie un compte administrateur (règle aussi appliquée par l'API)
+  const canEdit = (u: User) => canUpdate && (isAdmin || u.role !== 'ADMIN')
 
   const active = users?.filter((u) => u.active) ?? []
   const inactive = users?.filter((u) => !u.active) ?? []
@@ -297,7 +301,7 @@ export function UsersPage() {
           )}
           {active.length > 0 && (
             <div className="overflow-hidden rounded-xl border bg-card">
-              {active.map((user) => <UserRow key={user.id} user={user} canUpdate={canUpdate} />)}
+              {active.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} />)}
             </div>
           )}
           {inactive.length > 0 && (
@@ -306,7 +310,7 @@ export function UsersPage() {
                 {t('users.inactive_accounts')}
               </p>
               <div className="overflow-hidden rounded-xl border bg-card opacity-60">
-                {inactive.map((user) => <UserRow key={user.id} user={user} canUpdate={canUpdate} />)}
+                {inactive.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} />)}
               </div>
             </div>
           )}
