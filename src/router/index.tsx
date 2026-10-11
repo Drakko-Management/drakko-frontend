@@ -1,11 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { PrivateRoute } from './PrivateRoute'
+import { TWO_FACTOR_ROUTE } from './two-factor-route'
 import { CanRoute } from './CanRoute'
 import { AppShell } from '@/components/layout/AppShell'
 import { ScrollLayout } from '@/components/layout/ScrollLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
+import { TwoFactorRequiredPage } from '@/pages/auth/TwoFactorRequiredPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { ProjectsPage } from '@/pages/projects/ProjectsPage'
 import { ProjectDetailPage } from '@/pages/projects/ProjectDetailPage'
@@ -50,6 +52,7 @@ export const router = createBrowserRouter([
   {
     element: <PrivateRoute />,
     children: [
+      { path: TWO_FACTOR_ROUTE, element: <TwoFactorRequiredPage /> },
       {
         element: <AppShell />,
         children: [

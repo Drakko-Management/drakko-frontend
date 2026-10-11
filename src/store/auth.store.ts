@@ -18,6 +18,8 @@ interface AuthState {
   navSlots: string[]
   permissions: Permissions | null
   customRoleName: string | null
+  /** La double authentification est exigée de ce compte (administrateur) et n'est pas encore configurée */
+  twoFactorRequired: boolean
   setAuth: (accessToken: string, username: string, refreshToken?: string) => void
   setUsername: (username: string) => void
   setName: (firstName: string, lastName: string) => void
@@ -25,6 +27,7 @@ interface AuthState {
   setPermissions: (permissions: Permissions | null) => void
   setNavSlots: (navSlots: string[]) => void
   setCustomRoleName: (name: string | null) => void
+  setTwoFactorRequired: (required: boolean) => void
   clearAuth: () => void
 }
 
@@ -56,6 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   navSlots: [],
   permissions: null,
   customRoleName: null,
+  twoFactorRequired: false,
 
   setAuth: (accessToken, username, refreshToken) => {
     const decoded = decodeJwtPayload(accessToken)
@@ -97,6 +101,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ customRoleName: name })
   },
 
+  setTwoFactorRequired: (required) => {
+    set({ twoFactorRequired: required })
+  },
+
   clearAuth: () => {
     sessionStorage.removeItem('username')
     sessionStorage.removeItem('firstName')
@@ -104,7 +112,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem(REFRESH_TOKEN_KEY)
     // Ne jamais montrer à l'utilisateur suivant les données du précédent
     queryClient.clear()
-    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], customRoleName: null })
+    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], customRoleName: null, twoFactorRequired: false })
   },
 }))
 

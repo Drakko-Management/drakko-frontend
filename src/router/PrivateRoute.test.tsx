@@ -1,51 +1,69 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { PrivateRoute } from './PrivateRoute'
 import { useAuthStore } from '@/store/auth.store'
+import { PrivateRoute } from './PrivateRoute'
+import { TWO_FACTOR_ROUTE } from './two-factor-route'
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function renderWithRouter(accessToken: string | null) {
-  useAuthStore.setState({ accessToken, username: '', role: null, userId: null })
-
+function renderAt(path: string) {
   render(
-    <MemoryRouter initialEntries={['/protege']}>
+    <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/login" element={<div>Page Login</div>} />
+        <Route path="/login" element={<div>page de connexion</div>} />
         <Route element={<PrivateRoute />}>
-          <Route path="/protege" element={<div>Contenu protégé</div>} />
+          <Route path="/" element={<div>tableau de bord</div>} />
+          <Route path="/chantiers" element={<div>chantiers</div>} />
+          <Route path={TWO_FACTOR_ROUTE} element={<div>configuration de la double authentification</div>} />
         </Route>
       </Routes>
     </MemoryRouter>,
   )
 }
 
-// ── Reset ──────────────────────────────────────────────────────────────────
-
 beforeEach(() => {
-  sessionStorage.clear()
-  useAuthStore.setState({ accessToken: null, username: '', role: null, userId: null })
+  useAuthStore.setState({ accessToken: 'tok', twoFactorRequired: false })
 })
 
-// ── Tests ──────────────────────────────────────────────────────────────────
-
 describe('PrivateRoute', () => {
-  it('redirige vers /login quand accessToken est null', () => {
-    renderWithRouter(null)
-    expect(screen.getByText('Page Login')).toBeInTheDocument()
-    expect(screen.queryByText('Contenu protégé')).not.toBeInTheDocument()
+  it('sans session : renvoie vers la connexion', () => {
+    useAuthStore.setState({ accessToken: null })
+    renderAt('/chantiers')
+
+    expect(screen.getByText('page de connexion')).toBeInTheDocument()
   })
 
-  it('rend le contenu protégé quand accessToken est présent', () => {
-    renderWithRouter('un-token-valide')
-    expect(screen.getByText('Contenu protégé')).toBeInTheDocument()
-    expect(screen.queryByText('Page Login')).not.toBeInTheDocument()
+  it('avec une session : laisse passer', () => {
+    renderAt('/chantiers')
+
+    expect(screen.getByText('chantiers')).toBeInTheDocument()
   })
 
-  it('redirige si le token est une chaîne vide', () => {
-    renderWithRouter('')
-    // Une chaîne vide est falsy — doit rediriger
-    expect(screen.getByText('Page Login')).toBeInTheDocument()
+  it('administrateur sans double authentification : toute page renvoie vers sa configuration', () => {
+    useAuthStore.setState({ twoFactorRequired: true })
+    renderAt('/chantiers')
+
+    expect(screen.getByText('configuration de la double authentification')).toBeInTheDocument()
+    expect(screen.queryByText('chantiers')).not.toBeInTheDocument()
+  })
+
+  it('… y compris l’accueil', () => {
+    useAuthStore.setState({ twoFactorRequired: true })
+    renderAt('/')
+
+    expect(screen.getByText('configuration de la double authentification')).toBeInTheDocument()
+  })
+
+  it('la page de configuration elle-même reste accessible (pas de boucle de redirection)', () => {
+    useAuthStore.setState({ twoFactorRequired: true })
+    renderAt(TWO_FACTOR_ROUTE)
+
+    expect(screen.getByText('configuration de la double authentification')).toBeInTheDocument()
+  })
+
+  it('sans session, la connexion passe avant la configuration', () => {
+    useAuthStore.setState({ accessToken: null, twoFactorRequired: true })
+    renderAt('/chantiers')
+
+    expect(screen.getByText('page de connexion')).toBeInTheDocument()
   })
 })

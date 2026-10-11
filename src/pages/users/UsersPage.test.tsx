@@ -13,6 +13,11 @@ import type { User } from '@/types/api'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
+// Le déblocage a son propre fichier de tests (ResetTwoFactorButton.test.tsx)
+vi.mock('@/hooks/use-two-factor', () => ({
+  useResetUserTwoFactor: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
@@ -282,6 +287,61 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
 })
 
 // ── Sélecteur de rôle de la fiche : ce que l'on voit est le rôle réel ────────
+
+describe('UsersPage — double authentification des membres', () => {
+  const WITH = { ...USER_ACTIVE, id: 'u-avec', username: 'avec.deuxfa', firstName: 'Alice', lastName: 'Avec', role: 'ADMIN' as const, totpEnabledAt: '2026-01-01T00:00:00Z' }
+  const WITHOUT_ADMIN = { ...USER_ACTIVE, id: 'u-sans', username: 'sans.deuxfa', firstName: 'Bob', lastName: 'Sans', role: 'ADMIN' as const, totpEnabledAt: null }
+  const MEMBER = { ...USER_ACTIVE, id: 'u-membre', username: 'membre', firstName: 'Carl', lastName: 'Membre', role: 'MEMBER' as const, totpEnabledAt: null }
+
+  beforeEach(() => {
+    useAuthStore.setState({ accessToken: 'tok', username: 'chef', role: 'ADMIN', userId: 'u-chef', permissions: null })
+    vi.mocked(useUsers).mockReturnValue({ data: [WITH, WITHOUT_ADMIN, MEMBER], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+  })
+
+  it('badge « 2FA » pour qui l\'a, « Sans 2FA » pour un administrateur qui ne l\'a pas, rien pour un membre (facultative)', () => {
+    renderUsers()
+
+    expect(screen.getAllByText('2FA')).toHaveLength(1)
+    expect(screen.getAllByText('Sans 2FA')).toHaveLength(1)
+    expect(screen.getByTitle('Double authentification activée')).toBeInTheDocument()
+    expect(screen.getByTitle("Cet administrateur n'a pas encore configuré la double authentification")).toBeInTheDocument()
+  })
+
+  it('un administrateur voit « Réinitialiser » sur la fiche de quelqu\'un qui a la double authentification', async () => {
+    renderUsers()
+
+    await userEvent.click(screen.getByText('Alice Avec'))
+
+    expect(screen.getByRole('button', { name: 'Réinitialiser la double authentification' })).toBeInTheDocument()
+  })
+
+  it('pas de « Réinitialiser » sur la fiche de quelqu\'un qui ne l\'a pas', async () => {
+    renderUsers()
+
+    await userEvent.click(screen.getByText('Bob Sans'))
+
+    expect(screen.queryByRole('button', { name: 'Réinitialiser la double authentification' })).not.toBeInTheDocument()
+  })
+
+  it('pas de « Réinitialiser » sur sa propre fiche (on change son appareil depuis son profil)', async () => {
+    useAuthStore.setState({ userId: 'u-avec' })
+    renderUsers()
+
+    await userEvent.click(screen.getByText('Alice Avec'))
+
+    expect(screen.queryByRole('button', { name: 'Réinitialiser la double authentification' })).not.toBeInTheDocument()
+  })
+
+  it('un membre qui gère l\'équipe ne voit pas « Réinitialiser » (réservé aux administrateurs, le serveur le refuserait)', async () => {
+    useAuthStore.setState({ role: 'MEMBER', userId: 'u-manager', permissions: makePermissions({ equipe: ['read', 'update'] }) })
+    vi.mocked(useUsers).mockReturnValue({ data: [{ ...WITH, role: 'MEMBER' as const }], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+    renderUsers()
+
+    await userEvent.click(screen.getByText('Alice Avec'))
+
+    expect(screen.queryByRole('button', { name: 'Réinitialiser la double authentification' })).not.toBeInTheDocument()
+  })
+})
 
 describe('UsersPage — son propre compte (identifiants par Paramètres → Profil)', () => {
   // Le propriétaire peut ouvrir sa propre fiche ; son mot de passe et son adresse se changent depuis son profil,

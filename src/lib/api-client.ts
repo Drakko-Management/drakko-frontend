@@ -113,7 +113,12 @@ export async function apiRequest<T = unknown>(
     res = await fetchWithAuth(path, options, newToken)
   }
 
-  if (!res.ok) throw await apiErrorFromResponse(res)
+  if (!res.ok) {
+    const error = await apiErrorFromResponse(res)
+    // Le serveur exige la double authentification de ce compte : l'interface le renvoie vers sa configuration
+    if (error.code === 'TWO_FACTOR_REQUIRED') useAuthStore.getState().setTwoFactorRequired(true)
+    throw error
+  }
 
   if (res.status === 204) return undefined as T
   return res.json() as Promise<T>

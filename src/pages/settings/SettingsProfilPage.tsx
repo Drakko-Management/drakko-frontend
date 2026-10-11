@@ -7,6 +7,7 @@ import { patchMe } from '@/lib/patch-me'
 import { SettingsSubHeader } from './SettingsSubHeader'
 import { ChangePasswordCard } from './ChangePasswordCard'
 import { ChangeEmailForm } from './ChangeEmailForm'
+import { TwoFactorCard } from './TwoFactorCard'
 
 export function SettingsProfilPage() {
   const { t, i18n } = useTranslation()
@@ -52,6 +53,8 @@ export function SettingsProfilPage() {
       </Card>
 
       <ChangePasswordCard />
+
+      <TwoFactorCard />
     </div>
   )
 }

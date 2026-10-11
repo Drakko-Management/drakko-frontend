@@ -30,6 +30,7 @@ import { isWithinPermissions } from '@/lib/permissions'
 import { fullName } from '@/lib/utils'
 import { RolesTab } from './RolesTab'
 import { PasswordInput } from '@/components/common/PasswordInput'
+import { ResetTwoFactorButton } from './ResetTwoFactorButton'
 import { PasswordStrength } from '@/components/common/PasswordStrength'
 import { usePasswordCheck } from '@/hooks/use-password-check'
 import { PASSWORD_MAX_LENGTH, passwordHintKey } from '@/lib/password-policy'
@@ -97,6 +98,8 @@ function UserRow({
   // Son propre mot de passe et sa propre adresse se changent depuis Paramètres → Profil (mot de passe actuel
   // demandé) : la fiche de l'équipe ne les propose pas pour son propre compte
   const isSelf = useAuthStore((s) => s.userId) === user.id
+  // Seul un administrateur débloque la double authentification d'un collègue (le serveur le refuse aux autres)
+  const viewerIsAdmin = useAuthStore((s) => s.role) === 'ADMIN'
   const [expanded, setExpanded] = useState(false)
   const [form, setForm] = useState({
     username: user.username,
@@ -187,6 +190,21 @@ function UserRow({
                 {t('common.inactive')}
               </span>
             )}
+            {user.totpEnabledAt ? (
+              <span
+                title={t('two_factor.badge_on_title')}
+                className="rounded-full border border-green-600/30 bg-green-600/10 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:text-green-400"
+              >
+                {t('two_factor.badge_on')}
+              </span>
+            ) : user.role === 'ADMIN' ? (
+              <span
+                title={t('two_factor.badge_missing_title')}
+                className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
+              >
+                {t('two_factor.badge_missing')}
+              </span>
+            ) : null}
           </div>
           <p className="text-xs text-muted-foreground">
             {roleLabel} · @{user.username}
@@ -273,6 +291,7 @@ function UserRow({
               {form.password && <PasswordStrength check={passwordCheck} />}
             </div>
           )}
+          {viewerIsAdmin && !isSelf && user.totpEnabledAt && <ResetTwoFactorButton user={user} />}
           <Button
             className="w-full min-h-[44px]"
             onClick={() => void handleSave()}

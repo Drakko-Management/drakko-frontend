@@ -98,6 +98,11 @@ export interface User {
   active: boolean
   /** Propriétaire de l'organisation : toujours administrateur et actif, personne d'autre ne modifie son compte */
   isOwner: boolean
+  /** Date d'activation de la double authentification, null si elle n'est pas configurée */
+  totpEnabledAt?: string | null
+  /** Seulement dans GET /users/me */
+  twoFactorAvailable?: boolean
+  twoFactorRequired?: boolean
   language: string
   theme: string
   accentColor: string
@@ -253,6 +258,26 @@ export interface Paginated<T> {
 export interface LoginResponse {
   accessToken: string
   refreshToken: string
+}
+
+/** Réponse de la connexion d'un compte qui a la double authentification : le mot de passe ne suffit pas. */
+export interface MfaChallenge {
+  mfaRequired: true
+  mfaToken: string
+}
+
+/** Configuration de la double authentification : le secret n'est montré que cette fois, pour le scan. */
+export interface TwoFactorSetup {
+  secret: string
+  otpauthUri: string
+  qrCode: string
+}
+
+export interface TwoFactorStatus {
+  available: boolean
+  enabled: boolean
+  required: boolean
+  codesLeft: number
 }
 
 export type Trade = 'LANDSCAPER' | 'PLUMBER' | 'ELECTRICIAN' | 'PAINTER' | 'MASON' | 'ROOFER' | 'OTHER'

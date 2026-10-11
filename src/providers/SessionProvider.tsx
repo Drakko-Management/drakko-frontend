@@ -35,6 +35,7 @@ export function SessionProvider() {
   const setPermissions = useAuthStore((s) => s.setPermissions)
   const setNavSlots = useAuthStore((s) => s.setNavSlots)
   const setCustomRoleName = useAuthStore((s) => s.setCustomRoleName)
+  const setTwoFactorRequired = useAuthStore((s) => s.setTwoFactorRequired)
   const { setTheme, setColor, setHandedness } = useTheme()
   const { i18n } = useTranslation()
 
@@ -51,6 +52,7 @@ export function SessionProvider() {
               username: string; firstName: string; lastName: string
               language: string; theme: string; accentColor: string; handedness: string; navSlots: string[]
               customRole?: { name: string; permissions: Record<string, string[]> } | null
+              twoFactorRequired?: boolean
             }
             setUsername(me.username ?? '')
             setName(me.firstName ?? '', me.lastName ?? '')
@@ -63,6 +65,7 @@ export function SessionProvider() {
             setPermissions(me.customRole?.permissions as never ?? null)
             setCustomRoleName(me.customRole?.name ?? null)
             setNavSlots(me.navSlots ?? [])
+            setTwoFactorRequired(Boolean(me.twoFactorRequired))
           }
         } catch {
           // ignore — local preferences remain active
@@ -72,7 +75,7 @@ export function SessionProvider() {
       }
       setReady(true)
     })
-  }, [setAuth, setUsername, clearAuth, setName, setTheme, setColor, setHandedness, i18n, setPreferences, setNavSlots, setCustomRoleName])
+  }, [setAuth, setUsername, clearAuth, setName, setTheme, setColor, setHandedness, i18n, setPreferences, setNavSlots, setCustomRoleName, setTwoFactorRequired])
 
   if (!ready) {
     return (

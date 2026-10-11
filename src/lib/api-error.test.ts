@@ -149,6 +149,28 @@ describe('apiErrorMessage', () => {
     }
   })
 
+  it.each([
+    ['INVALID_TWO_FACTOR_CODE', 'Ce code n\'est pas valable : vérifiez l\'heure de votre téléphone, ou attendez le prochain code.'],
+    ['TWO_FACTOR_CODE_REQUIRED', 'Saisissez le code de votre application (ou un code de secours)'],
+    ['TWO_FACTOR_SESSION_EXPIRED', 'Cette étape a expiré, reconnectez-vous'],
+    ['NO_PENDING_TWO_FACTOR_SETUP', 'Aucune configuration en cours : recommencez'],
+    ['TWO_FACTOR_NOT_ENABLED', "La double authentification n'est pas activée"],
+    ['TWO_FACTOR_REQUIRED_FOR_ADMIN', 'Obligatoire pour les administrateurs : elle ne peut pas être désactivée'],
+    ['TWO_FACTOR_UNAVAILABLE', "La double authentification n'est pas disponible pour le moment"],
+    ['USE_OWN_TWO_FACTOR_FLOW', 'Changez votre propre appareil depuis votre profil'],
+    ['TWO_FACTOR_REQUIRED', 'La double authentification est obligatoire pour votre compte : configurez-la d\'abord'],
+  ])('traduit %s dans chaque langue (double authentification)', (code, french) => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(400, 'Texte technique', code), i18n.getFixedT(lng), 'two_factor.error')
+    const fallback = (lng: string) => i18n.getFixedT(lng)('two_factor.error')
+
+    expect(message('fr')).toBe(french)
+    for (const lng of ['fr', 'en', 'es', 'it', 'de']) {
+      expect(message(lng)).not.toBe(fallback(lng))
+      expect(message(lng)).not.toContain('technique')
+    }
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 
