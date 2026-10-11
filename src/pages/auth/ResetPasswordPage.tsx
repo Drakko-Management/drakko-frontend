@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { apiRequest, ApiError } from '@/lib/api-client'
 import { apiErrorMessage } from '@/lib/api-error'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import { AuthLayout } from './AuthLayout'
 
 export const MIN_PASSWORD_LENGTH = 8
@@ -25,7 +24,6 @@ export function ResetPasswordPage() {
   const [token] = useState(readTokenFromHash)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [invalidLink, setInvalidLink] = useState(!token)
 
@@ -84,27 +82,13 @@ export function ResetPasswordPage() {
 
         <div className="space-y-2">
           <Label htmlFor="new-password">{t('password_reset.password_label')}</Label>
-          <div className="relative">
-            <Input
-              id="new-password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="new-password"
-              className="min-h-[44px] pr-11 text-base"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              onClick={() => setShowPassword((v) => !v)}
-              tabIndex={-1}
-              aria-label={t('password_reset.toggle_visibility')}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+          <PasswordInput
+            id="new-password"
+            autoComplete="new-password"
+            value={password}
+            onChange={setPassword}
+            disabled={loading}
+          />
           <p className={`text-xs ${tooShort ? 'text-destructive' : 'text-muted-foreground'}`}>
             {t('password_reset.password_hint')}
           </p>
@@ -112,15 +96,12 @@ export function ResetPasswordPage() {
 
         <div className="space-y-2">
           <Label htmlFor="confirm-password">{t('password_reset.confirm_label')}</Label>
-          <Input
+          <PasswordInput
             id="confirm-password"
-            type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
-            className="min-h-[44px] text-base"
             value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            onChange={setConfirm}
             disabled={loading}
-            required
           />
           {mismatch && <p className="text-xs text-destructive">{t('password_reset.mismatch')}</p>}
         </div>

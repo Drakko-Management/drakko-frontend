@@ -109,6 +109,23 @@ describe('ResetPasswordPage', () => {
     expect(apiRequest).not.toHaveBeenCalled()
   })
 
+  it('chaque champ a son propre œil : afficher l’un ne montre pas l’autre', async () => {
+    renderPage()
+    const [eyeNew, eyeConfirm] = screen.getAllByRole('button', { name: 'Afficher ou masquer le mot de passe' })
+
+    expect(screen.getByLabelText('Nouveau mot de passe')).toHaveAttribute('type', 'password')
+    expect(screen.getByLabelText('Confirmer le mot de passe')).toHaveAttribute('type', 'password')
+
+    await userEvent.click(eyeConfirm)
+    expect(screen.getByLabelText('Confirmer le mot de passe')).toHaveAttribute('type', 'text')
+    expect(screen.getByLabelText('Nouveau mot de passe')).toHaveAttribute('type', 'password')
+
+    await userEvent.click(eyeNew)
+    expect(screen.getByLabelText('Nouveau mot de passe')).toHaveAttribute('type', 'text')
+    await userEvent.click(eyeConfirm)
+    expect(screen.getByLabelText('Confirmer le mot de passe')).toHaveAttribute('type', 'password')
+  })
+
   it('sans jeton dans l’adresse : lien invalide, avec de quoi en demander un nouveau', () => {
     window.history.replaceState(null, '', '/reinitialiser-mot-de-passe')
     renderPage()
