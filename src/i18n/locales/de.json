@@ -265,6 +265,8 @@
     "setup_intro": "Bestätigen Sie zu Ihrer Sicherheit zuerst mit Ihrem Passwort.",
     "replace_intro": "Zum Gerätewechsel bestätigen Sie mit Ihrem Passwort und einem Code Ihres aktuellen Geräts (oder einem Wiederherstellungscode). Das alte Gerät bleibt gültig, bis das neue bestätigt ist.",
     "current_code_label": "App-Code (oder Wiederherstellungscode)",
+    "code_last_intro": "Ihr Konto nutzt die Zwei-Faktor-Authentifizierung: Der Code Ihrer App wird zuletzt abgefragt, direkt vor der Bestätigung.",
+    "code_last_hint": "Öffnen Sie Ihre App erst jetzt: Der Code gilt nur 30 Sekunden.",
     "scan_title": "Scannen Sie diesen QR-Code",
     "scan_intro": "Öffnen Sie Ihre Authenticator-App, fügen Sie ein Konto hinzu und scannen Sie das Bild. Geben Sie dann den angezeigten 6-stelligen Code ein.",
     "qr_alt": "QR-Code zum Scannen mit Ihrer Authenticator-App",

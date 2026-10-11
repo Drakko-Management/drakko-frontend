@@ -265,6 +265,8 @@
     "setup_intro": "Per la tua sicurezza, conferma prima con la password.",
     "replace_intro": "Per cambiare dispositivo, conferma con la password e un codice del dispositivo attuale (o un codice di recupero). Il vecchio dispositivo resta valido fino alla conferma del nuovo.",
     "current_code_label": "Codice dell'app (o di recupero)",
+    "code_last_intro": "Il suo account usa l'autenticazione a due fattori: il codice della sua app le verrà chiesto per ultimo, subito prima di confermare.",
+    "code_last_hint": "Apra l'app solo ora: il codice dura soltanto 30 secondi.",
     "scan_title": "Scansiona questo codice QR",
     "scan_intro": "Apri la tua app di autenticazione, aggiungi un account e scansiona l'immagine. Poi inserisci il codice a 6 cifre che mostra.",
     "qr_alt": "Codice QR da scansionare con la tua app di autenticazione",

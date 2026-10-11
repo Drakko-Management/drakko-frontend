@@ -265,6 +265,8 @@
     "setup_intro": "Pour votre sécurité, confirmez d'abord avec votre mot de passe.",
     "replace_intro": "Pour changer d'appareil, confirmez avec votre mot de passe et un code de votre appareil actuel (ou un code de secours). L'ancien appareil reste valable jusqu'à la confirmation du nouveau.",
     "current_code_label": "Code de l'application (ou code de secours)",
+    "code_last_intro": "Votre compte a la double authentification : le code de votre application vous sera demandé en dernier, juste avant de valider.",
+    "code_last_hint": "Ouvrez votre application seulement maintenant : le code ne dure que 30 secondes.",
     "scan_title": "Scannez ce QR code",
     "scan_intro": "Ouvrez votre application d'authentification, ajoutez un compte et scannez l'image. Puis saisissez le code à 6 chiffres qu'elle affiche.",
     "qr_alt": "QR code à scanner avec votre application d'authentification",

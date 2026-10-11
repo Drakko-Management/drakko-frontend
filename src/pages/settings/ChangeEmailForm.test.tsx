@@ -179,6 +179,13 @@ describe('ChangeEmailForm', () => {
       expect(screen.queryByLabelText("Code de l'application (ou code de secours)")).not.toBeInTheDocument()
     })
 
+    it('rappelle que le code ne dure que 30 secondes', async () => {
+      render(<ChangeEmailForm />)
+      await typeEmail('nouvelle@acme.test')
+
+      expect(screen.getByText(/le code ne dure que 30 secondes/)).toBeInTheDocument()
+    })
+
     it('le code est demandé avec le mot de passe, et l’envoi reste bloqué sans lui', async () => {
       render(<ChangeEmailForm />)
       await typeEmail('nouvelle@acme.test')

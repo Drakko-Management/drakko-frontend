@@ -118,6 +118,7 @@ export function ChangePasswordCard() {
           className="space-y-4 bg-muted/30 p-4"
         >
           <p className="text-xs text-muted-foreground">{t('password_change.intro')}</p>
+          {needsCode && <p className="text-xs text-muted-foreground">{t('two_factor.code_last_intro')}</p>}
 
           <div className="space-y-1.5">
             <Label htmlFor="current-password">{t('password_change.current_label')}</Label>
@@ -139,19 +140,6 @@ export function ChangePasswordCard() {
               </p>
             )}
           </div>
-
-          {needsCode && (
-            <SecondFactorCodeField
-              id="change-password-code"
-              value={code}
-              onChange={(value) => {
-                setCode(value)
-                setCodeRejected(false)
-              }}
-              disabled={change.isPending}
-              rejected={codeRejected}
-            />
-          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="change-new-password">{t('password_change.new_label')}</Label>
@@ -189,6 +177,19 @@ export function ChangePasswordCard() {
               </p>
             )}
           </div>
+
+          {needsCode && (
+            <SecondFactorCodeField
+              id="change-password-code"
+              value={code}
+              onChange={(value) => {
+                setCode(value)
+                setCodeRejected(false)
+              }}
+              disabled={change.isPending}
+              rejected={codeRejected}
+            />
+          )}
 
           <Button type="submit" className="min-h-[44px] w-full" disabled={!canSubmit}>
             {change.isPending ? t('password_change.submitting') : t('password_change.submit')}

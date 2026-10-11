@@ -265,6 +265,8 @@
     "setup_intro": "For your security, confirm with your password first.",
     "replace_intro": "To change device, confirm with your password and a code from your current device (or a recovery code). The old device stays valid until the new one is confirmed.",
     "current_code_label": "App code (or recovery code)",
+    "code_last_intro": "Your account uses two-factor authentication: you'll be asked for your app's code last, right before you confirm.",
+    "code_last_hint": "Open your app only now: the code lasts just 30 seconds.",
     "scan_title": "Scan this QR code",
     "scan_intro": "Open your authenticator app, add an account and scan the image. Then enter the 6-digit code it shows.",
     "qr_alt": "QR code to scan with your authenticator app",

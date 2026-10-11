@@ -9,11 +9,13 @@ interface Props {
   disabled?: boolean
   /** Le serveur a refusé ce code : le message reste sous le champ jusqu'à ce qu'on le corrige */
   rejected?: boolean
+  /** Rappel sous le champ : le code ne dure que 30 secondes, on le saisit en dernier */
+  hint?: boolean
 }
 
 // Le code de l'application (ou un code de secours), demandé en plus du mot de passe quand le compte a la
 // double authentification et qu'on fait une action qui le prendrait : changer de mot de passe ou d'adresse.
-export function SecondFactorCodeField({ id, value, onChange, disabled, rejected }: Props) {
+export function SecondFactorCodeField({ id, value, onChange, disabled, rejected, hint = true }: Props) {
   const { t } = useTranslation()
   return (
     <div className="space-y-1.5">
@@ -27,6 +29,7 @@ export function SecondFactorCodeField({ id, value, onChange, disabled, rejected 
         disabled={disabled}
         aria-invalid={rejected || undefined}
       />
+      {hint && !rejected && <p className="text-xs text-muted-foreground">{t('two_factor.code_last_hint')}</p>}
       {rejected && (
         <p role="alert" className="text-xs text-destructive">
           {t('two_factor.code_invalid')}

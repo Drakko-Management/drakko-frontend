@@ -318,6 +318,19 @@ describe('ChangePasswordCard', () => {
       expect(screen.queryByLabelText("Code de l'application (ou code de secours)")).not.toBeInTheDocument()
     })
 
+    it('prévient que le code sera demandé en dernier, et le place juste avant le bouton (il ne dure que 30 secondes)', async () => {
+      render(<ChangePasswordCard />)
+      await open()
+
+      expect(screen.getByText(/code de votre application vous sera demandé en dernier/)).toBeInTheDocument()
+      expect(screen.getByText(/le code ne dure que 30 secondes/)).toBeInTheDocument()
+      // l'ordre du formulaire : mot de passe actuel, nouveau, confirmation, puis le code, puis le bouton
+      const order = [current(), next(), confirm(), codeField(), submit()]
+      for (let i = 1; i < order.length; i += 1) {
+        expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      }
+    })
+
     it('le code est demandé, et l’envoi reste bloqué sans lui', async () => {
       render(<ChangePasswordCard />)
       await open()
