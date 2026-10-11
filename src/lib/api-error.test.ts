@@ -129,6 +129,9 @@ describe('apiErrorMessage', () => {
 
   it.each([
     ['CURRENT_PASSWORD_INVALID', 'Le mot de passe actuel est incorrect'],
+    ['EMAIL_TAKEN', 'Cette adresse est déjà utilisée par un autre compte'],
+    ["EMAIL_UNCHANGED", "C'est déjà l'adresse enregistrée sur votre compte"],
+    ['OWN_CREDENTIALS_ROUTE', 'Changez votre mot de passe ou votre adresse email depuis Paramètres → Profil'],
     ['PASSWORD_UNCHANGED', "Le nouveau mot de passe est identique à l'ancien : choisissez-en un différent"],
     ['PASSWORD_CONTAINS_PERSONAL_INFO', 'Ne doit pas contenir votre identifiant, votre nom ou votre email'],
     ['PASSWORD_TOO_SHORT', 'Encore trop court : 12 caractères minimum'],

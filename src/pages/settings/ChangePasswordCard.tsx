@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -39,6 +39,14 @@ export function ChangePasswordCard() {
   const canSubmit =
     current.length > 0 && check.status === 'ok' && !sameAsCurrent && confirm === next && !change.isPending
 
+  // Le champ est désactivé pendant l'envoi, et un champ désactivé ne prend pas le focus : on le lui rend
+  // quand l'envoi est terminé et que le serveur a refusé l'ancien mot de passe
+  useEffect(() => {
+    if (currentRejected && !change.isPending && expanded) {
+      document.getElementById('current-password')?.focus()
+    }
+  }, [currentRejected, change.isPending, expanded])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
@@ -53,7 +61,6 @@ export function ChangePasswordCard() {
     } catch (err) {
       if (err instanceof ApiError && err.code === 'CURRENT_PASSWORD_INVALID') {
         setCurrentRejected(true)
-        document.getElementById('current-password')?.focus()
       }
       toast.error(
         err instanceof ApiError && err.status === 429 && !err.code

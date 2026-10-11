@@ -283,6 +283,48 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
 
 // ── Sélecteur de rôle de la fiche : ce que l'on voit est le rôle réel ────────
 
+describe('UsersPage — son propre compte (identifiants par Paramètres → Profil)', () => {
+  // Le propriétaire peut ouvrir sa propre fiche ; son mot de passe et son adresse se changent depuis son profil,
+  // où le mot de passe actuel est demandé
+  beforeEach(() => {
+    useAuthStore.setState({ accessToken: 'tok', username: 'jean.dupont', role: 'ADMIN', userId: USER_ACTIVE.id, permissions: null })
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+  })
+
+  it('sa fiche ne propose pas de nouveau mot de passe, renvoie vers le profil, et l’adresse n’est pas modifiable', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    expect(screen.queryByLabelText('Nouveau mot de passe')).not.toBeInTheDocument()
+    expect(screen.getByText(/utilisez Paramètres → Profil/)).toBeInTheDocument()
+    expect(screen.getByDisplayValue('jean@test.com')).toBeDisabled()
+  })
+
+  it('enregistrer sa fiche n’envoie ni mot de passe ni adresse (le serveur les refuserait)', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(mutateAsync).toHaveBeenCalledTimes(1)
+    const sent = mutateAsync.mock.calls[0][0] as Record<string, unknown>
+    expect(sent).not.toHaveProperty('password')
+    expect(sent).not.toHaveProperty('email')
+    expect(sent).toMatchObject({ username: 'jean.dupont' })
+  })
+
+  it('la fiche d’un AUTRE membre garde le mot de passe et l’adresse modifiables', async () => {
+    useAuthStore.setState({ userId: 'quelqu-un-d-autre' })
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    expect(screen.getByLabelText('Nouveau mot de passe')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('jean@test.com')).not.toBeDisabled()
+  })
+})
+
 describe('UsersPage — nouveau mot de passe d\'un membre', () => {
   const STRONG = 'correct cheval pile agrafe'
   const passwordField = () => screen.getByLabelText('Nouveau mot de passe')

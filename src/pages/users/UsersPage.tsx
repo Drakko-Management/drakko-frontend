@@ -94,6 +94,9 @@ function UserRow({
   viewerIsOwner: boolean
 }) {
   const { t } = useTranslation()
+  // Son propre mot de passe et sa propre adresse se changent depuis Paramètres → Profil (mot de passe actuel
+  // demandé) : la fiche de l'équipe ne les propose pas pour son propre compte
+  const isSelf = useAuthStore((s) => s.userId) === user.id
   const [expanded, setExpanded] = useState(false)
   const [form, setForm] = useState({
     username: user.username,
@@ -119,11 +122,11 @@ function UserRow({
   }
 
   async function handleSave() {
-    if (form.password && passwordCheck.status === 'short') {
+    if (!isSelf && form.password && passwordCheck.status === 'short') {
       toast.error(t('users.password_min_error'))
       return
     }
-    if (form.password && passwordCheck.status !== 'ok') {
+    if (!isSelf && form.password && passwordCheck.status !== 'ok') {
       toast.error(t(passwordHintKey(passwordCheck)))
       return
     }
@@ -132,10 +135,10 @@ function UserRow({
         username: form.username.trim(),
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
-        email: form.email.trim() || undefined,
+        ...(isSelf ? {} : { email: form.email.trim() || undefined }),
         role: form.role as never,
         customRoleId: form.customRoleId,
-        ...(form.password ? { password: form.password } : {}),
+        ...(form.password && !isSelf ? { password: form.password } : {}),
       })
       setForm((f) => ({ ...f, password: '' }))
       toast.success(t('users.updated'))
@@ -238,7 +241,7 @@ function UserRow({
               className="min-h-[44px]"
               value={form.email}
               onChange={(e) => setField('email', e.target.value)}
-              disabled={update.isPending}
+              disabled={update.isPending || isSelf}
             />
           </div>
           <div className="space-y-1.5">
@@ -250,20 +253,26 @@ function UserRow({
               disabled={update.isPending || user.isOwner}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs" htmlFor={`pw-${user.id}`}>{t('users.new_password')}</Label>
-            <PasswordInput
-              id={`pw-${user.id}`}
-              autoComplete="new-password"
-              placeholder={t('users.password_placeholder')}
-              value={form.password}
-              onChange={(value) => setField('password', value)}
-              disabled={update.isPending}
-              required={false}
-              maxLength={PASSWORD_MAX_LENGTH}
-            />
-            {form.password && <PasswordStrength check={passwordCheck} />}
-          </div>
+          {isSelf ? (
+            <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+              {t('users.own_credentials_hint')}
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              <Label className="text-xs" htmlFor={`pw-${user.id}`}>{t('users.new_password')}</Label>
+              <PasswordInput
+                id={`pw-${user.id}`}
+                autoComplete="new-password"
+                placeholder={t('users.password_placeholder')}
+                value={form.password}
+                onChange={(value) => setField('password', value)}
+                disabled={update.isPending}
+                required={false}
+                maxLength={PASSWORD_MAX_LENGTH}
+              />
+              {form.password && <PasswordStrength check={passwordCheck} />}
+            </div>
+          )}
           <Button
             className="w-full min-h-[44px]"
             onClick={() => void handleSave()}
