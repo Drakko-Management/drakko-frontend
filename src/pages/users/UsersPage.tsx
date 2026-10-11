@@ -120,6 +120,15 @@ function UserRow({
     form.lastName,
   ])
 
+  // « Enregistrer » ne s'active que si la fiche a changé (son propre mail et mot de passe ne s'y modifient pas)
+  const dirty =
+    form.username.trim() !== user.username ||
+    form.firstName.trim() !== user.firstName ||
+    form.lastName.trim() !== user.lastName ||
+    form.role !== user.role ||
+    form.customRoleId !== user.customRoleId ||
+    (!isSelf && (form.email.trim() !== (user.email ?? '') || form.password !== ''))
+
   function setField(key: string, value: unknown) {
     setForm((f) => ({ ...f, [key]: value }))
   }
@@ -222,8 +231,9 @@ function UserRow({
         <div className="space-y-3 bg-muted/30 p-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs">{t('common.first_name')}</Label>
+              <Label className="text-xs" htmlFor={`fn-${user.id}`}>{t('common.first_name')}</Label>
               <Input
+                id={`fn-${user.id}`}
                 className="min-h-[44px]"
                 value={form.firstName}
                 onChange={(e) => setField('firstName', e.target.value)}
@@ -231,8 +241,9 @@ function UserRow({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">{t('common.last_name')}</Label>
+              <Label className="text-xs" htmlFor={`ln-${user.id}`}>{t('common.last_name')}</Label>
               <Input
+                id={`ln-${user.id}`}
                 className="min-h-[44px]"
                 value={form.lastName}
                 onChange={(e) => setField('lastName', e.target.value)}
@@ -295,7 +306,7 @@ function UserRow({
           <Button
             className="w-full min-h-[44px]"
             onClick={() => void handleSave()}
-            disabled={update.isPending}
+            disabled={update.isPending || !dirty}
           >
             {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('common.save')}
           </Button>

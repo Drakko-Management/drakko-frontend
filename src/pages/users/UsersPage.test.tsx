@@ -71,6 +71,9 @@ function mockMutation(overrides = {}) {
 }
 
 // Routeur réel avec des pages repères : on vérifie la destination de la navigation, pas un appel simulé
+// « Enregistrer » ne s'active que si la fiche a changé : on modifie le prénom avant d'enregistrer
+const makeChange = () => userEvent.type(screen.getByLabelText('Prénom'), 'x')
+
 function usersTree() {
   return (
     <MemoryRouter initialEntries={['/utilisateurs']}>
@@ -267,6 +270,7 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
     vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
     renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
+    await makeChange()
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     expect(mutateAsync).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'jean.dupont' }),
@@ -277,6 +281,43 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
     renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument()
+  })
+
+  it('Enregistrer reste inactif tant que la fiche n’a pas changé, et se réactive dès qu’elle change', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+    const save = () => screen.getByRole('button', { name: 'Enregistrer' })
+    expect(save()).toBeDisabled()
+
+    await userEvent.type(screen.getByLabelText('Prénom'), 'x')
+    expect(save()).toBeEnabled()
+
+    // revenir à la valeur d'origine redésactive le bouton
+    await userEvent.type(screen.getByLabelText('Prénom'), '{Backspace}')
+    expect(save()).toBeDisabled()
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('un espace ajouté autour d’un nom ne compte pas comme un changement', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await userEvent.type(screen.getByLabelText('Prénom'), '  ')
+
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeDisabled()
+  })
+
+  it('un nouveau mot de passe saisi active Enregistrer', async () => {
+    useAuthStore.setState({ userId: 'quelqu-un-d-autre' })
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeDisabled()
+
+    await userEvent.type(screen.getByLabelText('Nouveau mot de passe'), 'a')
+
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeEnabled()
   })
 
   it('affiche le bouton désactiver pour un utilisateur actif', async () => {
@@ -366,6 +407,8 @@ describe('UsersPage — son propre compte (identifiants par Paramètres → Prof
     renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
 
+    await makeChange()
+
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     expect(mutateAsync).toHaveBeenCalledTimes(1)
@@ -399,6 +442,8 @@ describe('UsersPage — nouveau mot de passe d\'un membre', () => {
     vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
     renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await makeChange()
 
     await userEvent.click(saveButton())
 
@@ -528,6 +573,7 @@ describe('UsersPage — comptes administrateurs', () => {
     vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
     renderUsers()
     await userEvent.click(screen.getByText('Jean Dupont'))
+    await makeChange()
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Seul un administrateur peut créer ou modifier un compte administrateur')
@@ -622,6 +668,7 @@ describe('UsersPage — droits bornés par ceux de l\'appelant', () => {
     vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
     renderUsers()
     await userEvent.click(screen.getByText('Léa Ouvrier'))
+    await makeChange()
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(message)
@@ -698,6 +745,7 @@ describe('UsersPage — propriétaire', () => {
     vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
     renderUsers()
     await userEvent.click(screen.getByText('Julien Thibault'))
+    await makeChange()
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
     expect(mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ role: 'ADMIN' }))
   })
