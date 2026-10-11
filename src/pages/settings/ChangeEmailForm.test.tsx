@@ -26,8 +26,8 @@ vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 
 const mutateAsync = vi.fn()
 
-function withEmail(email: string | null) {
-  vi.mocked(useMe).mockReturnValue({ data: { email } } as unknown as ReturnType<typeof useMe>)
+function withEmail(email: string | null, totpEnabledAt: string | null = null) {
+  vi.mocked(useMe).mockReturnValue({ data: { email, totpEnabledAt } } as unknown as ReturnType<typeof useMe>)
 }
 
 beforeEach(() => {
@@ -165,5 +165,62 @@ describe('ChangeEmailForm', () => {
     await userEvent.click(save())
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Impossible d'enregistrer l'adresse email"))
+  })
+
+  describe('avec la double authentification', () => {
+    const codeField = () => screen.getByLabelText("Code de l'application (ou code de secours)")
+    beforeEach(() => withEmail('lea@acme.test', '2026-10-11T10:00:00Z'))
+
+    it('sans double authentification, aucun champ de code', async () => {
+      withEmail('lea@acme.test')
+      render(<ChangeEmailForm />)
+      await typeEmail('nouvelle@acme.test')
+
+      expect(screen.queryByLabelText("Code de l'application (ou code de secours)")).not.toBeInTheDocument()
+    })
+
+    it('le code est demandé avec le mot de passe, et l’envoi reste bloqué sans lui', async () => {
+      render(<ChangeEmailForm />)
+      await typeEmail('nouvelle@acme.test')
+      await userEvent.type(passwordField(), 'mon-mot-de-passe')
+
+      expect(codeField()).toBeInTheDocument()
+      expect(save()).toBeDisabled()
+
+      await userEvent.type(codeField(), '123456')
+      expect(save()).toBeEnabled()
+    })
+
+    it('envoie le code avec le mot de passe et la nouvelle adresse', async () => {
+      render(<ChangeEmailForm />)
+      await typeEmail('nouvelle@acme.test')
+      await userEvent.type(passwordField(), 'mon-mot-de-passe')
+      await userEvent.type(codeField(), ' 123456 ')
+      await userEvent.click(save())
+
+      expect(mutateAsync).toHaveBeenCalledWith({
+        currentPassword: 'mon-mot-de-passe',
+        email: 'nouvelle@acme.test',
+        code: '123456',
+      })
+    })
+
+    it('code refusé : alerte précise sous le champ, notification, focus, adresse conservée', async () => {
+      mutateAsync.mockRejectedValue(new ApiError(400, 'The code is not valid', 'INVALID_TWO_FACTOR_CODE'))
+      render(<ChangeEmailForm />)
+      await typeEmail('nouvelle@acme.test')
+      await userEvent.type(passwordField(), 'mon-mot-de-passe')
+      await userEvent.type(codeField(), '000001')
+      await userEvent.click(save())
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Ce code n'est pas valable")))
+      expect(screen.getByRole('alert')).toHaveTextContent("Ce code n'est pas valable")
+      expect(codeField()).toHaveAttribute('aria-invalid', 'true')
+      expect(codeField()).toHaveFocus()
+      expect(emailField()).toHaveValue('nouvelle@acme.test')
+
+      await userEvent.type(codeField(), '2')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
   })
 })

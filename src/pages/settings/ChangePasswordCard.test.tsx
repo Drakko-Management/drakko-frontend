@@ -299,4 +299,84 @@ describe('ChangePasswordCard', () => {
     expect(current()).toHaveAttribute('type', 'password')
     expect(confirm()).toHaveAttribute('type', 'password')
   })
+
+  describe('avec la double authentification', () => {
+    const codeField = () => screen.getByLabelText("Code de l'application (ou code de secours)")
+    beforeEach(() => {
+      vi.mocked(useMe).mockReturnValue({
+        data: { email: 'lea@acme.test', firstName: 'Léa', lastName: 'Martin', totpEnabledAt: '2026-10-11T10:00:00Z' },
+      } as unknown as ReturnType<typeof useMe>)
+    })
+
+    it('sans double authentification, aucun champ de code', async () => {
+      vi.mocked(useMe).mockReturnValue({
+        data: { email: 'lea@acme.test', firstName: 'Léa', lastName: 'Martin', totpEnabledAt: null },
+      } as unknown as ReturnType<typeof useMe>)
+      render(<ChangePasswordCard />)
+      await open()
+
+      expect(screen.queryByLabelText("Code de l'application (ou code de secours)")).not.toBeInTheDocument()
+    })
+
+    it('le code est demandé, et l’envoi reste bloqué sans lui', async () => {
+      render(<ChangePasswordCard />)
+      await open()
+
+      await fill('ancien-mot-de-passe', STRONG)
+      await accepted()
+
+      expect(codeField()).toBeInTheDocument()
+      expect(submit()).toBeDisabled()
+    })
+
+    it('envoie le code avec les mots de passe, puis vide le formulaire', async () => {
+      render(<ChangePasswordCard />)
+      await open()
+
+      await fill('ancien-mot-de-passe', STRONG)
+      await userEvent.type(codeField(), ' 123456 ')
+      await accepted()
+      await userEvent.click(submit())
+
+      expect(mutateAsync).toHaveBeenCalledWith({
+        currentPassword: 'ancien-mot-de-passe',
+        newPassword: STRONG,
+        code: '123456',
+      })
+      await waitFor(() => expect(header()).toHaveAttribute('aria-expanded', 'false'))
+      await open()
+      expect(codeField()).toHaveValue('')
+    })
+
+    it('code refusé : alerte précise sous le champ, notification, focus, formulaire conservé', async () => {
+      mutateAsync.mockRejectedValue(new ApiError(400, 'The code is not valid', 'INVALID_TWO_FACTOR_CODE'))
+      render(<ChangePasswordCard />)
+      await open()
+      await fill('ancien-mot-de-passe', STRONG)
+      await userEvent.type(codeField(), '000001')
+      await accepted()
+      await userEvent.click(submit())
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Ce code n'est pas valable")))
+      expect(screen.getByRole('alert')).toHaveTextContent("Ce code n'est pas valable")
+      expect(codeField()).toHaveAttribute('aria-invalid', 'true')
+      expect(codeField()).toHaveFocus()
+      expect(next()).toHaveValue(STRONG)
+    })
+
+    it('l’alerte sur le code disparaît dès qu’on le corrige', async () => {
+      mutateAsync.mockRejectedValue(new ApiError(400, 'x', 'INVALID_TWO_FACTOR_CODE'))
+      render(<ChangePasswordCard />)
+      await open()
+      await fill('ancien-mot-de-passe', STRONG)
+      await userEvent.type(codeField(), '000001')
+      await accepted()
+      await userEvent.click(submit())
+      await screen.findByRole('alert')
+
+      await userEvent.type(codeField(), '2')
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+  })
 })

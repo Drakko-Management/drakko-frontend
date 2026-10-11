@@ -6,6 +6,8 @@ import type { LoginResponse } from '@/types/api'
 interface ChangePasswordInput {
   currentPassword: string
   newPassword: string
+  /** Code de l'application ou de secours : demandé quand le compte a la double authentification */
+  code?: string
 }
 
 /**

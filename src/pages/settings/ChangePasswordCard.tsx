@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/common/PasswordInput'
 import { PasswordStrength } from '@/components/common/PasswordStrength'
+import { SecondFactorCodeField } from '@/components/two-factor/SecondFactorCodeField'
 import { useChangePassword } from '@/hooks/use-change-password'
 import { useMe } from '@/hooks/use-update-me'
 import { usePasswordCheck } from '@/hooks/use-password-check'
@@ -30,6 +31,10 @@ export function ChangePasswordCard() {
   const [confirm, setConfirm] = useState('')
   // Le serveur a refusé l'ancien mot de passe : le message reste sous le champ jusqu'à ce qu'on le corrige
   const [currentRejected, setCurrentRejected] = useState(false)
+  // Avec la double authentification, le code est demandé aussi (une session volée ne suffit pas)
+  const needsCode = Boolean(me?.totpEnabledAt)
+  const [code, setCode] = useState('')
+  const [codeRejected, setCodeRejected] = useState(false)
 
   // Le nouveau mot de passe ne doit pas contenir les informations du compte
   const check = usePasswordCheck(next, [username, me?.email, me?.firstName, me?.lastName])
@@ -37,7 +42,12 @@ export function ChangePasswordCard() {
   // Un « nouveau » mot de passe identique à l'actuel ne changerait rien
   const sameAsCurrent = next.length > 0 && next === current
   const canSubmit =
-    current.length > 0 && check.status === 'ok' && !sameAsCurrent && confirm === next && !change.isPending
+    current.length > 0 &&
+    (!needsCode || code.trim().length > 0) &&
+    check.status === 'ok' &&
+    !sameAsCurrent &&
+    confirm === next &&
+    !change.isPending
 
   // Le champ est désactivé pendant l'envoi, et un champ désactivé ne prend pas le focus : on le lui rend
   // quand l'envoi est terminé et que le serveur a refusé l'ancien mot de passe
@@ -46,13 +56,24 @@ export function ChangePasswordCard() {
       document.getElementById('current-password')?.focus()
     }
   }, [currentRejected, change.isPending, expanded])
+  useEffect(() => {
+    if (codeRejected && !change.isPending && expanded) {
+      document.getElementById('change-password-code')?.focus()
+    }
+  }, [codeRejected, change.isPending, expanded])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
     try {
-      await change.mutateAsync({ currentPassword: current, newPassword: next })
+      await change.mutateAsync({
+        currentPassword: current,
+        newPassword: next,
+        ...(needsCode ? { code: code.trim() } : {}),
+      })
       setCurrent('')
+      setCode('')
+      setCodeRejected(false)
       setNext('')
       setConfirm('')
       setCurrentRejected(false)
@@ -61,6 +82,8 @@ export function ChangePasswordCard() {
     } catch (err) {
       if (err instanceof ApiError && err.code === 'CURRENT_PASSWORD_INVALID') {
         setCurrentRejected(true)
+      } else if (err instanceof ApiError && err.code === 'INVALID_TWO_FACTOR_CODE') {
+        setCodeRejected(true)
       }
       toast.error(
         err instanceof ApiError && err.status === 429 && !err.code
@@ -116,6 +139,19 @@ export function ChangePasswordCard() {
               </p>
             )}
           </div>
+
+          {needsCode && (
+            <SecondFactorCodeField
+              id="change-password-code"
+              value={code}
+              onChange={(value) => {
+                setCode(value)
+                setCodeRejected(false)
+              }}
+              disabled={change.isPending}
+              rejected={codeRejected}
+            />
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="change-new-password">{t('password_change.new_label')}</Label>

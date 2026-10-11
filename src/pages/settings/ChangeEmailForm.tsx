@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/common/PasswordInput'
+import { SecondFactorCodeField } from '@/components/two-factor/SecondFactorCodeField'
 import { useChangeEmail } from '@/hooks/use-change-email'
 import { useMe } from '@/hooks/use-update-me'
 import { ApiError } from '@/lib/api-client'
@@ -24,6 +25,10 @@ export function ChangeEmailForm() {
   // Refus précis du serveur, affichés sous le champ concerné jusqu'à la correction
   const [currentRejected, setCurrentRejected] = useState(false)
   const [taken, setTaken] = useState(false)
+  // Avec la double authentification, le code est demandé aussi (une session volée ne suffit pas)
+  const needsCode = Boolean(me?.totpEnabledAt)
+  const [code, setCode] = useState('')
+  const [codeRejected, setCodeRejected] = useState(false)
 
   const saved = me?.email ?? ''
   const email = typed ?? saved
@@ -31,7 +36,8 @@ export function ChangeEmailForm() {
   const edited = typed !== null && trimmed !== ''
   const sameAsSaved = edited && saved !== '' && trimmed.toLowerCase() === saved.toLowerCase()
   const changing = edited && !sameAsSaved
-  const canSave = changing && current.length > 0 && !change.isPending
+  const canSave =
+    changing && current.length > 0 && (!needsCode || code.trim().length > 0) && !change.isPending
 
   // Le champ est désactivé pendant l'envoi, et un champ désactivé ne prend pas le focus : on le lui rend
   // quand l'envoi est terminé et que le serveur a refusé le mot de passe
@@ -40,20 +46,31 @@ export function ChangeEmailForm() {
       document.getElementById('profile-email-password')?.focus()
     }
   }, [currentRejected, change.isPending])
+  useEffect(() => {
+    if (codeRejected && !change.isPending) document.getElementById('profile-email-code')?.focus()
+  }, [codeRejected, change.isPending])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSave) return
     try {
-      await change.mutateAsync({ currentPassword: current, email: trimmed })
+      await change.mutateAsync({
+        currentPassword: current,
+        email: trimmed,
+        ...(needsCode ? { code: code.trim() } : {}),
+      })
       toast.success(saved ? t('settings.email_saved_notified') : t('settings.email_saved'))
       setTyped(null)
       setCurrent('')
+      setCode('')
       setCurrentRejected(false)
+      setCodeRejected(false)
       setTaken(false)
     } catch (err) {
       if (err instanceof ApiError && err.code === 'CURRENT_PASSWORD_INVALID') {
         setCurrentRejected(true)
+      } else if (err instanceof ApiError && err.code === 'INVALID_TWO_FACTOR_CODE') {
+        setCodeRejected(true)
       } else if (err instanceof ApiError && err.code === 'EMAIL_TAKEN') {
         setTaken(true)
       }
@@ -112,6 +129,18 @@ export function ChangeEmailForm() {
             </p>
           )}
           <p className="text-xs text-muted-foreground">{t('settings.email_current_hint')}</p>
+          {needsCode && (
+            <SecondFactorCodeField
+              id="profile-email-code"
+              value={code}
+              onChange={(value) => {
+                setCode(value)
+                setCodeRejected(false)
+              }}
+              disabled={change.isPending}
+              rejected={codeRejected}
+            />
+          )}
           <Button type="submit" className="mt-1 min-h-[44px] w-full" disabled={!canSave}>
             {t('settings.save')}
           </Button>

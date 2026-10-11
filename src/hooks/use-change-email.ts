@@ -5,6 +5,8 @@ import { queryClient } from '@/lib/query-client'
 interface ChangeEmailInput {
   currentPassword: string
   email: string
+  /** Code de l'application ou de secours : demandé quand le compte a la double authentification */
+  code?: string
 }
 
 /**
