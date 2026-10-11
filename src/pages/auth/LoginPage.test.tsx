@@ -280,6 +280,8 @@ describe('LoginPage — second facteur', () => {
       method: 'POST',
       body: JSON.stringify({ mfaToken: 'jeton-de-defi', code: '123456' }),
     }))
+    // La session s'ouvre puis la page navigue : on l'attend, sinon la navigation tombe dans le test suivant
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }))
   })
 
   it('code incorrect : alerte précise sous le champ (heure du téléphone, code de secours), pas de session, le formulaire reste', async () => {
