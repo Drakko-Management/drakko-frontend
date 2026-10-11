@@ -34,6 +34,9 @@ const API_ERROR_KEYS: Record<string, string> = {
   PASSWORD_TOO_SHORT: 'password_strength.hint_short',
   PASSWORD_TOO_WEAK: 'password_strength.hint_weak',
   TOO_MANY_ATTEMPTS: 'login.error_locked',
+  SIGNATURE_IMAGE_INVALID: 'sign.error_image_invalid',
+  SIGNATURE_REQUEST_OUTDATED: 'sign.error_outdated',
+  SIGNATURE_REQUEST_WRONG_TYPE: 'sign.error_wrong_type',
 }
 
 /** Message traduit pour une erreur API : celui du code connu, sinon le message générique de repli. */

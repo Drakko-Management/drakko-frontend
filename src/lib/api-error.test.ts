@@ -101,6 +101,22 @@ describe('apiErrorMessage', () => {
     }
   })
 
+  it.each([
+    ['SIGNATURE_IMAGE_INVALID', 400, 'Votre signature n\'a pas pu être lue. Effacez-la, signez de nouveau, puis réessayez.'],
+    ['SIGNATURE_REQUEST_OUTDATED', 409, 'Ce lien n\'est plus valable : l\'état du chantier a changé depuis son envoi. Contactez votre prestataire.'],
+    ['SIGNATURE_REQUEST_WRONG_TYPE', 400, 'Ce lien ne permet pas cette action. Contactez votre prestataire.'],
+  ])('traduit %s (page publique de signature) dans chaque langue, jamais le message de repli', (code, status, french) => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(status, 'Texte technique', code), i18n.getFixedT(lng), 'sign.error_sign_failed')
+    const fallback = (lng: string) => i18n.getFixedT(lng)('sign.error_sign_failed')
+
+    expect(message('fr')).toBe(french)
+    for (const lng of ['fr', 'en', 'es', 'it', 'de']) {
+      expect(message(lng)).not.toBe(fallback(lng))
+      expect(message(lng)).not.toContain('technique')
+    }
+  })
+
   it('traduit PROJECT_LOCKED (chantier envoyé à la signature ou signé) dans chaque langue, jamais le message de repli', () => {
     const message = (lng: string) =>
       apiErrorMessage(new ApiError(409, 'Texte technique', 'PROJECT_LOCKED'), i18n.getFixedT(lng), 'project.delete_error')

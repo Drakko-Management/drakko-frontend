@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { usePublicReport, useSign, useSignLift, useRefuse } from '@/hooks/use-signature'
 import { ApiError } from '@/lib/api-client'
+import { apiErrorMessage } from '@/lib/api-error'
 import { formatDate } from '@/lib/utils'
 import { TutorialProvider } from '@/tutorials/TutorialProvider'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
@@ -128,7 +129,7 @@ export function SignPage() {
 
   // Le texte renvoyé par le serveur n'est jamais affiché ; 401 = lien déjà utilisé ou expiré
   const signErrorMessage = (err: unknown, fallbackKey: string) =>
-    err instanceof ApiError && err.status === 401 ? t('sign.invalid_title') : t(fallbackKey)
+    err instanceof ApiError && err.status === 401 ? t('sign.invalid_title') : apiErrorMessage(err, t, fallbackKey)
 
   // Page publique : sa langue est celle du navigateur, pas celle de l'appli
   useEffect(() => { document.documentElement.lang = lang }, [lang])
