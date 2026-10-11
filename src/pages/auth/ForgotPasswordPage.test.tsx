@@ -35,20 +35,39 @@ function renderPage() {
 }
 
 async function submit(email: string) {
-  await userEvent.type(screen.getByLabelText('Adresse email'), email)
+  await userEvent.type(screen.getByLabelText('Identifiant ou adresse email'), email)
   await userEvent.click(screen.getByRole('button', { name: 'Envoyer le lien' }))
 }
 
 describe('ForgotPasswordPage', () => {
-  it("envoie l'adresse saisie (sans espaces autour) à la route publique", async () => {
+  it("envoie ce qui est saisi (sans espaces autour) à la route publique : une adresse email", async () => {
     renderPage()
 
     await submit('  lea@acme.test ')
 
     expect(apiRequest).toHaveBeenCalledWith('/auth/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ email: 'lea@acme.test' }),
+      body: JSON.stringify({ identifier: 'lea@acme.test' }),
     })
+  })
+
+  it('… ou un identifiant : le même champ accepte les deux', async () => {
+    renderPage()
+
+    await submit('lea.martin')
+
+    expect(apiRequest).toHaveBeenCalledWith('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ identifier: 'lea.martin' }),
+    })
+  })
+
+  it('le champ n\'est pas de type email (un identifiant n\'est pas une adresse) et propose l\'identifiant au navigateur', () => {
+    renderPage()
+
+    const field = screen.getByLabelText('Identifiant ou adresse email')
+    expect(field).toHaveAttribute('type', 'text')
+    expect(field).toHaveAttribute('autocomplete', 'username')
   })
 
   it('affiche la confirmation, qui ne dit pas si un compte existe', async () => {
@@ -57,7 +76,7 @@ describe('ForgotPasswordPage', () => {
     await submit('inconnu@acme.test')
 
     expect(await screen.findByText('Vérifiez votre boîte mail')).toBeInTheDocument()
-    expect(screen.getByText(/Si cette adresse correspond à un compte/)).toBeInTheDocument()
+    expect(screen.getByText(/Si ce compte existe et a une adresse email/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Retour à la connexion' })).toHaveAttribute('href', '/login')
   })
 

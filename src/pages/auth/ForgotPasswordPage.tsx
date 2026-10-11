@@ -11,18 +11,18 @@ import { AuthLayout } from './AuthLayout'
 
 export function ForgotPasswordPage() {
   const { t } = useTranslation()
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim()) return
+    if (!identifier.trim()) return
     setLoading(true)
     try {
       await apiRequest('/auth/forgot-password', {
         method: 'POST',
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ identifier: identifier.trim() }),
       })
       // Même écran que l'adresse corresponde à un compte ou non : la réponse ne le révèle pas
       setSent(true)
@@ -62,16 +62,16 @@ export function ForgotPasswordPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="forgot-email">{t('password_reset.email_label')}</Label>
+          <Label htmlFor="forgot-identifier">{t('password_reset.identifier_label')}</Label>
           <Input
-            id="forgot-email"
-            type="email"
-            autoComplete="email"
+            id="forgot-identifier"
+            type="text"
+            autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
             className="min-h-[44px] text-base"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             disabled={loading}
             required
           />
