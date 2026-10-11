@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label'
 import { apiRequest, ApiError } from '@/lib/api-client'
 import { apiErrorMessage } from '@/lib/api-error'
 import { PasswordInput } from '@/components/common/PasswordInput'
+import { PasswordStrength } from '@/components/common/PasswordStrength'
+import { usePasswordCheck } from '@/hooks/use-password-check'
+import { PASSWORD_MAX_LENGTH } from '@/lib/password-policy'
 import { AuthLayout } from './AuthLayout'
-
-export const MIN_PASSWORD_LENGTH = 8
 
 // Le jeton est dans le fragment de l'adresse (#token=…) : le navigateur ne l'envoie jamais au serveur web
 // ni dans un en-tête Referer. Lecture pure (React peut appeler cette fonction deux fois en développement) :
@@ -32,12 +33,13 @@ export function ResetPasswordPage() {
     if (token) window.history.replaceState(null, '', window.location.pathname)
   }, [token])
 
-  const tooShort = password.length > 0 && password.length < MIN_PASSWORD_LENGTH
+  const check = usePasswordCheck(password)
   const mismatch = confirm.length > 0 && confirm !== password
+  const canSubmit = check.status === 'ok' && confirm === password
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (password.length < MIN_PASSWORD_LENGTH || password !== confirm) return
+    if (!canSubmit) return
     setLoading(true)
     try {
       await apiRequest('/auth/reset-password', {
@@ -88,10 +90,9 @@ export function ResetPasswordPage() {
             value={password}
             onChange={setPassword}
             disabled={loading}
+            maxLength={PASSWORD_MAX_LENGTH}
           />
-          <p className={`text-xs ${tooShort ? 'text-destructive' : 'text-muted-foreground'}`}>
-            {t('password_reset.password_hint')}
-          </p>
+          <PasswordStrength check={check} />
         </div>
 
         <div className="space-y-2">
@@ -109,7 +110,7 @@ export function ResetPasswordPage() {
         <Button
           type="submit"
           className="min-h-[44px] w-full text-base"
-          disabled={loading || password.length < MIN_PASSWORD_LENGTH || password !== confirm}
+          disabled={loading || !canSubmit}
         >
           {loading ? t('password_reset.submitting') : t('password_reset.submit')}
         </Button>

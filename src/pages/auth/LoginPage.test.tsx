@@ -203,3 +203,19 @@ describe('LoginPage — mot de passe oublié', () => {
     expect(screen.getByRole('link', { name: 'Mot de passe oublié ?' })).toHaveAttribute('href', '/mot-de-passe-oublie')
   })
 })
+
+describe('LoginPage — compte bloqué', () => {
+  it('trop de tentatives (429) : message dédié, pas « identifiants incorrects »', async () => {
+    vi.mocked(apiRequest).mockRejectedValue(new ApiError(429, 'Too many failed attempts'))
+    renderLogin()
+
+    await userEvent.type(screen.getByLabelText('Identifiant'), 'jean')
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'secret')
+    await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('Trop de tentatives échouées')),
+    )
+    expect(toast.error).not.toHaveBeenCalledWith('Identifiants incorrects')
+  })
+})

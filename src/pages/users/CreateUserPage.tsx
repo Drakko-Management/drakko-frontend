@@ -10,6 +10,10 @@ import { useCreateUser } from '@/hooks/use-users'
 import { useAssignableRoles } from '@/hooks/use-roles'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
+import { PasswordInput } from '@/components/common/PasswordInput'
+import { PasswordStrength } from '@/components/common/PasswordStrength'
+import { usePasswordCheck } from '@/hooks/use-password-check'
+import { PASSWORD_MAX_LENGTH, passwordHintKey } from '@/lib/password-policy'
 import type { UserRole } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
@@ -73,6 +77,13 @@ export function CreateUserPage() {
     role: 'MEMBER',
     customRoleId: null as string | null,
   })
+  // Le mot de passe ne doit pas contenir les informations du compte : identifiant, nom, email
+  const passwordCheck = usePasswordCheck(form.password, [
+    form.username,
+    form.email,
+    form.firstName,
+    form.lastName,
+  ])
 
   function setField(key: string, value: unknown) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -80,8 +91,12 @@ export function CreateUserPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (form.password.length < 8) {
+    if (passwordCheck.status === 'short') {
       toast.error(t('users.password_min_error'))
+      return
+    }
+    if (passwordCheck.status !== 'ok') {
+      toast.error(t(passwordHintKey(passwordCheck)))
       return
     }
     if (form.role !== 'ADMIN' && !form.customRoleId) {
@@ -165,16 +180,14 @@ export function CreateUserPage() {
         </div>
         <div className="space-y-2" data-tutorial="user-password">
           <Label htmlFor="cu-pw">{t('common.password')} *</Label>
-          <Input
+          <PasswordInput
             id="cu-pw"
-            type="password"
             autoComplete="new-password"
-            className="min-h-[44px]"
-            minLength={8}
             value={form.password}
-            onChange={(e) => setField('password', e.target.value)}
-            required
+            onChange={(value) => setField('password', value)}
+            maxLength={PASSWORD_MAX_LENGTH}
           />
+          <PasswordStrength check={passwordCheck} />
         </div>
         <div className="space-y-2" data-tutorial="user-role">
           <Label>{t('common.role')}</Label>

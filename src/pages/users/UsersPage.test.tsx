@@ -283,6 +283,74 @@ describe('UsersPage — expansion d\'un utilisateur', () => {
 
 // ── Sélecteur de rôle de la fiche : ce que l'on voit est le rôle réel ────────
 
+describe('UsersPage — nouveau mot de passe d\'un membre', () => {
+  const STRONG = 'correct cheval pile agrafe'
+  const passwordField = () => screen.getByLabelText('Nouveau mot de passe')
+  const saveButton = () => screen.getByRole('button', { name: 'Enregistrer' })
+
+  beforeEach(() => {
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+  })
+
+  it('le champ est facultatif : enregistrer sans mot de passe n\'envoie pas de mot de passe', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await userEvent.click(saveButton())
+
+    expect(mutateAsync).toHaveBeenCalledWith(expect.not.objectContaining({ password: expect.anything() }))
+  })
+
+  it('un mot de passe devinable est refusé avant l\'envoi, avec le conseil', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await userEvent.type(passwordField(), 'Motdepasse1!')
+    await screen.findByText(/Trop facile à deviner/, {}, { timeout: 8000 })
+    await userEvent.click(saveButton())
+
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('un mot de passe trop court est refusé avant l\'envoi', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await userEvent.type(passwordField(), 'court')
+    await userEvent.click(saveButton())
+
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('un mot de passe qui contient l\'identifiant du compte est refusé', async () => {
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await userEvent.type(passwordField(), 'xK9#jean.dupont#2$vL7')
+
+    expect(await screen.findByText('Ne doit pas contenir votre identifiant, votre nom ou votre email', {}, { timeout: 8000 })).toBeInTheDocument()
+  })
+
+  it('un mot de passe qui respecte la règle est envoyé', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useUpdateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderUsers()
+    await userEvent.click(screen.getByText('Jean Dupont'))
+
+    await userEvent.type(passwordField(), STRONG)
+    await screen.findByText('Mot de passe accepté', {}, { timeout: 8000 })
+    await userEvent.click(saveButton())
+
+    expect(mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ password: STRONG }))
+  })
+})
+
 describe('UsersPage — rôle affiché dans la fiche d\'un membre', () => {
   beforeEach(() => {
     vi.mocked(useAssignableRoles).mockReturnValue({ data: [{ id: 'r1', name: 'Chef d\'équipe' }], isLoading: false } as unknown as ReturnType<typeof useAssignableRoles>)

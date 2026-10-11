@@ -34,11 +34,16 @@ function renderPage() {
   )
 }
 
+// Un mot de passe qui respecte la règle (12 caractères, pas devinable)
+const STRONG = 'correct cheval pile agrafe'
+
 async function fillIdentity() {
   await userEvent.type(screen.getByLabelText(/Prénom/), 'Marie')
   await userEvent.type(screen.getByLabelText(/^Nom/), 'Durand')
   await userEvent.type(screen.getByLabelText(/Identifiant/), 'marie.durand')
-  await userEvent.type(screen.getByLabelText(/Mot de passe/), 'motdepasse1')
+  await userEvent.type(screen.getByLabelText(/Mot de passe/), STRONG)
+  // L'évaluation du mot de passe est asynchrone (premier chargement des dictionnaires)
+  await screen.findByText('Mot de passe accepté', {}, { timeout: 8000 })
 }
 
 // Le rôle est obligatoire : le sélecteur n'a rien de choisi au départ
@@ -182,5 +187,45 @@ describe('CreateUserPage — erreurs de l\'API', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Erreur lors de la création')
     })
+  })
+})
+
+// ── Règle des mots de passe : refusé avant l'envoi ──────────────────────────
+
+describe('CreateUserPage — règle des mots de passe', () => {
+  async function fillWith(password: string) {
+    await userEvent.type(screen.getByLabelText(/Prénom/), 'Marie')
+    await userEvent.type(screen.getByLabelText(/^Nom/), 'Durand')
+    await userEvent.type(screen.getByLabelText(/Identifiant/), 'marie.durand')
+    await userEvent.type(screen.getByLabelText(/Mot de passe/), password)
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'r1')
+  }
+
+  it.each([
+    ['court', 'Encore trop court : 12 caractères minimum'],
+    ['Motdepasse1!', /Trop facile à deviner/],
+    ['xK9#marie.durand#2$vL7', 'Ne doit pas contenir votre identifiant, votre nom ou votre email'],
+  ])('« %s » : conseil affiché et rien n\'est envoyé', async (password, advice) => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useCreateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderPage()
+
+    await fillWith(password)
+    expect(await screen.findByText(advice, {}, { timeout: 8000 })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('une phrase de passe sans majuscule ni symbole est envoyée', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useCreateUser).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderPage()
+
+    await fillWith('violet tortue jardin nuage')
+    await screen.findByText('Mot de passe accepté', {}, { timeout: 8000 })
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ password: 'violet tortue jardin nuage' }))
   })
 })

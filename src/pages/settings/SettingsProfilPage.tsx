@@ -10,6 +10,7 @@ import { useMe, useUpdateMe } from '@/hooks/use-update-me'
 import { useAuthStore } from '@/store/auth.store'
 import { patchMe } from '@/lib/patch-me'
 import { SettingsSubHeader } from './SettingsSubHeader'
+import { ChangePasswordCard } from './ChangePasswordCard'
 
 export function SettingsProfilPage() {
   const { t, i18n } = useTranslation()
@@ -91,6 +92,8 @@ export function SettingsProfilPage() {
           </select>
         </div>
       </Card>
+
+      <ChangePasswordCard />
     </div>
   )
 }

@@ -16,6 +16,12 @@ const API_ERROR_KEYS: Record<string, string> = {
   CLIENT_NOT_FOUND: 'create_project.client_not_found',
   PROJECT_LOCKED: 'project.locked_error',
   INVALID_RESET_TOKEN: 'password_reset.invalid_link',
+  CURRENT_PASSWORD_INVALID: 'password_change.current_invalid',
+  PASSWORD_UNCHANGED: 'password_change.same_as_current',
+  PASSWORD_CONTAINS_PERSONAL_INFO: 'password_strength.hint_personal',
+  PASSWORD_TOO_SHORT: 'password_strength.hint_short',
+  PASSWORD_TOO_WEAK: 'password_strength.hint_weak',
+  TOO_MANY_ATTEMPTS: 'login.error_locked',
 }
 
 /** Message traduit pour une erreur API : celui du code connu, sinon le message générique de repli. */

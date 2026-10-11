@@ -9,10 +9,25 @@ interface Props {
   onChange: (value: string) => void
   autoComplete: 'current-password' | 'new-password'
   disabled?: boolean
+  required?: boolean
+  placeholder?: string
+  maxLength?: number
+  /** Le champ a un problème précis, affiché juste dessous : bordure et aria-invalid */
+  invalid?: boolean
 }
 
 // Champ de mot de passe avec son propre œil : chaque champ s'affiche ou se masque indépendamment
-export function PasswordInput({ id, value, onChange, autoComplete, disabled }: Props) {
+export function PasswordInput({
+  id,
+  value,
+  onChange,
+  autoComplete,
+  disabled,
+  required = true,
+  placeholder,
+  maxLength,
+  invalid = false,
+}: Props) {
   const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
 
@@ -22,11 +37,14 @@ export function PasswordInput({ id, value, onChange, autoComplete, disabled }: P
         id={id}
         type={visible ? 'text' : 'password'}
         autoComplete={autoComplete}
-        className="min-h-[44px] pr-11 text-base"
+        className={`min-h-[44px] pr-11 text-base ${invalid ? 'border-destructive' : ''}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        required
+        required={required}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        aria-invalid={invalid || undefined}
       />
       <button
         type="button"

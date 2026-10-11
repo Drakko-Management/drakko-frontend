@@ -72,7 +72,9 @@ export function LoginPage() {
       const msg =
         err instanceof ApiError && err.status === 401
           ? t('login.error_401')
-          : t('login.error_generic')
+          : err instanceof ApiError && err.status === 429
+            ? t('login.error_locked')
+            : t('login.error_generic')
       toast.error(msg)
     } finally {
       setLoading(false)

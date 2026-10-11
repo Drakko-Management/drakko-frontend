@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { SettingsProfilPage } from './SettingsProfilPage'
 
 vi.mock('@/hooks/use-update-me', () => ({ useMe: vi.fn(), useUpdateMe: vi.fn() }))
+vi.mock('./ChangePasswordCard', () => ({ ChangePasswordCard: () => <div>carte mot de passe</div> }))
 vi.mock('@/lib/patch-me', () => ({ patchMe: vi.fn() }))
 vi.mock('@/lib/api-client', () => {
   class ApiError extends Error {
@@ -92,5 +93,13 @@ describe('SettingsProfilPage — adresse email', () => {
     await userEvent.click(save())
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Impossible d'enregistrer l'adresse email"))
+  })
+})
+
+describe('SettingsProfilPage — mot de passe', () => {
+  it('propose de changer son mot de passe', () => {
+    renderPage()
+
+    expect(screen.getByText('carte mot de passe')).toBeInTheDocument()
   })
 })

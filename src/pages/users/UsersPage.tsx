@@ -29,6 +29,10 @@ import { apiErrorMessage } from '@/lib/api-error'
 import { isWithinPermissions } from '@/lib/permissions'
 import { fullName } from '@/lib/utils'
 import { RolesTab } from './RolesTab'
+import { PasswordInput } from '@/components/common/PasswordInput'
+import { PasswordStrength } from '@/components/common/PasswordStrength'
+import { usePasswordCheck } from '@/hooks/use-password-check'
+import { PASSWORD_MAX_LENGTH, passwordHintKey } from '@/lib/password-policy'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 import type { User, UserRole } from '@/types/api'
 
@@ -102,14 +106,25 @@ function UserRow({
   })
   const update = useUpdateUser(user.id)
   const transfer = useTransferOwnership(user.id)
+  // Le champ est facultatif : la règle ne s'applique que si un nouveau mot de passe est saisi
+  const passwordCheck = usePasswordCheck(form.password, [
+    form.username,
+    form.email,
+    form.firstName,
+    form.lastName,
+  ])
 
   function setField(key: string, value: unknown) {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
   async function handleSave() {
-    if (form.password && form.password.length < 8) {
+    if (form.password && passwordCheck.status === 'short') {
       toast.error(t('users.password_min_error'))
+      return
+    }
+    if (form.password && passwordCheck.status !== 'ok') {
+      toast.error(t(passwordHintKey(passwordCheck)))
       return
     }
     try {
@@ -236,16 +251,18 @@ function UserRow({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">{t('users.new_password')}</Label>
-            <Input
-              type="password"
+            <Label className="text-xs" htmlFor={`pw-${user.id}`}>{t('users.new_password')}</Label>
+            <PasswordInput
+              id={`pw-${user.id}`}
               autoComplete="new-password"
-              className="min-h-[44px]"
               placeholder={t('users.password_placeholder')}
               value={form.password}
-              onChange={(e) => setField('password', e.target.value)}
+              onChange={(value) => setField('password', value)}
               disabled={update.isPending}
+              required={false}
+              maxLength={PASSWORD_MAX_LENGTH}
             />
+            {form.password && <PasswordStrength check={passwordCheck} />}
           </div>
           <Button
             className="w-full min-h-[44px]"

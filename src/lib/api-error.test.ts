@@ -127,6 +127,25 @@ describe('apiErrorMessage', () => {
     }
   })
 
+  it.each([
+    ['CURRENT_PASSWORD_INVALID', 'Le mot de passe actuel est incorrect'],
+    ['PASSWORD_UNCHANGED', "Le nouveau mot de passe est identique à l'ancien : choisissez-en un différent"],
+    ['PASSWORD_CONTAINS_PERSONAL_INFO', 'Ne doit pas contenir votre identifiant, votre nom ou votre email'],
+    ['PASSWORD_TOO_SHORT', 'Encore trop court : 12 caractères minimum'],
+    ['PASSWORD_TOO_WEAK', 'Trop facile à deviner. Allongez-le avec plusieurs mots, et évitez les mots courants et vos informations personnelles.'],
+    ['TOO_MANY_ATTEMPTS', 'Trop de tentatives échouées : réessayez dans quelques minutes, ou utilisez « Mot de passe oublié ? »'],
+  ])('traduit %s dans chaque langue (règle des mots de passe et blocage de connexion)', (code, french) => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(400, 'Texte technique', code), i18n.getFixedT(lng), 'users.update_error')
+    const fallback = (lng: string) => i18n.getFixedT(lng)('users.update_error')
+
+    expect(message('fr')).toBe(french)
+    for (const lng of ['fr', 'en', 'es', 'it', 'de']) {
+      expect(message(lng)).not.toBe(fallback(lng))
+      expect(message(lng)).not.toContain('technique')
+    }
+  })
+
   it('utilise le message de repli, sans jamais afficher le texte du serveur', () => {
     const message = apiErrorMessage(new ApiError(500, 'Internal server error'), t, 'users.role_create_error')
 
