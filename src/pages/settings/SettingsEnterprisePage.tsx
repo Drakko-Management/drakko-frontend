@@ -231,7 +231,7 @@ export function SettingsEnterprisePage() {
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-destructive/30 text-destructive transition-colors hover:bg-destructive/10"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-red-600 active:bg-destructive/10 active:text-red-600"
                     aria-label={t('settings.logo_delete_btn')}
                   >
                     <Trash2 className="h-4 w-4" />

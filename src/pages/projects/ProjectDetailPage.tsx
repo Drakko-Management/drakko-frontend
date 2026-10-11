@@ -246,7 +246,7 @@ export function ProjectDetailPage() {
             <AlertDialogTrigger asChild>
               <button
                 aria-label={t('common.delete')}
-                className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-card text-red-600 transition-colors hover:bg-red-50 active:bg-red-100"
+                className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-red-600 active:bg-destructive/10 active:text-red-600"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
