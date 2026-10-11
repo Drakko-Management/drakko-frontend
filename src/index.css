@@ -92,6 +92,12 @@
     @apply bg-background text-foreground;
   }
 
+  /* Pas de rebond de la page entière (les écrans défilent dans leur propre zone) */
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+
   /* Champs de date : chiffres de largeur fixe. Chrome place l'icône du calendrier juste après le texte,
      dont la largeur varie sinon avec les chiffres choisis : l'icône se décalait de quelques pixels. */
   input[type="date"] {

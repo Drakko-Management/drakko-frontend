@@ -17,7 +17,8 @@ export function AppShell() {
   return (
     // La numérotation automatique des chantiers change ce que disent les tutoriels (référence à saisir ou non)
     <TutorialProvider textVariants={org?.autoProjectReference ? ['autoref'] : []}>
-      <div className="flex h-[100dvh] bg-background">
+      {/* Collé aux bords de l'écran (et non « 100dvh ») : la page elle-même ne défile jamais, seuls les écrans le font. Sur iPhone, une page qui peut bouger un peu sous la barre d'état y fait apparaître un fondu flou sur l'en-tête. */}
+      <div className="fixed inset-0 flex bg-background">
         <Sidebar className="hidden lg:flex" />
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header className="lg:hidden" />
