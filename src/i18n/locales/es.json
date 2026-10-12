@@ -236,6 +236,11 @@
     "next_page": "Página siguiente",
     "last_page": "Última página"
   },
+  "not_found": {
+    "title": "Página no encontrada",
+    "message": "La dirección que has escrito no existe, o la página se ha movido.",
+    "home": "Volver al panel"
+  },
   "login": {
     "subtitle": "Seguimiento de obra",
     "username_label": "Usuario",

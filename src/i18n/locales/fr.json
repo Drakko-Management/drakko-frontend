@@ -236,6 +236,11 @@
     "next_page": "Page suivante",
     "last_page": "Dernière page"
   },
+  "not_found": {
+    "title": "Page introuvable",
+    "message": "L'adresse que vous avez saisie n'existe pas, ou la page a été déplacée.",
+    "home": "Retour au tableau de bord"
+  },
   "login": {
     "subtitle": "Suivi de chantier",
     "username_label": "Identifiant",

@@ -236,6 +236,11 @@
     "next_page": "Next page",
     "last_page": "Last page"
   },
+  "not_found": {
+    "title": "Page not found",
+    "message": "The address you entered doesn't exist, or the page has been moved.",
+    "home": "Back to the dashboard"
+  },
   "login": {
     "subtitle": "Site tracker",
     "username_label": "Username",

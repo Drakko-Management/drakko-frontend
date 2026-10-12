@@ -236,6 +236,11 @@
     "next_page": "Nächste Seite",
     "last_page": "Letzte Seite"
   },
+  "not_found": {
+    "title": "Seite nicht gefunden",
+    "message": "Die eingegebene Adresse existiert nicht, oder die Seite wurde verschoben.",
+    "home": "Zurück zur Übersicht"
+  },
   "login": {
     "subtitle": "Baustellenverfolgung",
     "username_label": "Benutzername",

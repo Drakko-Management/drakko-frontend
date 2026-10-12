@@ -236,6 +236,11 @@
     "next_page": "Pagina successiva",
     "last_page": "Ultima pagina"
   },
+  "not_found": {
+    "title": "Pagina non trovata",
+    "message": "L'indirizzo che hai inserito non esiste, oppure la pagina è stata spostata.",
+    "home": "Torna alla dashboard"
+  },
   "login": {
     "subtitle": "Monitoraggio cantiere",
     "username_label": "Utente",
