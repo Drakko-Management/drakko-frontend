@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/auth.store'
 import { CreateClientPage } from './CreateClientPage'
@@ -11,8 +11,8 @@ import { CreateClientPage } from './CreateClientPage'
 const mockNavigate = vi.fn()
 const mockCreate = vi.fn()
 
-vi.mock('react-router-dom', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router-dom')>()
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>()
   return { ...actual, useNavigate: () => mockNavigate }
 })
 

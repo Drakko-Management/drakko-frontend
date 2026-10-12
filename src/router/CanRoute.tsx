@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { PermModule, PermAction } from '@/types/api'
 

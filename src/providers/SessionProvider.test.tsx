@@ -5,7 +5,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 // Remplace le vrai router (qui chargerait toutes les pages + leurs appels API)
 // par des routes stub sans aucune dépendance externe.
 vi.mock("@/router", async () => {
-  const { createMemoryRouter } = await import("react-router-dom");
+  const { createMemoryRouter } = await import("react-router");
   return {
     router: createMemoryRouter([
       { path: "/", element: <div>Tableau</div> },

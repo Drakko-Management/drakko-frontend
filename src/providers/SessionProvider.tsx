@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { RouterProvider } from 'react-router-dom'
+import { RouterProvider } from 'react-router/dom'
 import { useTranslation } from 'react-i18next'
 import { router } from '@/router'
 import { useAuthStore, getStoredRefreshToken } from '@/store/auth.store'

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { X, Settings, LogOut, Monitor, Sun, Moon, LayoutDashboard, HardHat, Users, UserCog, BookOpen } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'

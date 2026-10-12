@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Users, Search, Plus, ChevronRight } from 'lucide-react'
 import { Input } from '@/components/ui/input'

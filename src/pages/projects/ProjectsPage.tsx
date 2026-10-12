@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { HardHat, Plus, Search, X, Zap } from 'lucide-react'
 import type { ProjectSort } from '@/hooks/use-projects'

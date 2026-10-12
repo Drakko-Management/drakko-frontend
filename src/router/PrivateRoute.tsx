@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router'
 import { useAuthStore } from '@/store/auth.store'
 import { TWO_FACTOR_ROUTE } from './two-factor-route'
 

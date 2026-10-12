@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router'
 import { PrivateRoute } from './PrivateRoute'
 import { TWO_FACTOR_ROUTE } from './two-factor-route'
 import { CanRoute } from './CanRoute'

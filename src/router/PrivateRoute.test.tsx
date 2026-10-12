@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { useAuthStore } from '@/store/auth.store'
 import { PrivateRoute } from './PrivateRoute'
 import { TWO_FACTOR_ROUTE } from './two-factor-route'
