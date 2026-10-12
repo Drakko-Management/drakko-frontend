@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+import { toast } from 'sonner'
 import { apiRequest } from '@/lib/api-client'
 import { useAuthStore } from '@/store/auth.store'
 import { TwoFactorRequiredPage } from './TwoFactorRequiredPage'
@@ -15,6 +16,7 @@ vi.mock('@/components/two-factor/TwoFactorSetupFlow', () => ({
   TwoFactorSetupFlow: ({ onDone }: { onDone: () => void }) => <button onClick={onDone}>flux terminé</button>,
 }))
 vi.mock('@/lib/api-client', () => ({ apiRequest: vi.fn(), ApiError: class extends Error {} }))
+vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -58,13 +60,17 @@ describe('TwoFactorRequiredPage', () => {
     expect(useAuthStore.getState().accessToken).toBeNull()
   })
 
-  it('la déconnexion aboutit même si le serveur ne répond pas', async () => {
+  it('si le serveur ne répond pas, la personne reste connectée et en est prévenue : pas de faux « déconnecté »', async () => {
     vi.mocked(apiRequest).mockRejectedValue(new Error('réseau'))
     renderPage()
 
     await userEvent.click(screen.getByRole('button', { name: 'Se déconnecter' }))
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true }))
-    expect(useAuthStore.getState().accessToken).toBeNull()
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('Vous restez connecté')),
+    )
+    // Le cookie de session reste valable côté serveur : effacer l'état local ferait croire à une déconnexion
+    expect(useAuthStore.getState().accessToken).toBe('tok')
+    expect(mockNavigate).not.toHaveBeenCalled()
   })
 })

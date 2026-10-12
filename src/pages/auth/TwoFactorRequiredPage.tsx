@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TwoFactorSetupFlow } from '@/components/two-factor/TwoFactorSetupFlow'
-import { apiRequest } from '@/lib/api-client'
+import { toast } from 'sonner'
+import { logout } from '@/lib/logout'
 import { useAuthStore } from '@/store/auth.store'
 import { AuthLayout } from './AuthLayout'
 
@@ -13,11 +14,12 @@ export function TwoFactorRequiredPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const setRequired = useAuthStore((s) => s.setTwoFactorRequired)
-  const clearAuth = useAuthStore((s) => s.clearAuth)
 
   async function signOut() {
-    await apiRequest('/auth/logout', { method: 'POST' }).catch(() => undefined)
-    clearAuth()
+    if ((await logout()) === 'failed') {
+      toast.error(t('settings.logout_failed'))
+      return
+    }
     void navigate('/login', { replace: true })
   }
 

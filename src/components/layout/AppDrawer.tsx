@@ -6,6 +6,8 @@ import { useAuthStore } from '@/store/auth.store'
 import { useTheme } from '@/providers/ThemeProvider'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiRequest } from '@/lib/api-client'
+import { logout } from '@/lib/logout'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { PermModule } from '@/types/api'
 
@@ -25,7 +27,7 @@ interface AppDrawerProps {
 export function AppDrawer({ open, onClose }: AppDrawerProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { firstName, lastName, username, role, customRoleName, clearAuth } = useAuthStore()
+  const { firstName, lastName, username, role, customRoleName } = useAuthStore()
   const { theme, setTheme, handedness } = useTheme()
   const { can } = usePermissions()
   const isLeft = handedness === 'left'
@@ -69,12 +71,10 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
 
   async function handleLogout() {
     onClose()
-    try {
-      await apiRequest('/auth/logout', { method: 'POST' })
-    } catch {
-      // ignore
+    if ((await logout()) === 'failed') {
+      toast.error(t('settings.logout_failed'))
+      return
     }
-    clearAuth()
     void navigate('/login', { replace: true })
   }
 

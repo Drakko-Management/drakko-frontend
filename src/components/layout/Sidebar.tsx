@@ -13,7 +13,8 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth.store";
 import { useOrganization } from "@/hooks/use-organization";
 import { usePermissions } from "@/hooks/use-permissions";
-import { apiRequest } from "@/lib/api-client";
+import { logout } from "@/lib/logout";
+import { toast } from "sonner";
 
 interface NavItem {
   to: string;
@@ -48,7 +49,6 @@ export function Sidebar({ className }: SidebarProps) {
   const role = useAuthStore((s) => s.role);
   const firstName = useAuthStore((s) => s.firstName);
   const lastName = useAuthStore((s) => s.lastName);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
   const { t } = useTranslation();
   const { can } = usePermissions();
   const { data: org } = useOrganization();
@@ -62,12 +62,10 @@ export function Sidebar({ className }: SidebarProps) {
   );
 
   async function handleLogout() {
-    try {
-      await apiRequest('/auth/logout', { method: 'POST' })
-    } catch {
-      // ignore
+    if ((await logout()) === 'failed') {
+      toast.error(t('settings.logout_failed'))
+      return
     }
-    clearAuth()
     navigate('/login')
   }
 
