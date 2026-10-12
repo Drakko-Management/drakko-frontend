@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   setAuth: (accessToken, username, refreshToken) => {
     const decoded = decodeJwtPayload(accessToken)
     sessionStorage.setItem('username', username)
-    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+    if (refreshToken) storeRefreshToken(refreshToken)
     set({
       accessToken,
       username,
@@ -118,4 +118,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 export function getStoredRefreshToken(): string | null {
   return localStorage.getItem(REFRESH_TOKEN_KEY)
+}
+
+export function storeRefreshToken(token: string): void {
+  localStorage.setItem(REFRESH_TOKEN_KEY, token)
 }

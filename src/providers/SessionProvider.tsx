@@ -2,28 +2,17 @@ import { useEffect, useState } from 'react'
 import { RouterProvider } from 'react-router/dom'
 import { useTranslation } from 'react-i18next'
 import { router } from '@/router'
-import { useAuthStore, getStoredRefreshToken } from '@/store/auth.store'
+import { useAuthStore } from '@/store/auth.store'
+import { refreshSession } from '@/lib/session-refresh'
 import { useTheme } from '@/providers/ThemeProvider'
 import type { ColorKey, Handedness } from '@/providers/ThemeProvider'
 
 const API_URL = import.meta.env.VITE_API_URL
 
-function buildRefreshRequest(): Request {
-  const storedToken = getStoredRefreshToken()
-  return new Request(`${API_URL}/auth/refresh`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: storedToken ? { 'Content-Type': 'application/json' } : {},
-    body: storedToken ? JSON.stringify({ refreshToken: storedToken }) : undefined,
-  })
-}
-
 // Fired once at module load — survives React StrictMode double-invocation
-const sessionRefresh: Promise<{ accessToken: string; refreshToken: string } | null> = fetch(
-  buildRefreshRequest(),
+const sessionRefresh: Promise<{ accessToken: string; refreshToken: string } | null> = refreshSession().then(
+  (result) => result || null,
 )
-  .then((res) => (res.ok ? (res.json() as Promise<{ accessToken: string; refreshToken: string }>) : null))
-  .catch(() => null)
 
 export function SessionProvider() {
   const [ready, setReady] = useState(false)

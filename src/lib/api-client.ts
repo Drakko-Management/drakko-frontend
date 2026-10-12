@@ -1,4 +1,5 @@
-import { useAuthStore, getStoredRefreshToken } from '@/store/auth.store'
+import { useAuthStore } from '@/store/auth.store'
+import { refreshSession } from '@/lib/session-refresh'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -23,32 +24,13 @@ export async function apiErrorFromResponse(res: Response): Promise<ApiError> {
 let isRefreshing = false
 let refreshQueue: Array<(token: string | null) => void> = []
 
-// null  → auth failure (401/403) → clearAuth
-// false → réseau/serveur → ne pas déconnecter
-async function refreshAccessToken(): Promise<{ accessToken: string; refreshToken: string } | null | false> {
-  try {
-    const storedToken = getStoredRefreshToken()
-    const res = await fetch(`${API_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: storedToken ? { 'Content-Type': 'application/json' } : {},
-      body: storedToken ? JSON.stringify({ refreshToken: storedToken }) : undefined,
-    })
-    if (res.status === 401 || res.status === 403) return null
-    if (!res.ok) return false
-    return (await res.json()) as { accessToken: string; refreshToken: string }
-  } catch {
-    return false
-  }
-}
-
 function waitForRefresh(): Promise<string | null> {
   return new Promise((resolve) => refreshQueue.push(resolve))
 }
 
 async function doRefresh(): Promise<string | null> {
   isRefreshing = true
-  const result = await refreshAccessToken()
+  const result = await refreshSession()
   isRefreshing = false
 
   const { setAuth, clearAuth } = useAuthStore.getState()
