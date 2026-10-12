@@ -32,9 +32,10 @@ import { ServicesPage } from '@/pages/services/ServicesPage'
 import { CreateServicePage } from '@/pages/services/CreateServicePage'
 import { SignPage } from '@/pages/public/SignPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
+import { RouteErrorPage } from '@/pages/errors/RouteErrorPage'
 
 // Les routes sont séparées du routeur pour pouvoir être lues dans les tests sans créer un routeur de navigateur
-export const routes: RouteObject[] = [
+const routeTree: RouteObject[] = [
   {
     path: '/login',
     element: <LoginPage />,
@@ -58,80 +59,86 @@ export const routes: RouteObject[] = [
       {
         element: <AppShell />,
         children: [
-          // Pages with sticky header (manage their own scroll)
-          { path: 'chantiers', element: <ProjectsPage /> },
           {
-            element: <CanRoute module="clients" action="read" />,
+            // Une erreur d'affichage dans un écran : message dans la coque, la navigation reste utilisable
+            errorElement: <RouteErrorPage />,
             children: [
-              { path: 'clients', element: <ClientsPage /> },
-            ],
-          },
-          {
-            element: <CanRoute module="prestations" action="read" />,
-            children: [
-              { path: 'prestations', element: <ServicesPage /> },
-            ],
-          },
-          // All other pages scroll normally inside ScrollLayout
-          {
-            element: <ScrollLayout />,
-            children: [
-              { index: true, element: <DashboardPage /> },
-              { path: 'chantiers/:id', element: <ProjectDetailPage /> },
-              { path: 'chantiers/:id/photos', element: <PhotosPage /> },
-              { path: 'chantiers/:id/rapport', element: <ReportPage /> },
-              { path: 'parametres', element: <SettingsPage /> },
-              { path: 'parametres/profil', element: <SettingsProfilPage /> },
-              { path: 'parametres/apparence', element: <SettingsAppearancePage /> },
-              { path: 'parametres/navigation', element: <SettingsNavigationPage /> },
-              { path: 'parametres/entreprise', element: <SettingsEnterprisePage /> },
-              { path: 'parametres/tutoriels', element: <SettingsTutorialsPage /> },
-              {
-                element: <CanRoute module="chantiers" action="create" />,
-                children: [
-                  { path: 'chantiers/nouveau', element: <CreateProjectPage /> },
-                  { path: 'chantiers/express', element: <ExpressProjectPage /> },
-                ],
-              },
-              {
-                element: <CanRoute module="chantiers" action="update" />,
-                children: [
-                  { path: 'chantiers/:id/modifier', element: <EditProjectPage /> },
-                ],
-              },
+              // Pages with sticky header (manage their own scroll)
+              { path: 'chantiers', element: <ProjectsPage /> },
               {
                 element: <CanRoute module="clients" action="read" />,
                 children: [
-                  { path: 'clients/:id', element: <ClientDetailPage /> },
+                  { path: 'clients', element: <ClientsPage /> },
                 ],
               },
               {
-                element: <CanRoute module="clients" action="create" />,
+                element: <CanRoute module="prestations" action="read" />,
                 children: [
-                  { path: 'clients/nouveau', element: <CreateClientPage /> },
+                  { path: 'prestations', element: <ServicesPage /> },
                 ],
               },
+              // All other pages scroll normally inside ScrollLayout
               {
-                element: <CanRoute module="equipe" action="read" />,
+                element: <ScrollLayout />,
                 children: [
-                  { path: 'utilisateurs', element: <UsersPage /> },
+                  { index: true, element: <DashboardPage /> },
+                  { path: 'chantiers/:id', element: <ProjectDetailPage /> },
+                  { path: 'chantiers/:id/photos', element: <PhotosPage /> },
+                  { path: 'chantiers/:id/rapport', element: <ReportPage /> },
+                  { path: 'parametres', element: <SettingsPage /> },
+                  { path: 'parametres/profil', element: <SettingsProfilPage /> },
+                  { path: 'parametres/apparence', element: <SettingsAppearancePage /> },
+                  { path: 'parametres/navigation', element: <SettingsNavigationPage /> },
+                  { path: 'parametres/entreprise', element: <SettingsEnterprisePage /> },
+                  { path: 'parametres/tutoriels', element: <SettingsTutorialsPage /> },
+                  {
+                    element: <CanRoute module="chantiers" action="create" />,
+                    children: [
+                      { path: 'chantiers/nouveau', element: <CreateProjectPage /> },
+                      { path: 'chantiers/express', element: <ExpressProjectPage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="chantiers" action="update" />,
+                    children: [
+                      { path: 'chantiers/:id/modifier', element: <EditProjectPage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="clients" action="read" />,
+                    children: [
+                      { path: 'clients/:id', element: <ClientDetailPage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="clients" action="create" />,
+                    children: [
+                      { path: 'clients/nouveau', element: <CreateClientPage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="equipe" action="read" />,
+                    children: [
+                      { path: 'utilisateurs', element: <UsersPage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="equipe" action="create" />,
+                    children: [
+                      { path: 'utilisateurs/nouveau', element: <CreateUserPage /> },
+                      { path: 'utilisateurs/roles/nouveau', element: <CreateRolePage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="prestations" action="create" />,
+                    children: [
+                      { path: 'prestations/nouveau', element: <CreateServicePage /> },
+                    ],
+                  },
+                  // Toute autre adresse : une page « introuvable » dans l'application (sans session, PrivateRoute renvoie vers la connexion)
+                  { path: '*', element: <NotFoundPage /> },
                 ],
               },
-              {
-                element: <CanRoute module="equipe" action="create" />,
-                children: [
-                  { path: 'utilisateurs/nouveau', element: <CreateUserPage /> },
-                  { path: 'utilisateurs/roles/nouveau', element: <CreateRolePage /> },
-                ],
-              },
-              {
-                element: <CanRoute module="prestations" action="create" />,
-                children: [
-                  { path: 'prestations/nouveau', element: <CreateServicePage /> },
-                ],
-              },
-              // Toute autre adresse : une page « introuvable » dans l'application (sans session, PrivateRoute renvoie vers la connexion)
-              { path: '*', element: <NotFoundPage /> },
             ],
           },
         ],
@@ -139,3 +146,6 @@ export const routes: RouteObject[] = [
     ],
   },
 ]
+
+// Erreur d'affichage hors d'un écran de la coque (connexion, signature, coque elle-même) : page plein écran
+export const routes: RouteObject[] = routeTree.map((route) => ({ ...route, errorElement: <RouteErrorPage screen /> }))

@@ -241,6 +241,12 @@
     "message": "L'adresse que vous avez saisie n'existe pas, ou la page a été déplacée.",
     "home": "Retour au tableau de bord"
   },
+  "route_error": {
+    "title": "Une erreur est survenue",
+    "message": "Cet écran n'a pas pu s'afficher. Rechargez la page ; si le problème continue, revenez au tableau de bord.",
+    "reload": "Recharger la page",
+    "home": "Retour au tableau de bord"
+  },
   "login": {
     "subtitle": "Suivi de chantier",
     "username_label": "Identifiant",

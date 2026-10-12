@@ -241,6 +241,12 @@
     "message": "Die eingegebene Adresse existiert nicht, oder die Seite wurde verschoben.",
     "home": "Zurück zur Übersicht"
   },
+  "route_error": {
+    "title": "Ein Fehler ist aufgetreten",
+    "message": "Dieser Bildschirm konnte nicht angezeigt werden. Laden Sie die Seite neu; falls das Problem weiterhin besteht, kehren Sie zur Übersicht zurück.",
+    "reload": "Seite neu laden",
+    "home": "Zurück zur Übersicht"
+  },
   "login": {
     "subtitle": "Baustellenverfolgung",
     "username_label": "Benutzername",

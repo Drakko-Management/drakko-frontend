@@ -241,6 +241,12 @@
     "message": "La dirección que has escrito no existe, o la página se ha movido.",
     "home": "Volver al panel"
   },
+  "route_error": {
+    "title": "Ha ocurrido un error",
+    "message": "No se ha podido mostrar esta pantalla. Recarga la página; si el problema continúa, vuelve al panel.",
+    "reload": "Recargar la página",
+    "home": "Volver al panel"
+  },
   "login": {
     "subtitle": "Seguimiento de obra",
     "username_label": "Usuario",

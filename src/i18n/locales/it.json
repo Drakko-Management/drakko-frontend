@@ -241,6 +241,12 @@
     "message": "L'indirizzo che hai inserito non esiste, oppure la pagina è stata spostata.",
     "home": "Torna alla dashboard"
   },
+  "route_error": {
+    "title": "Si è verificato un errore",
+    "message": "Non è stato possibile mostrare questa schermata. Ricarica la pagina; se il problema continua, torna alla dashboard.",
+    "reload": "Ricarica la pagina",
+    "home": "Torna alla dashboard"
+  },
   "login": {
     "subtitle": "Monitoraggio cantiere",
     "username_label": "Utente",

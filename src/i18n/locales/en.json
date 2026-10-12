@@ -241,6 +241,12 @@
     "message": "The address you entered doesn't exist, or the page has been moved.",
     "home": "Back to the dashboard"
   },
+  "route_error": {
+    "title": "Something went wrong",
+    "message": "This screen couldn't be displayed. Reload the page; if the problem continues, go back to the dashboard.",
+    "reload": "Reload the page",
+    "home": "Back to the dashboard"
+  },
   "login": {
     "subtitle": "Site tracker",
     "username_label": "Username",

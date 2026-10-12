@@ -30,7 +30,7 @@ Ne pas lire toute la doc : seulement ce qui concerne la tâche. Un écran → `0
 5 langues : `fr`, `en`, `es`, `it`, `de`, fichiers dans `src/i18n/locales/`.
 - Aucun texte visible écrit en dur dans un composant : `const { t } = useTranslation()` puis `t('section.clé')`.
 - Toute nouvelle clé s'ajoute dans les **5 fichiers JSON**, traduite dans chaque langue (ton actuel : vouvoiement en `fr` et `de`, tutoiement en `es` et `it`).
-- Sections de clés : `common`, `nav`, `dashboard`, `projects`, `project`, `create_project`, `edit_project`, `clients`, `client_detail`, `create_client`, `users`, `report`, `photos`, `status`, `settings`, `tutorials`, `login`, `services`, `sign`, `express_project`, `install`, `not_found`.
+- Sections de clés : `common`, `nav`, `dashboard`, `projects`, `project`, `create_project`, `edit_project`, `clients`, `client_detail`, `create_client`, `users`, `report`, `photos`, `status`, `settings`, `tutorials`, `login`, `services`, `sign`, `express_project`, `install`, `not_found`, `route_error`.
 - Dates et montants : `i18n.language`, jamais `"fr-FR"` en dur. Labels statiques (`ROLE_LABELS`…) définis **dans** le composant ; hors composant (hook, utilitaire) : `i18n.t(...)` importé de `i18next`.
 - Ne jamais afficher le message d'une erreur de l'API : `apiErrorMessage(err, t, 'section.clé_de_repli')` (`src/lib/api-error.ts`) traduit le `code` renvoyé par le serveur.
 - Un `<option>` garde une `value` explicite : seul son libellé est traduit.
