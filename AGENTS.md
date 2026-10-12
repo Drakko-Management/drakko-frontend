@@ -6,6 +6,7 @@ Mobile first, PWA, responsive, interface simple pour utilisation terrain. Le pro
 Ce fichier est la source de vérité des consignes pour Claude Code, Cursor et Codex. `CLAUDE.md` se contente de l'importer : ne rien dupliquer dedans.
 
 ## Commandes
+- Node 22 (`.nvmrc`, lu aussi par la CI) : `nvm use` dans le dossier, `nvm install` si la version manque. Le back est sur Node 24, ne pas confondre les deux terminaux
 - `npm run dev` : serveur de développement, http://localhost:5200
 - `npm run check` : **à lancer avant de rendre la main** (lint + tests + build, comme la CI)
 - Tests : `npx vitest run` (un fichier : `npx vitest run src/chemin/X.test.tsx`) · Types : `npx tsc -p tsconfig.app.json --noEmit` · Lint : `npm run lint`
