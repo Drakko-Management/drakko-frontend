@@ -384,7 +384,7 @@ export function UsersPage() {
   const inactive = users?.filter((u) => !u.active) ?? []
 
   return (
-    <div className="flex flex-col space-y-4 pb-4">
+    <div className="flex flex-col space-y-4 pb-4" data-team-tabs={isAdmin ? 'on' : 'off'}>
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">{t('users.title')}</h1>
         <div className="flex items-center gap-2">

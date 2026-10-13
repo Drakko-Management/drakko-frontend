@@ -6,12 +6,16 @@ import { useTheme } from '@/providers/ThemeProvider'
 import { cn } from '@/lib/utils'
 import { useTutorial } from './TutorialProvider'
 import { findVisible, isZoneFilled } from './dom'
-import type { StepAdvance } from './definitions'
+import { TUTORIALS, isTutorialAvailable } from './definitions'
+import type { StepAdvance, TutorialId } from './definitions'
+import { usePermissions } from '@/hooks/use-permissions'
+import { usePwaInstall } from '@/hooks/use-pwa-install'
 
 export interface TutorialStepData {
   advance: StepAdvance
   canGoBack: boolean
   interactive?: boolean
+  link?: TutorialId
   gate?: boolean
   targetName?: string
 }
@@ -49,9 +53,15 @@ export function TutorialTooltip({
   backProps,
   skipProps,
 }: TooltipRenderProps) {
-  const { t } = useTutorial()
+  const { t, start } = useTutorial()
+  const { can, isAdmin } = usePermissions()
+  const { isMobile, isInstalled } = usePwaInstall()
   const { handedness } = useTheme()
   const data = step.data as TutorialStepData
+  // Le lien n'est proposé que si l'utilisateur a le droit de suivre ce tutoriel
+  const linkedTutorial = data.link
+    ? TUTORIALS.find((tuto) => tuto.id === data.link && isTutorialAvailable(tuto, can, isAdmin, { pwaInstallable: isMobile && !isInstalled }))
+    : undefined
   const filled = useZoneFilled(data.targetName, Boolean(data.gate))
 
   return (
@@ -64,6 +74,16 @@ export function TutorialTooltip({
       </p>
       {step.title && <h2 className="mt-1 text-base font-bold">{step.title}</h2>}
       <div className="mt-2 text-sm text-muted-foreground">{step.content}</div>
+
+      {linkedTutorial && (
+        <button
+          type="button"
+          className="mt-2 text-left text-sm font-medium text-primary underline underline-offset-2"
+          onClick={() => { start(linkedTutorial.id) }}
+        >
+          {t('tutorials.link_label', { title: t(`tutorials.${linkedTutorial.id}.title`) })}
+        </button>
+      )}
 
       {data.interactive && (
         <p className="mt-3 flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">

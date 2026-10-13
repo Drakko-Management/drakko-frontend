@@ -164,6 +164,24 @@ describe('UsersPage — navigation par onglets', () => {
 
 // ── Création (pages dédiées) ───────────────────────────────────────────────
 
+describe('UsersPage — repère des onglets pour les tutoriels', () => {
+  // Le tutoriel « Créer un membre » demande d'ouvrir l'onglet Membres, mais seul l'admin a des onglets :
+  // sans ce repère le guide attendait un onglet qui n'existe pas et s'arrêtait
+  it('administrateur : onglets présents, repérés « on »', () => {
+    const { container } = renderUsers()
+    expect(container.querySelector('[data-team-tabs="on"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-tutorial="team-membres-tab"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-tutorial="team-roles-tab"]')).toBeInTheDocument()
+  })
+
+  it('membre non administrateur : pas d\'onglets, repérés « off »', () => {
+    useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: makePermissions({ equipe: ['read', 'create'] }) })
+    const { container } = renderUsers()
+    expect(container.querySelector('[data-team-tabs="off"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-tutorial="team-membres-tab"]')).not.toBeInTheDocument()
+  })
+})
+
 describe('UsersPage — bouton Nouveau', () => {
   it('sur l\'onglet Membres, le bouton de l\'en-tête s\'appelle « Nouveau membre » et ouvre la création d\'un membre', async () => {
     renderUsers()

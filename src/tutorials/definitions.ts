@@ -34,6 +34,8 @@ export interface TutorialStepDef {
    * l'étape est déjà « faite » et elle est retirée (ex. l'onglet voulu est déjà ouvert).
    */
   skipWhen?: string
+  /** Autre tutoriel proposé en lien dans la bulle (lancé à la place de celui-ci, s'il est autorisé) */
+  link?: TutorialId
   /** Zone où l'utilisateur doit agir (saisir, choisir, signer) : contour coloré + repère dans la bulle */
   interactive?: boolean
   /** « Suivant » reste bloqué tant que les champs obligatoires de la zone ne sont pas remplis */
@@ -119,7 +121,7 @@ export const TUTORIALS: TutorialDef[] = [
       { id: 'new', route: /^\/chantiers$/, target: 'projects-new', advance: 'action' },
       { id: 'title', route: /^\/chantiers\/nouveau$/, target: 'project-title', advance: 'next', gate: true },
       // La liste déroulante des clients dépasse de la cible : on étend la zone cliquable vers le bas
-      { id: 'client', route: /^\/chantiers\/nouveau$/, target: 'project-client', advance: 'next', placement: 'top', floating: 'ul', gate: true },
+      { id: 'client', route: /^\/chantiers\/nouveau$/, target: 'project-client', advance: 'next', placement: 'top', floating: 'ul', gate: true, link: 'create_client' },
       { id: 'address', route: /^\/chantiers\/nouveau$/, target: 'project-address', advance: 'next', gate: true },
       { id: 'planning', route: /^\/chantiers\/nouveau$/, target: 'project-planning', advance: 'next' },
       { id: 'submit', route: /^\/chantiers\/nouveau$/, target: 'project-submit', advance: 'action', placement: 'top' },
@@ -179,7 +181,7 @@ export const TUTORIALS: TutorialDef[] = [
     startRoute: '/utilisateurs',
     permission: { module: 'equipe', action: 'create' },
     steps: [
-      { id: 'tab', route: /^\/utilisateurs$/, target: 'team-membres-tab', advance: 'click', skipWhen: '[data-tutorial="team-membres-tab"][data-active="true"]' },
+      { id: 'tab', route: /^\/utilisateurs$/, target: 'team-membres-tab', advance: 'click', skipWhen: '[data-tutorial="team-membres-tab"][data-active="true"], [data-team-tabs="off"]' },
       { id: 'new', route: /^\/utilisateurs$/, target: 'team-new', advance: 'action' },
       { id: 'name', route: /^\/utilisateurs\/nouveau$/, target: 'user-name', advance: 'next', gate: true },
       { id: 'identifier', route: /^\/utilisateurs\/nouveau$/, target: 'user-identifier', advance: 'next', gate: true },

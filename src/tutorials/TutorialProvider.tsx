@@ -110,6 +110,10 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
   const [stepsOverride, setStepsOverride] = useState<TutorialStepDef[] | null>(null)
   // Page publique : tout est déjà affiché, une cible absente ne viendra pas (pas d'attente longue)
   const [quickTargets, setQuickTargets] = useState(false)
+  // Page vers laquelle on vient de naviguer pour lancer le tutoriel : la navigation de React Router 7 est
+  // asynchrone, l'URL change un instant après l'appel. Tant que la page n'est pas arrivée on n'affiche rien et
+  // on ne conclut pas que l'utilisateur est « parti ailleurs » (sinon le guide s'arrête avant de commencer).
+  const [awaitingRoute, setAwaitingRoute] = useState<string | null>(null)
   // Hauteur dont la zone éclairée dépasse la cible tant qu'une liste déroulante (`floating`) est ouverte
   const [floatingExtra, setFloatingExtra] = useState(0)
   const [completed, setCompleted] = useState<TutorialId[]>(() => readCompleted(userId))
@@ -119,6 +123,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
     setIndex(0)
     setStepsOverride(null)
     setQuickTargets(false)
+    setAwaitingRoute(null)
   }, [])
 
   const start = useCallback(
@@ -173,6 +178,8 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
         setRunKey((k) => k + 1)
         setIndex(0)
         setActiveId(id)
+        const target = route?.split('?')[0] ?? null
+        setAwaitingRoute(target && target !== pathnameRef.current ? target : null)
         if (route) void navigate(route)
       })()
     },
@@ -221,7 +228,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
   // Étape déjà « faite » une fois la page affichée (ex. on arrive sur /utilisateurs : l'onglet voulu est
   // ouvert par défaut) : on la retire de la liste, la numérotation reste juste.
   useEffect(() => {
-    if (!activeId) return
+    if (!activeId || awaitingRoute) return
     const step = activeSteps[index]
     const selector = step?.skipWhen
     if (!selector) return
@@ -231,18 +238,26 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
     check()
     const timer = window.setInterval(check, 200)
     return () => { window.clearInterval(timer) }
-  }, [activeId, activeSteps, index])
+  }, [activeId, activeSteps, index, awaitingRoute])
+
+  // La page demandée est arrivée : on peut commencer. Délai de sécurité si elle n'arrive jamais (redirection…).
+  useEffect(() => {
+    if (!awaitingRoute) return
+    if (pathname === awaitingRoute) { setAwaitingRoute(null); return }
+    const timer = window.setTimeout(() => { setAwaitingRoute(null) }, 6000)
+    return () => { window.clearTimeout(timer) }
+  }, [awaitingRoute, pathname])
 
   // Suit les changements de page : saute à l'étape correspondant à la route,
   // ou arrête le tutoriel si l'utilisateur est parti ailleurs.
   useEffect(() => {
-    if (!activeId) return
+    if (!activeId || awaitingRoute) return
     const steps = activeSteps
     if (steps[index]?.route.test(pathname)) return
     const next = steps.findIndex((s, i) => i > index && s.route.test(pathname))
     if (next >= 0) setIndex(next)
     else stop()
-  }, [activeId, index, pathname, stop, activeSteps])
+  }, [activeId, index, pathname, stop, activeSteps, awaitingRoute])
 
   // Étapes « click » : l'utilisateur appuie sur l'élément sans changer de page (ex. un onglet)
   useEffect(() => {
@@ -274,6 +289,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
       const data: TutorialStepData = {
         advance: s.advance,
         interactive: s.interactive,
+        link: s.link,
         gate: s.gate,
         targetName: s.target,
         // « Précédent » seulement si l'étape d'avant est sur la même page
@@ -344,7 +360,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
       {children}
       <Joyride
         key={runKey}
-        run={activeId !== null}
+        run={activeId !== null && awaitingRoute === null}
         stepIndex={index}
         steps={steps}
         continuous
