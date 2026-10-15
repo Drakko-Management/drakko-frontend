@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { OtpInput } from '@/components/ui/otp-input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/common/PasswordInput'
 import { RecoveryCodesPanel } from '@/components/two-factor/RecoveryCodesPanel'
@@ -94,20 +95,15 @@ export function TwoFactorSetupFlow({ replacing = false, onDone, onCancel }: Prop
 
         <div className="space-y-1.5">
           <Label htmlFor="tf-code">{t('two_factor.first_code_label')}</Label>
-          <Input
+          <OtpInput
             id="tf-code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={7}
-            placeholder="123456"
-            className={`min-h-[44px] text-center text-lg tracking-[0.3em] ${codeRejected ? 'border-destructive' : ''}`}
             value={code}
-            onChange={(e) => {
-              setCode(e.target.value)
+            onChange={(value) => {
+              setCode(value)
               setCodeRejected(false)
             }}
             disabled={confirm.isPending}
-            aria-invalid={codeRejected || undefined}
+            invalid={codeRejected}
           />
           {codeRejected && (
             <p role="alert" className="text-xs text-destructive">

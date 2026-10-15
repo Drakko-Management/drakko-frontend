@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { OtpInput } from '@/components/ui/otp-input'
 import { Label } from '@/components/ui/label'
 import { apiRequest, ApiError } from '@/lib/api-client'
 import { useAuthStore } from '@/store/auth.store'
@@ -150,24 +151,39 @@ export function LoginPage() {
 
             <div className="space-y-2">
               <Label htmlFor="mfa-code">{t(useRecovery ? 'two_factor.recovery_label' : 'two_factor.code_label')}</Label>
-              <Input
-                id="mfa-code"
-                type="text"
-                inputMode={useRecovery ? 'text' : 'numeric'}
-                autoComplete="one-time-code"
-                autoCapitalize="none"
-                spellCheck={false}
-                autoFocus
-                className={`min-h-[44px] text-center text-lg tracking-widest ${codeRejected ? 'border-destructive' : ''}`}
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value)
-                  setCodeRejected(false)
-                }}
-                disabled={loading}
-                aria-invalid={codeRejected || undefined}
-                required
-              />
+              {useRecovery ? (
+                <Input
+                  id="mfa-code"
+                  type="text"
+                  inputMode="text"
+                  autoComplete="one-time-code"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  autoFocus
+                  className={`min-h-[44px] text-center text-lg tracking-widest ${codeRejected ? 'border-destructive' : ''}`}
+                  value={code}
+                  onChange={(e) => {
+                    setCode(e.target.value)
+                    setCodeRejected(false)
+                  }}
+                  disabled={loading}
+                  aria-invalid={codeRejected || undefined}
+                  required
+                />
+              ) : (
+                <OtpInput
+                  id="mfa-code"
+                  autoFocus
+                  value={code}
+                  onChange={(value) => {
+                    setCode(value)
+                    setCodeRejected(false)
+                  }}
+                  disabled={loading}
+                  invalid={codeRejected}
+                  required
+                />
+              )}
               {codeRejected && (
                 <p role="alert" className="text-xs text-destructive">
                   {t(useRecovery ? 'two_factor.recovery_invalid' : 'two_factor.code_invalid_login')}
