@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { Loader2 } from 'lucide-react'
+import { ArrowLeftRight, Loader2 } from 'lucide-react'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -93,7 +93,7 @@ export function ClientForm({ initial, autoFocus = false, onCreated }: ClientForm
 
   return (
     <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3" data-tutorial="client-name">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2" data-tutorial="client-name">
         <div className="space-y-2">
           <Label htmlFor="firstName">{t('common.first_name')} *</Label>
           <Input
@@ -105,6 +105,17 @@ export function ClientForm({ initial, autoFocus = false, onCreated }: ClientForm
             required
           />
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="min-h-[44px] min-w-[44px] text-muted-foreground"
+          aria-label={t('create_client.swap_names')}
+          title={t('create_client.swap_names')}
+          onClick={() => setForm((f) => ({ ...f, firstName: f.lastName, lastName: f.firstName }))}
+        >
+          <ArrowLeftRight className="h-4 w-4" />
+        </Button>
         <div className="space-y-2">
           <Label htmlFor="lastName">{t('common.last_name')} *</Label>
           <Input

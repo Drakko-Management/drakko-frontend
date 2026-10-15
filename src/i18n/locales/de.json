@@ -507,6 +507,7 @@
     "billing_address": "Rechnungsadresse *",
     "required_error": "Vorname, Nachname, E-Mail und Rechnungsadresse sind erforderlich",
     "notes_label": "Notizen",
+    "swap_names": "Vor- und Nachname tauschen",
     "notes_placeholder": "Zusätzliche Informationen…",
     "submit": "Kunden erstellen",
     "success": "Kunde erstellt",

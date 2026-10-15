@@ -507,6 +507,7 @@
     "billing_address": "Billing address *",
     "required_error": "First name, last name, email and billing address are required",
     "notes_label": "Notes",
+    "swap_names": "Swap first and last name",
     "notes_placeholder": "Additional information…",
     "submit": "Create client",
     "success": "Client created",

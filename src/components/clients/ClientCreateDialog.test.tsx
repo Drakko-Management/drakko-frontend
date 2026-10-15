@@ -72,6 +72,15 @@ describe('ClientCreateDialog', () => {
     expect(within(dialog).getByLabelText(/Email/)).toHaveFocus()
   })
 
+  it('un bouton inverse le prénom et le nom quand le découpage du texte tapé est à l\'envers', async () => {
+    const { dialog } = renderDialog('Dupont Paul')
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Inverser prénom et nom' }))
+
+    expect(within(dialog).getByLabelText(/Prénom/)).toHaveValue('Paul')
+    expect(within(dialog).getByLabelText(/^Nom/)).toHaveValue('Dupont')
+  })
+
   it('met le curseur sur le prénom quand rien n\'est pré-rempli', () => {
     const { dialog } = renderDialog('')
 

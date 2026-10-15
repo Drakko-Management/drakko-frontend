@@ -507,6 +507,7 @@
     "billing_address": "Indirizzo di fatturazione *",
     "required_error": "Nome, cognome, email e indirizzo di fatturazione sono obbligatori",
     "notes_label": "Note",
+    "swap_names": "Inverti nome e cognome",
     "notes_placeholder": "Informazioni aggiuntive…",
     "submit": "Crea cliente",
     "success": "Cliente creato",
