@@ -405,7 +405,7 @@ export function CreateProjectPage() {
         </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="project-manager">
           <Label htmlFor="projectManager">{t('common.project_manager')}</Label>
           <Input
             id="projectManager"
@@ -416,7 +416,7 @@ export function CreateProjectPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" data-tutorial="project-description">
           <Label htmlFor="description">{t('common.description')}</Label>
           <Textarea
             id="description"

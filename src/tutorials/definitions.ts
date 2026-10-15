@@ -124,6 +124,8 @@ export const TUTORIALS: TutorialDef[] = [
       { id: 'client', route: /^\/chantiers\/nouveau$/, target: 'project-client', advance: 'next', placement: 'top', floating: 'ul', gate: true, link: 'create_client' },
       { id: 'address', route: /^\/chantiers\/nouveau$/, target: 'project-address', advance: 'next', gate: true },
       { id: 'planning', route: /^\/chantiers\/nouveau$/, target: 'project-planning', advance: 'next' },
+      { id: 'manager', route: /^\/chantiers\/nouveau$/, target: 'project-manager', advance: 'next' },
+      { id: 'description', route: /^\/chantiers\/nouveau$/, target: 'project-description', advance: 'next' },
       { id: 'submit', route: /^\/chantiers\/nouveau$/, target: 'project-submit', advance: 'action', placement: 'top' },
       { id: 'done', route: /^\/chantiers\/(?!nouveau$|express$)[^/]+$/, target: 'center', advance: 'next' },
     ],
