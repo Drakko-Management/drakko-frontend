@@ -138,19 +138,20 @@ function ServiceCard({
   const { t } = useTranslation();
 
   return (
+    <div className="flex items-center gap-2">
+      {selecting && (
+        <input
+          type="checkbox"
+          className="h-5 w-5 shrink-0 accent-primary"
+          checked={selected}
+          onChange={() => onToggle(service.id)}
+          aria-label={t("services.select_one", { title: service.title })}
+        />
+      )}
     <div
-      className={`rounded-xl border bg-card p-3 space-y-1 ${!service.active ? "opacity-60" : ""} ${selected ? "border-primary ring-1 ring-primary" : ""}`}
+      className={`min-w-0 flex-1 rounded-xl border bg-card p-3 space-y-1 ${!service.active ? "opacity-60" : ""} ${selected ? "border-primary ring-1 ring-primary" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
-        {selecting && (
-          <input
-            type="checkbox"
-            className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
-            checked={selected}
-            onChange={() => onToggle(service.id)}
-            aria-label={t("services.select_one", { title: service.title })}
-          />
-        )}
         <div
           className={`min-w-0 flex-1 ${selecting ? "cursor-pointer" : ""}`}
           onClick={selecting ? () => onToggle(service.id) : undefined}
@@ -207,6 +208,7 @@ function ServiceCard({
         </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
