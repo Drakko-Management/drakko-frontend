@@ -335,7 +335,6 @@ describe('ServicesPage — suppression en masse', () => {
     const user = userEvent.setup()
     renderServices()
 
-    await user.click(screen.getByRole('button', { name: 'Sélectionner' }))
     await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
 
     expect(screen.getByRole('button', { name: /supprimer \(2\)/i })).toBeEnabled()
@@ -347,7 +346,6 @@ describe('ServicesPage — suppression en masse', () => {
     vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync }) as never)
     renderServices()
 
-    await user.click(screen.getByRole('button', { name: 'Sélectionner' }))
     await user.click(screen.getByRole('checkbox', { name: /Arrosage/ }))
     await user.click(screen.getByRole('button', { name: /supprimer \(1\)/i }))
 
@@ -364,7 +362,6 @@ describe('ServicesPage — suppression en masse', () => {
     vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync }) as never)
     renderServices()
 
-    await user.click(screen.getByRole('button', { name: 'Sélectionner' }))
     await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
     await user.click(screen.getByRole('button', { name: /supprimer \(2\)/i }))
     await user.click(screen.getByRole('button', { name: 'Annuler', hidden: false }))
@@ -372,9 +369,9 @@ describe('ServicesPage — suppression en masse', () => {
     expect(mutateAsync).not.toHaveBeenCalled()
   })
 
-  it('sans droit de suppression, pas de sélection', () => {
+  it('sans droit de suppression, pas de cases à cocher', () => {
     useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ prestations: ['read'] }) })
     renderServices()
-    expect(screen.queryByRole('button', { name: 'Sélectionner' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   })
 })
