@@ -26,13 +26,13 @@ interface FieldProps<T extends string> {
 function Field<T extends string>({ id, label, value, options, onChange }: FieldProps<T>) {
   const { t } = useTranslation()
   return (
-    <div className="flex items-center justify-between gap-3">
-      <label htmlFor={id} className="text-sm">{label}</label>
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="block text-xs font-medium text-muted-foreground">{label}</label>
       <select
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="h-11 min-w-[9rem] rounded-xl border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        className="h-11 w-full rounded-xl border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
