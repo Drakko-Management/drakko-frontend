@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Plus, Pencil, Trash2, EyeOff, Eye, Loader2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, EyeOff, Eye, Loader2, Search, ListChecks } from "lucide-react";
 import { ConfirmDestructiveDialog } from "@/components/common/ConfirmDestructiveDialog";
 import { apiErrorMessage } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
@@ -167,6 +167,7 @@ function ServiceCard({
             </p>
           )}
         </div>
+        {!selecting && (
         <div className="flex items-center gap-1 shrink-0">
           {canUpdate && (
             <button
@@ -204,6 +205,7 @@ function ServiceCard({
             </button>
           )}
         </div>
+        )}
       </div>
     </div>
   );
@@ -230,8 +232,7 @@ export function ServicesPage() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"az" | "za" | "recent">("az");
 
-  // Les cases sont visibles d'emblée pour qui peut supprimer : rien à deviner
-  const selecting = can('prestations', 'delete');
+  const [selecting, setSelecting] = useState(false);
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [confirmBulk, setConfirmBulk] = useState(false);
 
@@ -273,7 +274,8 @@ export function ServicesPage() {
     setSelection(allSelected ? new Set() : new Set(filteredServices.map((s) => s.id)));
   }
 
-  function clearSelection() {
+  function stopSelecting() {
+    setSelecting(false);
     setSelection(new Set());
   }
 
@@ -282,7 +284,7 @@ export function ServicesPage() {
       const { deleted, deactivated } = await deleteServices.mutateAsync(selectedIds);
       toast.success(t("services.bulk_done", { deleted, deactivated }));
       setConfirmBulk(false);
-      clearSelection();
+      stopSelecting();
     } catch (err) {
       toast.error(apiErrorMessage(err, t, "services.delete_error"));
     }
@@ -374,6 +376,17 @@ export function ServicesPage() {
           </h1>
           <div className="flex items-center gap-2">
             <TutorialHelpButton scope="services" />
+            {!selecting && can('prestations', 'delete') && filteredServices.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-[44px] gap-1.5"
+                onClick={() => setSelecting(true)}
+              >
+                <ListChecks className="h-4 w-4" />
+                {t("services.select")}
+              </Button>
+            )}
             {view === "active" && can('prestations', 'create') ? (
               <Button
                 size="sm"
@@ -416,7 +429,7 @@ export function ServicesPage() {
             <option value="recent">{t("services.sort_recent")}</option>
           </select>
         </div>
-        {selecting && filteredServices.length > 0 && (
+        {selecting ? (
           <div className="flex items-center gap-2">
             <label className="flex flex-1 items-center gap-2 text-sm">
               <input
@@ -424,27 +437,25 @@ export function ServicesPage() {
                 className="h-5 w-5 accent-primary"
                 checked={allSelected}
                 onChange={toggleAll}
+                disabled={filteredServices.length === 0}
               />
               {t("services.select_all", { count: filteredServices.length })}
             </label>
-            {selectedIds.length > 0 && (
-              <>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="min-h-[44px] gap-1.5"
-                  onClick={() => setConfirmBulk(true)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  {t("services.delete_selected", { count: selectedIds.length })}
-                </Button>
-                <Button size="sm" variant="outline" className="min-h-[44px]" onClick={clearSelection}>
-                  {t("common.cancel")}
-                </Button>
-              </>
-            )}
+            <Button
+              size="sm"
+              variant="destructive"
+              className="min-h-[44px] gap-1.5"
+              disabled={selectedIds.length === 0}
+              onClick={() => setConfirmBulk(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {t("services.delete_selected", { count: selectedIds.length })}
+            </Button>
+            <Button size="sm" variant="outline" className="min-h-[44px]" onClick={stopSelecting}>
+              {t("common.cancel")}
+            </Button>
           </div>
-        )}
+        ) : null}
         {view === "active" && inactiveServices.length > 0 && !isLoading && (
           <button
             className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
@@ -555,7 +566,7 @@ export function ServicesPage() {
         onConfirm={() => void handleBulkDelete()}
       />
 
-      {view === "active" && can('prestations', 'create') && (
+      {view === "active" && !selecting && can('prestations', 'create') && (
         <Fab tutorial="services-new" onClick={() => void navigate('/prestations/nouveau')} />
       )}
     </div>

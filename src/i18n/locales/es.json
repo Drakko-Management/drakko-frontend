@@ -696,7 +696,7 @@
     "sort_za": "Z → A",
     "sort_recent": "Más reciente",
     "no_results": "Sin resultados",
-    "select": "Seleccionar",
+    "select": "Eliminar varios",
     "select_one": "Seleccionar {{title}}",
     "select_all": "Seleccionar todo ({{count}})",
     "delete_selected": "Eliminar ({{count}})",
