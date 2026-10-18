@@ -2,6 +2,7 @@ import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/store/auth.store'
 import { useUpdateMe } from '@/hooks/use-update-me'
 import { usePermissions } from '@/hooks/use-permissions'
@@ -27,7 +28,7 @@ function Field<T extends string>({ id, label, value, options, onChange }: FieldP
   const { t } = useTranslation()
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-xs font-medium text-muted-foreground">{label}</label>
+      <Label htmlFor={id}>{label}</Label>
       <select
         id={id}
         value={value}
@@ -39,6 +40,12 @@ function Field<T extends string>({ id, label, value, options, onChange }: FieldP
         ))}
       </select>
     </div>
+  )
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{children}</p>
   )
 }
 
@@ -71,14 +78,15 @@ export function SettingsFiltersPage() {
   )
 
   return (
-    <div className="max-w-xl space-y-4 pb-4">
+    <div className="space-y-4 pb-4">
       <SettingsSubHeader title={t('settings.hub_filters')} />
-      <p className="text-sm text-muted-foreground">{t('settings.filters_intro')}</p>
 
-      {can('chantiers', 'read') && (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold">{t('nav.projects')}</p>
-          <Card className="space-y-3 p-4">
+      <Card className="divide-y">
+        <p className="p-4 text-xs text-muted-foreground">{t('settings.filters_intro')}</p>
+
+        {can('chantiers', 'read') && (
+          <div className="space-y-3 p-4">
+            <SectionTitle>{t('nav.projects')}</SectionTitle>
             <Field
               id="filter-projects-status"
               label={t('settings.filters_status')}
@@ -93,14 +101,12 @@ export function SettingsFiltersPage() {
               options={PROJECT_SORT_OPTIONS}
               onChange={(v) => change('projectsSort', v)}
             />
-          </Card>
-        </div>
-      )}
+          </div>
+        )}
 
-      {can('clients', 'read') && (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold">{t('nav.clients')}</p>
-          <Card className="p-4">
+        {can('clients', 'read') && (
+          <div className="space-y-3 p-4">
+            <SectionTitle>{t('nav.clients')}</SectionTitle>
             <Field
               id="filter-clients-sort"
               label={t('settings.filters_sort')}
@@ -108,14 +114,12 @@ export function SettingsFiltersPage() {
               options={CLIENT_SORT_OPTIONS}
               onChange={(v) => change('clientsSort', v)}
             />
-          </Card>
-        </div>
-      )}
+          </div>
+        )}
 
-      {can('prestations', 'read') && (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold">{t('nav.services')}</p>
-          <Card className="p-4">
+        {can('prestations', 'read') && (
+          <div className="space-y-3 p-4">
+            <SectionTitle>{t('nav.services')}</SectionTitle>
             <Field
               id="filter-services-sort"
               label={t('settings.filters_sort')}
@@ -123,18 +127,20 @@ export function SettingsFiltersPage() {
               options={SERVICE_SORT_OPTIONS}
               onChange={(v) => change('servicesSort', v)}
             />
-          </Card>
-        </div>
-      )}
+          </div>
+        )}
 
-      <Button
-        variant="outline"
-        className="w-full min-h-[44px]"
-        disabled={isDefault || updateMe.isPending}
-        onClick={() => void save(FILTER_FALLBACKS)}
-      >
-        {t('settings.filters_reset')}
-      </Button>
+        <div className="p-4">
+          <Button
+            variant="outline"
+            className="w-full min-h-[44px]"
+            disabled={isDefault || updateMe.isPending}
+            onClick={() => void save(FILTER_FALLBACKS)}
+          >
+            {t('settings.filters_reset')}
+          </Button>
+        </div>
+      </Card>
     </div>
   )
 }
