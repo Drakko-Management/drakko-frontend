@@ -303,22 +303,22 @@ describe('ServicesPage — vue inactive', () => {
     } as unknown as ReturnType<typeof useServices>)
   })
 
-  it('affiche le lien "Voir les désactivées" quand il y en a', () => {
+  it('affiche le lien "Voir les prestations désactivées" quand il y en a', () => {
     renderServices()
-    expect(screen.getByText(/Voir les désactivées/i)).toBeInTheDocument()
+    expect(screen.getByText(/Voir les prestations désactivées/i)).toBeInTheDocument()
   })
 
-  it('cliquer sur "Voir les désactivées" affiche la prestation inactive', async () => {
+  it('cliquer sur "Voir les prestations désactivées" affiche la prestation inactive', async () => {
     renderServices()
-    await userEvent.click(screen.getByText(/Voir les désactivées/i))
+    await userEvent.click(screen.getByText(/Voir les prestations désactivées/i))
     expect(screen.getByText('Taille de haies')).toBeInTheDocument()
   })
 
   it('en vue inactive, affiche le bouton retour et masque Ajouter', async () => {
     renderServices()
-    await userEvent.click(screen.getByText(/Voir les désactivées/i))
-    // services.view_active = "← Actives ({{count}})" → "← Actives (1)"
-    expect(screen.getByText(/← Actives/)).toBeInTheDocument()
+    await userEvent.click(screen.getByText(/Voir les prestations désactivées/i))
+    // services.view_active = "← Prestations actives ({{count}})"
+    expect(screen.getByText(/← Prestations actives/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Nouvelle prestation' })).not.toBeInTheDocument()
   })
 })
@@ -400,7 +400,7 @@ describe('ServicesPage — suppression en masse', () => {
     } as unknown as ReturnType<typeof useServices>)
     renderServices()
 
-    await user.click(screen.getByRole('button', { name: /voir les désactivées/i }))
+    await user.click(screen.getByRole('button', { name: /voir les prestations désactivées/i }))
     await user.click(screen.getByRole('button', { name: /sélection multiple/i }))
     await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
     await user.click(screen.getByRole('button', { name: /^activer \(1\)/i }))
