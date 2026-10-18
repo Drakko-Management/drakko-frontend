@@ -53,9 +53,10 @@ export function SettingsNavigationPage() {
   }
 
   // ── Member : nav perso ───────────────────────────────────────────
-  const accessibleSlots = ALL_SLOT_KEYS.filter((key) =>
-    can(SLOT_TO_PERM_MODULE[key], 'read'),
-  )
+  const accessibleSlots = ALL_SLOT_KEYS.filter((key) => {
+    const module = SLOT_TO_PERM_MODULE[key]
+    return module === null || can(module, 'read')
+  })
   const [userNav, setUserNav] = useState<NavSlotKey[]>([])
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [navSaving, setNavSaving] = useState(false)

@@ -73,9 +73,13 @@ function MemberBottomNav({ className }: { className?: string }) {
   const { can } = usePermissions();
 
   const middleItems: NavItem[] = (userNavSlots as NavSlotKey[])
-    .filter((key) => NAV_SLOT_REGISTRY[key as NavSlotKey] && can(SLOT_TO_PERM_MODULE[key as NavSlotKey], "read"))
+    .filter((key) => {
+      if (!NAV_SLOT_REGISTRY[key]) return false;
+      const module = SLOT_TO_PERM_MODULE[key];
+      return module === null || can(module, "read");
+    })
     .map((key) => {
-      const { to, icon, labelKey } = NAV_SLOT_REGISTRY[key as NavSlotKey];
+      const { to, icon, labelKey } = NAV_SLOT_REGISTRY[key];
       return { to, icon, labelKey };
     });
 

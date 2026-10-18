@@ -27,12 +27,12 @@ describe('DEFAULT_NAV_SLOTS', () => {
 // ── ALL_SLOT_KEYS ──────────────────────────────────────────────────────────
 
 describe('ALL_SLOT_KEYS', () => {
-  it('contient 4 clés', () => {
-    expect(ALL_SLOT_KEYS).toHaveLength(4)
+  it('contient 5 clés', () => {
+    expect(ALL_SLOT_KEYS).toHaveLength(5)
   })
 
-  it('contient les 4 modules', () => {
-    const expected: NavSlotKey[] = ['chantiers', 'clients', 'utilisateurs', 'prestations']
+  it('contient les 5 emplacements', () => {
+    const expected: NavSlotKey[] = ['chantiers', 'clients', 'utilisateurs', 'prestations', 'parametres']
     expected.forEach((k) => expect(ALL_SLOT_KEYS).toContain(k))
   })
 
@@ -45,7 +45,7 @@ describe('ALL_SLOT_KEYS', () => {
 // ── NAV_SLOT_REGISTRY ─────────────────────────────────────────────────────
 
 describe('NAV_SLOT_REGISTRY — structure', () => {
-  const KEYS: NavSlotKey[] = ['chantiers', 'clients', 'utilisateurs', 'prestations']
+  const KEYS: NavSlotKey[] = ['chantiers', 'clients', 'utilisateurs', 'prestations', 'parametres']
 
   it.each(KEYS)('%s a les champs requis (to, icon, labelKey, nameKey)', (key) => {
     const entry = NAV_SLOT_REGISTRY[key]
@@ -85,6 +85,10 @@ describe('NAV_SLOT_REGISTRY — routes attendues', () => {
 
   it('prestations pointe vers /prestations', () => {
     expect(NAV_SLOT_REGISTRY.prestations.to).toBe('/prestations')
+  })
+
+  it('parametres pointe vers /parametres', () => {
+    expect(NAV_SLOT_REGISTRY.parametres.to).toBe('/parametres')
   })
 })
 
