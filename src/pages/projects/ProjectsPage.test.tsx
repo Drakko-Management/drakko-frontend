@@ -100,6 +100,7 @@ describe('ProjectsPage — bouton Nouveau', () => {
     renderProjects()
     // happy-dom ignore les classes responsive : le bouton de l'en-tête (desktop) et le bouton flottant (mobile) sont tous deux dans le DOM
     expect(screen.getAllByRole('button', { name: /nouveau/i })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Nouveau chantier' })).toBeInTheDocument()
   })
 
   it('absent pour MEMBER sans permission create', () => {

@@ -47,7 +47,8 @@
     "empty_desc": "Aucun chantier pour le moment",
     "create": "Créer un chantier",
     "express": "Intervention rapide",
-    "clear_search": "Effacer la recherche"
+    "clear_search": "Effacer la recherche",
+    "new_project": "Nouveau chantier"
   },
   "clients": {
     "title": "Clients",

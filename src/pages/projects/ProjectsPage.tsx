@@ -111,11 +111,13 @@ export function ProjectsPage() {
                 <Button
                   size="sm"
                   className="min-h-[44px]"
+                  aria-label={t('projects.new_project')}
                   data-tutorial="projects-new"
                   onClick={() => void navigate('/chantiers/nouveau')}
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  {t('projects.new')}
+                  <span className="lg:hidden">{t('projects.new')}</span>
+                  <span className="hidden lg:inline">{t('projects.new_project')}</span>
                 </Button>
               </div>
             )}

@@ -47,7 +47,8 @@
     "empty_desc": "No projects yet",
     "create": "Create a project",
     "express": "Quick intervention",
-    "clear_search": "Clear search"
+    "clear_search": "Clear search",
+    "new_project": "New project"
   },
   "clients": {
     "title": "Clients",

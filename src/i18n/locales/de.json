@@ -47,7 +47,8 @@
     "empty_desc": "Noch keine Projekte",
     "create": "Projekt erstellen",
     "express": "Schnellintervention",
-    "clear_search": "Suche löschen"
+    "clear_search": "Suche löschen",
+    "new_project": "Neues Projekt"
   },
   "clients": {
     "title": "Kunden",

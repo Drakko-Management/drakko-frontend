@@ -47,7 +47,8 @@
     "empty_desc": "Nessun cantiere al momento",
     "create": "Crea un cantiere",
     "express": "Intervento rapido",
-    "clear_search": "Cancella la ricerca"
+    "clear_search": "Cancella la ricerca",
+    "new_project": "Nuovo cantiere"
   },
   "clients": {
     "title": "Clienti",
