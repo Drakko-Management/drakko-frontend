@@ -298,15 +298,6 @@ export function ServicesPage() {
                 <span className="lg:hidden">{t("services.add_short")}</span>
                 <span className="hidden lg:inline">{t("services.add")}</span>
               </Button>
-            ) : view === "inactive" ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="min-h-[44px]"
-                onClick={() => switchView("active")}
-              >
-                {t("services.view_active", { count: activeServices.length })}
-              </Button>
             ) : null}
           </div>
         </div>
@@ -369,12 +360,15 @@ export function ServicesPage() {
             </Button>
           </div>
         ) : null}
-        {view === "active" && inactiveServices.length > 0 && !isLoading && (
+        {/* Même lien que sur Clients et Équipe, dans les deux sens, plutôt qu'un bouton dans l'en-tête */}
+        {!isLoading && (view === "inactive" || inactiveServices.length > 0) && (
           <button
             className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
-            onClick={() => switchView("inactive")}
+            onClick={() => switchView(view === "active" ? "inactive" : "active")}
           >
-            {t("services.view_inactive", { count: inactiveServices.length })}
+            {view === "active"
+              ? t("services.view_inactive", { count: inactiveServices.length })
+              : t("services.view_active", { count: activeServices.length })}
           </button>
         )}
       </div>

@@ -318,7 +318,7 @@ describe('ServicesPage — vue inactive', () => {
     renderServices()
     await userEvent.click(screen.getByText(/Voir les désactivées/i))
     // services.view_active = "← Actives ({{count}})" → "← Actives (1)"
-    expect(screen.getByRole('button', { name: /← Actives/ })).toBeInTheDocument()
+    expect(screen.getByText(/← Actives/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Nouvelle prestation' })).not.toBeInTheDocument()
   })
 })
