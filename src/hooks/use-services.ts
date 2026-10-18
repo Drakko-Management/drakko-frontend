@@ -52,7 +52,7 @@ export function useActivateService() {
 export function useDeleteService() {
   return useMutation({
     mutationFn: (id: string) =>
-      apiRequest<void>(`/services/${id}`, { method: 'DELETE' }),
+      apiRequest<{ result: 'deleted' | 'deactivated' }>(`/services/${id}`, { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
   })
 }

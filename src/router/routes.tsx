@@ -19,6 +19,7 @@ import { EditProjectPage } from '@/pages/projects/EditProjectPage'
 import { ClientsPage } from '@/pages/clients/ClientsPage'
 import { ClientDetailPage } from '@/pages/clients/ClientDetailPage'
 import { CreateClientPage } from '@/pages/clients/CreateClientPage'
+import { EditUserPage } from '@/pages/users/EditUserPage'
 import { UsersPage } from '@/pages/users/UsersPage'
 import { CreateUserPage } from '@/pages/users/CreateUserPage'
 import { CreateRolePage } from '@/pages/users/CreateRolePage'
@@ -30,6 +31,7 @@ import { SettingsNavigationPage } from '@/pages/settings/SettingsNavigationPage'
 import { SettingsEnterprisePage } from '@/pages/settings/SettingsEnterprisePage'
 import { SettingsTutorialsPage } from '@/pages/settings/SettingsTutorialsPage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
+import { EditServicePage } from '@/pages/services/EditServicePage'
 import { CreateServicePage } from '@/pages/services/CreateServicePage'
 import { SignPage } from '@/pages/public/SignPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
@@ -125,6 +127,12 @@ const routeTree: RouteObject[] = [
                     ],
                   },
                   {
+                    element: <CanRoute module="equipe" action="update" />,
+                    children: [
+                      { path: 'utilisateurs/:id', element: <EditUserPage /> },
+                    ],
+                  },
+                  {
                     element: <CanRoute module="equipe" action="create" />,
                     children: [
                       { path: 'utilisateurs/nouveau', element: <CreateUserPage /> },
@@ -135,6 +143,12 @@ const routeTree: RouteObject[] = [
                     element: <CanRoute module="prestations" action="create" />,
                     children: [
                       { path: 'prestations/nouveau', element: <CreateServicePage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="prestations" action="update" />,
+                    children: [
+                      { path: 'prestations/:id/modifier', element: <EditServicePage /> },
                     ],
                   },
                   // Toute autre adresse : une page « introuvable » dans l'application (sans session, PrivateRoute renvoie vers la connexion)

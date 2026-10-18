@@ -59,7 +59,22 @@
     "empty_title": "Keine Kunden",
     "empty_no_results": "Keine Ergebnisse für diese Suche",
     "empty_desc": "Erstelle deinen ersten Kunden",
-    "new_client": "Neuer Kunde"
+    "new_client": "Neuer Kunde",
+    "row_deactivate": "Deaktivieren",
+    "row_activate": "Aktivieren",
+    "row_delete": "Löschen",
+    "row_deactivated": "Kunde deaktiviert",
+    "row_activated": "Kunde reaktiviert",
+    "row_error": "Der Kunde konnte nicht geändert werden",
+    "view_inactive": "Deaktivierte Kunden anzeigen",
+    "view_active": "← Aktive Kunden",
+    "delete_title": "Diesen Kunden löschen?",
+    "delete_message": "Der Kunde wird endgültig gelöscht. Hat er Baustellen, wird er nicht gelöscht, sondern nur deaktiviert.",
+    "delete_confirm": "Löschen",
+    "deleted": "Kunde gelöscht",
+    "deleted_kept": "Kunde deaktiviert: er hat noch Baustellen",
+    "delete_error": "Der Kunde konnte nicht gelöscht werden",
+    "no_inactive": "Keine deaktivierten Kunden"
   },
   "status": {
     "DRAFT": "Entwurf",
@@ -597,7 +612,17 @@
     "owner_required": "Nur der Inhaber kann die Inhaberschaft übertragen",
     "owner_target_invalid": "Die Inhaberschaft kann nur an einen aktiven Administrator übertragen werden",
     "role_exceeds_permissions": "Sie können keine Rolle zuweisen, die Rechte gewährt, die Sie nicht haben",
-    "user_exceeds_permissions": "Dieses Konto hat Rechte, die Sie nicht haben: Sie können es nicht bearbeiten"
+    "user_exceeds_permissions": "Dieses Konto hat Rechte, die Sie nicht haben: Sie können es nicht bearbeiten",
+    "row_deactivate": "Deaktivieren",
+    "row_activate": "Reaktivieren",
+    "row_delete": "Löschen",
+    "delete_title": "{{name}} löschen?",
+    "delete_message": "Das Konto wird endgültig gelöscht. Hat es Baustellen, Fotos oder Zuweisungen, wird es nicht gelöscht, sondern nur deaktiviert.",
+    "delete_confirm": "Löschen",
+    "deleted": "Mitglied gelöscht",
+    "deleted_kept": "Konto deaktiviert: es hinterlässt Baustellen oder Fotos",
+    "delete_error": "Das Mitglied konnte nicht gelöscht werden",
+    "cannot_delete_self": "Sie können Ihr eigenes Konto nicht löschen"
   },
   "report": {
     "title": "Abnahmeprotokoll",
@@ -718,7 +743,8 @@
     "bulk_deactivated_one": "{{count}} Leistung deaktiviert",
     "bulk_deactivated_other": "{{count}} Leistungen deaktiviert",
     "bulk_activated_one": "{{count}} Leistung aktiviert",
-    "bulk_activated_other": "{{count}} Leistungen aktiviert"
+    "bulk_activated_other": "{{count}} Leistungen aktiviert",
+    "deleted_kept": "Leistung deaktiviert: sie wird in Berichten verwendet"
   },
   "sign": {
     "error_sign_required": "Bitte unterschreiben Sie das Dokument",

@@ -59,7 +59,22 @@
     "empty_title": "Nessun cliente",
     "empty_no_results": "Nessun risultato per questa ricerca",
     "empty_desc": "Crea il tuo primo cliente",
-    "new_client": "Nuovo cliente"
+    "new_client": "Nuovo cliente",
+    "row_deactivate": "Disattiva",
+    "row_activate": "Attiva",
+    "row_delete": "Elimina",
+    "row_deactivated": "Cliente disattivato",
+    "row_activated": "Cliente riattivato",
+    "row_error": "Impossibile modificare il cliente",
+    "view_inactive": "Mostra i clienti disattivati",
+    "view_active": "← Clienti attivi",
+    "delete_title": "Eliminare questo cliente?",
+    "delete_message": "Il cliente verrà eliminato definitivamente. Se ha dei cantieri, non viene cancellato: viene solo disattivato.",
+    "delete_confirm": "Elimina",
+    "deleted": "Cliente eliminato",
+    "deleted_kept": "Cliente disattivato: ha ancora dei cantieri",
+    "delete_error": "Impossibile eliminare il cliente",
+    "no_inactive": "Nessun cliente disattivato"
   },
   "status": {
     "DRAFT": "Bozza",
@@ -597,7 +612,17 @@
     "owner_required": "Solo il proprietario può trasferire la proprietà",
     "owner_target_invalid": "La proprietà può essere trasferita solo a un amministratore attivo",
     "role_exceeds_permissions": "Non puoi assegnare un ruolo che concede permessi che non hai",
-    "user_exceeds_permissions": "Questo account ha permessi che non hai: non puoi modificarlo"
+    "user_exceeds_permissions": "Questo account ha permessi che non hai: non puoi modificarlo",
+    "row_deactivate": "Disattiva",
+    "row_activate": "Riattiva",
+    "row_delete": "Elimina",
+    "delete_title": "Eliminare {{name}}?",
+    "delete_message": "L'account verrà eliminato definitivamente. Se ha cantieri, foto o assegnazioni, non viene cancellato: viene solo disattivato.",
+    "delete_confirm": "Elimina",
+    "deleted": "Membro eliminato",
+    "deleted_kept": "Account disattivato: lascia cantieri o foto",
+    "delete_error": "Impossibile eliminare il membro",
+    "cannot_delete_self": "Non puoi eliminare il tuo account"
   },
   "report": {
     "title": "Verbale di fine lavori",
@@ -718,7 +743,8 @@
     "bulk_deactivated_one": "{{count}} servizio disattivato",
     "bulk_deactivated_other": "{{count}} servizi disattivati",
     "bulk_activated_one": "{{count}} servizio attivato",
-    "bulk_activated_other": "{{count}} servizi attivati"
+    "bulk_activated_other": "{{count}} servizi attivati",
+    "deleted_kept": "Servizio disattivato: è usato in dei rapporti"
   },
   "sign": {
     "error_sign_required": "Si prega di firmare il documento",

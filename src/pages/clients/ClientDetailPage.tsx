@@ -11,9 +11,11 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
-import { useClient, useUpdateClient, useDeactivateClient } from '@/hooks/use-clients'
+import { RecordActions } from '@/components/common/RecordActions'
+import { useClient, useUpdateClient, useSetClientActive, useDeleteClient } from '@/hooks/use-clients'
 import { useProjects } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
+import { apiErrorMessage } from '@/lib/api-error'
 import { fullName, formatDate, buildAddress, parseAddress } from '@/lib/utils'
 
 export function ClientDetailPage() {
@@ -27,7 +29,8 @@ export function ClientDetailPage() {
   const { data: client, isLoading } = useClient(id ?? '')
   const { data: projects } = useProjects({ clientId: id })
   const updateClient = useUpdateClient(id ?? '')
-  const deactivate = useDeactivateClient(id ?? '')
+  const setActive = useSetClientActive()
+  const deleteClient = useDeleteClient()
 
   const [form, setForm] = useState<{
     firstName: string
@@ -83,14 +86,24 @@ export function ClientDetailPage() {
     }
   }
 
-  async function handleDeactivate() {
-    if (!confirm(t('client_detail.deactivate_confirm'))) return
+  async function handleToggleActive() {
+    if (!client) return
     try {
-      await deactivate.mutateAsync()
-      toast.success(t('client_detail.deactivated'))
+      await setActive.mutateAsync({ id: client.id, active: !client.active })
+      toast.success(t(client.active ? 'clients.row_deactivated' : 'clients.row_activated'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'clients.row_error'))
+    }
+  }
+
+  async function handleDelete() {
+    if (!client) return
+    try {
+      const { result } = await deleteClient.mutateAsync(client.id)
+      toast.success(t(result === 'deleted' ? 'clients.deleted' : 'clients.deleted_kept'))
       void navigate('/clients')
-    } catch {
-      toast.error(t('client_detail.deactivate_error'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'clients.delete_error'))
     }
   }
 
@@ -117,11 +130,24 @@ export function ClientDetailPage() {
           </button>
           <h1 className="text-lg font-bold">{fullName(client)}</h1>
         </div>
-        {!editing && can('clients', 'update') && (
-          <Button variant="outline" size="sm" className="min-h-[44px]" onClick={startEdit}>
-            {t('client_detail.edit')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!editing && can('clients', 'update') && (
+            <Button variant="outline" size="sm" className="min-h-[44px]" onClick={startEdit}>
+              {t('client_detail.edit')}
+            </Button>
+          )}
+          <RecordActions
+            active={client.active}
+            pending={setActive.isPending || deleteClient.isPending}
+            onToggle={can('clients', 'update') ? () => void handleToggleActive() : undefined}
+            toggleLabel={t(client.active ? 'clients.row_deactivate' : 'clients.row_activate')}
+            onDelete={can('clients', 'delete') ? handleDelete : undefined}
+            deleteLabel={t('clients.row_delete')}
+            deleteTitle={t('clients.delete_title')}
+            deleteDescription={t('clients.delete_message')}
+            deleteConfirmLabel={t('clients.delete_confirm')}
+          />
+        </div>
       </div>
 
       {editing && form ? (
@@ -276,16 +302,6 @@ export function ClientDetailPage() {
         </div>
       )}
 
-      {can('clients', 'delete') && (
-        <Button
-          variant="destructive"
-          className="w-full min-h-[44px]"
-          onClick={() => void handleDeactivate()}
-          disabled={deactivate.isPending}
-        >
-          {t('client_detail.deactivate')}
-        </Button>
-      )}
     </div>
   )
 }

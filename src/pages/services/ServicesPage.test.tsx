@@ -175,9 +175,10 @@ describe('ServicesPage — bouton Ajouter (RBAC)', () => {
 // ── ServiceCard — boutons modifier et supprimer (permissions) ──────────────
 
 describe('ServicesPage — ServiceCard (RBAC)', () => {
-  it('affiche le bouton Modifier quand ADMIN (can update)', () => {
+  it('ADMIN (can update) : un tap sur la carte ouvre la modification', async () => {
     renderServices()
-    expect(screen.getByLabelText('Modifier')).toBeInTheDocument()
+    await userEvent.click(screen.getByText('Tonte de pelouse'))
+    expect(mockNavigate).toHaveBeenCalledWith('/prestations/svc-1/modifier')
   })
 
   it('affiche le bouton Supprimer quand ADMIN (can delete)', () => {
@@ -185,7 +186,7 @@ describe('ServicesPage — ServiceCard (RBAC)', () => {
     expect(screen.getByLabelText('Supprimer')).toBeInTheDocument()
   })
 
-  it('absent pour MEMBER sans permission prestations.update', () => {
+  it('sans permission prestations.update, un tap sur la carte ne mène nulle part', async () => {
     useAuthStore.setState({
       role: 'MEMBER',
       permissions: makePermissions({ prestations: ['read'] }),
@@ -194,7 +195,8 @@ describe('ServicesPage — ServiceCard (RBAC)', () => {
       userId: 'u2',
     })
     renderServices()
-    expect(screen.queryByLabelText('Modifier')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByText('Tonte de pelouse'))
+    expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   it('absent pour MEMBER sans permission prestations.delete', () => {
@@ -218,7 +220,7 @@ describe('ServicesPage — ServiceCard (RBAC)', () => {
       userId: 'u2',
     })
     renderServices()
-    expect(screen.getByLabelText('Modifier')).toBeInTheDocument()
+    expect(screen.getByLabelText('Désactiver')).toBeInTheDocument()
     expect(screen.getByLabelText('Supprimer')).toBeInTheDocument()
   })
 
@@ -246,12 +248,12 @@ describe('ServicesPage — ajout', () => {
 
 // ── Formulaire de modification ─────────────────────────────────────────────
 
-describe('ServicesPage — modal de modification', () => {
-  it('cliquer Modifier ouvre le formulaire avec les données de la prestation', async () => {
+describe('ServicesPage — modification sur une page', () => {
+  it('plus de crayon : la carte entière ouvre la page de modification', async () => {
     renderServices()
-    await userEvent.click(screen.getByLabelText('Modifier'))
-    expect(screen.getByText('Modifier la prestation')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Tonte de pelouse')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Modifier')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByText('Tonte de pelouse'))
+    expect(mockNavigate).toHaveBeenCalledWith('/prestations/svc-1/modifier')
   })
 })
 

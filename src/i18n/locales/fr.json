@@ -59,7 +59,22 @@
     "empty_title": "Aucun client",
     "empty_no_results": "Aucun résultat pour cette recherche",
     "empty_desc": "Créez votre premier client",
-    "new_client": "Nouveau client"
+    "new_client": "Nouveau client",
+    "row_deactivate": "Désactiver",
+    "row_activate": "Activer",
+    "row_delete": "Supprimer",
+    "row_deactivated": "Client désactivé",
+    "row_activated": "Client réactivé",
+    "row_error": "Impossible de modifier le client",
+    "view_inactive": "Voir les clients désactivés",
+    "view_active": "← Clients actifs",
+    "delete_title": "Supprimer ce client ?",
+    "delete_message": "Le client sera supprimé définitivement. S'il a des chantiers, il ne sera pas effacé : il sera seulement désactivé.",
+    "delete_confirm": "Supprimer",
+    "deleted": "Client supprimé",
+    "deleted_kept": "Client désactivé : il a encore des chantiers",
+    "delete_error": "Impossible de supprimer le client",
+    "no_inactive": "Aucun client désactivé"
   },
   "status": {
     "DRAFT": "Brouillon",
@@ -597,7 +612,17 @@
     "owner_required": "Seul le propriétaire peut transférer la propriété",
     "owner_target_invalid": "La propriété ne peut être transférée qu'à un administrateur actif",
     "role_exceeds_permissions": "Vous ne pouvez pas attribuer un rôle qui donne des droits que vous n'avez pas",
-    "user_exceeds_permissions": "Ce compte a des droits que vous n'avez pas : vous ne pouvez pas le modifier"
+    "user_exceeds_permissions": "Ce compte a des droits que vous n'avez pas : vous ne pouvez pas le modifier",
+    "row_deactivate": "Désactiver",
+    "row_activate": "Réactiver",
+    "row_delete": "Supprimer",
+    "delete_title": "Supprimer {{name}} ?",
+    "delete_message": "Le compte sera supprimé définitivement. S'il a des chantiers, des photos ou des affectations, il ne sera pas effacé : il sera seulement désactivé.",
+    "delete_confirm": "Supprimer",
+    "deleted": "Membre supprimé",
+    "deleted_kept": "Compte désactivé : il laisse des chantiers ou des photos",
+    "delete_error": "Impossible de supprimer le membre",
+    "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte"
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",
@@ -718,7 +743,8 @@
     "bulk_deactivated_one": "{{count}} prestation désactivée",
     "bulk_deactivated_other": "{{count}} prestations désactivées",
     "bulk_activated_one": "{{count}} prestation activée",
-    "bulk_activated_other": "{{count}} prestations activées"
+    "bulk_activated_other": "{{count}} prestations activées",
+    "deleted_kept": "Prestation désactivée : elle est utilisée dans des rapports"
   },
   "sign": {
     "error_sign_required": "Veuillez signer le document",

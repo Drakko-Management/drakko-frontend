@@ -2,188 +2,49 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { Plus, ChevronDown, ChevronUp, Loader2, UserCog } from 'lucide-react'
+import { Plus, ChevronRight, UserCog, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Fab } from '@/components/common/Fab'
 import { Avatar } from '@/components/common/Avatar'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { useUsers, useUpdateUser, useTransferOwnership } from '@/hooks/use-users'
-import { useAssignableRoles } from '@/hooks/use-roles'
-import { usePermissions } from '@/hooks/use-permissions'
+import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
+import { useUsers, useSetUserActive, useDeleteUser } from '@/hooks/use-users'
 import { useAuthStore } from '@/store/auth.store'
 import { apiErrorMessage } from '@/lib/api-error'
-import { isWithinPermissions } from '@/lib/permissions'
+import { usePermissions } from '@/hooks/use-permissions'
+import { useCanEditUser } from '@/hooks/use-can-edit-user'
 import { fullName } from '@/lib/utils'
 import { RolesTab } from './RolesTab'
-import { PasswordInput } from '@/components/common/PasswordInput'
-import { ResetTwoFactorButton } from './ResetTwoFactorButton'
-import { PasswordStrength } from '@/components/common/PasswordStrength'
-import { usePasswordCheck } from '@/hooks/use-password-check'
-import { PASSWORD_MAX_LENGTH, passwordHintKey } from '@/lib/password-policy'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
-import type { User, UserRole } from '@/types/api'
-
-function RoleSelect({
-  value,
-  customRoleId,
-  onChange,
-  disabled,
-}: {
-  value: string
-  customRoleId: string | null
-  onChange: (role: UserRole, customRoleId: string | null) => void
-  disabled?: boolean
-}) {
-  const { t } = useTranslation()
-  const { data: roles } = useAssignableRoles()
-  const { isAdmin } = usePermissions()
-
-  const selectValue = value === 'ADMIN' ? 'ADMIN' : (customRoleId ?? '')
-
-  function handleChange(v: string) {
-    if (v === 'ADMIN') {
-      onChange('ADMIN', null)
-    } else {
-      onChange('MEMBER', v)
-    }
-  }
-
-  return (
-    <select
-      value={selectValue}
-      onChange={(e) => handleChange(e.target.value)}
-      disabled={disabled}
-      className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      {/* Un membre sans rôle personnalisé affiche cette option, pas la suivante */}
-      <option value="" disabled>{t('users.choose_role')}</option>
-      {/* Seul un administrateur attribue le rôle administrateur (règle aussi appliquée par l'API) */}
-      {isAdmin && <option value="ADMIN">{t('users.role_admin')}</option>}
-      {roles?.map((r) => (
-        <option key={r.id} value={r.id}>
-          {r.name}
-        </option>
-      ))}
-      {(!roles || roles.length === 0) && (
-        <option value="" disabled>{t('users.no_custom_roles')}</option>
-      )}
-    </select>
-  )
-}
+import type { User } from '@/types/api'
 
 function UserRow({
   user,
   canUpdate,
-  viewerIsOwner,
+  canToggle,
+  canDelete,
+  onToggle,
+  onDelete,
 }: {
   user: User
   canUpdate: boolean
-  viewerIsOwner: boolean
+  // L'œil et la corbeille ne s'offrent ni pour son propre compte ni pour le propriétaire
+  canToggle: boolean
+  canDelete: boolean
+  onToggle: (user: User) => void
+  onDelete: (user: User) => void
 }) {
   const { t } = useTranslation()
-  // Son propre mot de passe et sa propre adresse se changent depuis Paramètres → Profil (mot de passe actuel
-  // demandé) : la fiche de l'équipe ne les propose pas pour son propre compte
-  const isSelf = useAuthStore((s) => s.userId) === user.id
-  // Seul un administrateur débloque la double authentification d'un collègue (le serveur le refuse aux autres)
-  const viewerIsAdmin = useAuthStore((s) => s.role) === 'ADMIN'
-  const [expanded, setExpanded] = useState(false)
-  const [form, setForm] = useState({
-    username: user.username,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email ?? '',
-    role: user.role,
-    customRoleId: user.customRoleId,
-    password: '',
-  })
-  const update = useUpdateUser(user.id)
-  const transfer = useTransferOwnership(user.id)
-  // Le champ est facultatif : la règle ne s'applique que si un nouveau mot de passe est saisi
-  const passwordCheck = usePasswordCheck(form.password, [
-    form.username,
-    form.email,
-    form.firstName,
-    form.lastName,
-  ])
-
-  // « Enregistrer » ne s'active que si la fiche a changé (son propre mail et mot de passe ne s'y modifient pas)
-  const dirty =
-    form.username.trim() !== user.username ||
-    form.firstName.trim() !== user.firstName ||
-    form.lastName.trim() !== user.lastName ||
-    form.role !== user.role ||
-    form.customRoleId !== user.customRoleId ||
-    (!isSelf && (form.email.trim() !== (user.email ?? '') || form.password !== ''))
-
-  function setField(key: string, value: unknown) {
-    setForm((f) => ({ ...f, [key]: value }))
-  }
-
-  async function handleSave() {
-    if (!isSelf && form.password && passwordCheck.status === 'short') {
-      toast.error(t('users.password_min_error'))
-      return
-    }
-    if (!isSelf && form.password && passwordCheck.status !== 'ok') {
-      toast.error(t(passwordHintKey(passwordCheck)))
-      return
-    }
-    try {
-      await update.mutateAsync({
-        username: form.username.trim(),
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        ...(isSelf ? {} : { email: form.email.trim() || undefined }),
-        role: form.role as never,
-        customRoleId: form.customRoleId,
-        ...(form.password && !isSelf ? { password: form.password } : {}),
-      })
-      setForm((f) => ({ ...f, password: '' }))
-      toast.success(t('users.updated'))
-    } catch (err) {
-      toast.error(apiErrorMessage(err, t, 'users.update_error'))
-    }
-  }
-
-  async function handleToggleActive() {
-    try {
-      await update.mutateAsync({ active: !user.active })
-      toast.success(user.active ? t('users.deactivated_account') : t('users.activated'))
-    } catch (err) {
-      toast.error(apiErrorMessage(err, t, 'users.toggle_error'))
-    }
-  }
-
-  async function handleTransfer() {
-    try {
-      await transfer.mutateAsync()
-      toast.success(t('users.transfer_success', { name: fullName(user) }))
-    } catch (err) {
-      toast.error(apiErrorMessage(err, t, 'users.transfer_error'))
-    }
-  }
+  const navigate = useNavigate()
 
   const roleLabel = user.customRole?.name ?? (user.role === 'ADMIN' ? t('users.role_admin') : t('users.role_member'))
 
   return (
-    <div className="divide-y last:divide-y-0">
+    <div className="flex items-center pr-2">
       <button
-        onClick={() => canUpdate && setExpanded((v) => !v)}
-        className={['flex min-h-[64px] w-full items-center gap-3 p-4 text-left transition-colors', canUpdate ? 'active:bg-muted' : 'cursor-default'].join(' ')}
+        onClick={() => canUpdate && void navigate(`/utilisateurs/${user.id}`)}
+        className={['flex min-h-[64px] min-w-0 flex-1 items-center gap-3 p-4 text-left transition-colors', canUpdate ? 'active:bg-muted' : 'cursor-default'].join(' ')}
       >
         <Avatar id={user.id} firstName={user.firstName} lastName={user.lastName} />
         <div className="min-w-0 flex-1">
@@ -219,142 +80,28 @@ function UserRow({
             {roleLabel} · @{user.username}
           </p>
         </div>
-        {canUpdate && (expanded ? (
-          <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-        ))}
       </button>
-
-      {/* canUpdate peut changer pendant que la ligne est ouverte (transfert de propriété) */}
-      {canUpdate && expanded && (
-        <div className="space-y-3 bg-muted/30 p-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs" htmlFor={`fn-${user.id}`}>{t('common.first_name')}</Label>
-              <Input
-                id={`fn-${user.id}`}
-                className="min-h-[44px]"
-                value={form.firstName}
-                onChange={(e) => setField('firstName', e.target.value)}
-                disabled={update.isPending}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs" htmlFor={`ln-${user.id}`}>{t('common.last_name')}</Label>
-              <Input
-                id={`ln-${user.id}`}
-                className="min-h-[44px]"
-                value={form.lastName}
-                onChange={(e) => setField('lastName', e.target.value)}
-                disabled={update.isPending}
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">{t('common.identifier')}</Label>
-            <Input
-              className="min-h-[44px]"
-              autoCapitalize="none"
-              autoComplete="off"
-              value={form.username}
-              onChange={(e) => setField('username', e.target.value)}
-              disabled={update.isPending}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">{t('common.email')}</Label>
-            <Input
-              type="email"
-              className="min-h-[44px]"
-              value={form.email}
-              onChange={(e) => setField('email', e.target.value)}
-              disabled={update.isPending || isSelf}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">{t('common.role')}</Label>
-            <RoleSelect
-              value={form.role}
-              customRoleId={form.customRoleId}
-              onChange={(role, customRoleId) => setForm((f) => ({ ...f, role, customRoleId }))}
-              disabled={update.isPending || user.isOwner}
-            />
-          </div>
-          {isSelf ? (
-            <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-              {t('users.own_credentials_hint')}
-            </p>
-          ) : (
-            <div className="space-y-1.5">
-              <Label className="text-xs" htmlFor={`pw-${user.id}`}>{t('users.new_password')}</Label>
-              <PasswordInput
-                id={`pw-${user.id}`}
-                autoComplete="new-password"
-                placeholder={t('users.password_placeholder')}
-                value={form.password}
-                onChange={(value) => setField('password', value)}
-                disabled={update.isPending}
-                required={false}
-                maxLength={PASSWORD_MAX_LENGTH}
-              />
-              {form.password && <PasswordStrength check={passwordCheck} />}
-            </div>
-          )}
-          {viewerIsAdmin && !isSelf && user.totpEnabledAt && <ResetTwoFactorButton user={user} />}
-          <Button
-            className="w-full min-h-[44px]"
-            onClick={() => void handleSave()}
-            disabled={update.isPending || !dirty}
+      <div className="flex shrink-0 items-center">
+        {canToggle && (
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted"
+            onClick={() => onToggle(user)}
+            aria-label={t(user.active ? 'users.row_deactivate' : 'users.row_activate')}
           >
-            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('common.save')}
-          </Button>
-          {user.isOwner ? (
-            <p className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-foreground">{t('users.owner_hint')}</p>
-          ) : (
-            <Button
-              variant={user.active ? 'destructive' : 'outline'}
-              size="sm"
-              className="w-full min-h-[44px]"
-              onClick={() => void handleToggleActive()}
-              disabled={update.isPending}
-            >
-              {user.active ? t('users.deactivate_account') : t('users.activate_account')}
-            </Button>
-          )}
-          {viewerIsOwner && !user.isOwner && user.active && (
-            user.role === 'ADMIN' ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full min-h-[44px]"
-                    disabled={update.isPending || transfer.isPending}
-                  >
-                    {t('users.transfer_ownership')}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('users.transfer_title', { name: fullName(user) })}</AlertDialogTitle>
-                    <AlertDialogDescription>{t('users.transfer_body')}</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => void handleTransfer()}>
-                      {t('users.transfer_confirm')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : (
-              <p className="text-xs text-muted-foreground">{t('users.transfer_hint_member')}</p>
-            )
-          )}
-        </div>
-      )}
+            {user.active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
+        {canDelete && (
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-destructive/70 hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10"
+            onClick={() => onDelete(user)}
+            aria-label={t('users.row_delete')}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+        {canUpdate && <ChevronRight className="ml-1 h-4 w-4 text-muted-foreground" />}
+      </div>
     </div>
   )
 }
@@ -364,21 +111,40 @@ type Tab = 'membres' | 'roles'
 export function UsersPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { can, isAdmin, permissions } = usePermissions()
+  const { can, isAdmin } = usePermissions()
   const { data: users, isLoading } = useUsers()
   const [tab, setTab] = useState<Tab>('membres')
 
   const canCreate = isAdmin || can('equipe', 'create')
-  const canUpdate = isAdmin || can('equipe', 'update')
+  const canEdit = useCanEditUser()
   const viewerId = useAuthStore((s) => s.userId)
-  const viewerIsOwner = users?.some((u) => u.id === viewerId && u.isOwner) ?? false
-  // Seul un administrateur modifie un compte administrateur, et seul le propriétaire modifie le sien. Un membre
-  // ne modifie que les comptes dont les droits n'excèdent pas les siens (règles aussi appliquées par l'API)
-  const canEdit = (u: User) =>
-    canUpdate &&
-    (isAdmin || u.role !== 'ADMIN') &&
-    (!u.isOwner || u.id === viewerId) &&
-    (isAdmin || isWithinPermissions(u.customRole?.permissions, permissions))
+  const setActive = useSetUserActive()
+  const deleteUser = useDeleteUser()
+  const [toDelete, setToDelete] = useState<User | null>(null)
+
+  // Comme la fiche : on ne désactive ni ne supprime son propre compte, ni celui du propriétaire
+  const canToggle = (u: User) => canEdit(u) && !u.isOwner && u.id !== viewerId
+  const canDelete = (u: User) => canToggle(u) && can('equipe', 'delete')
+
+  async function handleToggle(u: User) {
+    try {
+      await setActive.mutateAsync({ id: u.id, active: !u.active })
+      toast.success(u.active ? t('users.deactivated_account') : t('users.activated'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'users.toggle_error'))
+    }
+  }
+
+  async function handleDelete() {
+    if (!toDelete) return
+    try {
+      const { result } = await deleteUser.mutateAsync(toDelete.id)
+      toast.success(t(result === 'deleted' ? 'users.deleted' : 'users.deleted_kept'))
+      setToDelete(null)
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'users.delete_error'))
+    }
+  }
 
   const active = users?.filter((u) => u.active) ?? []
   const inactive = users?.filter((u) => !u.active) ?? []
@@ -436,8 +202,8 @@ export function UsersPage() {
             <EmptyState icon={UserCog} title={t('users.empty')} />
           )}
           {active.length > 0 && (
-            <div className="overflow-hidden rounded-xl border bg-card">
-              {active.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} viewerIsOwner={viewerIsOwner} />)}
+            <div className="divide-y overflow-hidden rounded-xl border bg-card">
+              {active.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} canToggle={canToggle(user)} canDelete={canDelete(user)} onToggle={(u) => void handleToggle(u)} onDelete={setToDelete} />)}
             </div>
           )}
           {inactive.length > 0 && (
@@ -445,8 +211,8 @@ export function UsersPage() {
               <p className="px-1 text-xs font-medium text-muted-foreground">
                 {t('users.inactive_accounts')}
               </p>
-              <div className="overflow-hidden rounded-xl border bg-card opacity-60">
-                {inactive.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} viewerIsOwner={viewerIsOwner} />)}
+              <div className="divide-y overflow-hidden rounded-xl border bg-card opacity-60">
+                {inactive.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} canToggle={canToggle(user)} canDelete={canDelete(user)} onToggle={(u) => void handleToggle(u)} onDelete={setToDelete} />)}
               </div>
             </div>
           )}
@@ -454,6 +220,16 @@ export function UsersPage() {
       )}
 
       {tab === 'roles' && <RolesTab isAdmin={isAdmin} />}
+
+      <ConfirmDestructiveDialog
+        open={toDelete !== null}
+        onOpenChange={(open) => !open && setToDelete(null)}
+        title={t('users.delete_title', { name: toDelete ? fullName(toDelete) : '' })}
+        description={t('users.delete_message')}
+        confirmLabel={t('users.delete_confirm')}
+        pending={deleteUser.isPending}
+        onConfirm={() => void handleDelete()}
+      />
 
       {canCreate && (
         <Fab tutorial="team-new" onClick={() => void navigate(tab === 'roles' ? '/utilisateurs/roles/nouveau' : '/utilisateurs/nouveau')} />

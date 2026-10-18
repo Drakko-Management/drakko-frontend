@@ -10,6 +10,7 @@ const API_ERROR_KEYS: Record<string, string> = {
   ROLE_EXCEEDS_PERMISSIONS: 'users.role_exceeds_permissions',
   USER_EXCEEDS_PERMISSIONS: 'users.user_exceeds_permissions',
   OWNER_PROTECTED: 'users.owner_protected',
+  CANNOT_DELETE_SELF: 'users.cannot_delete_self',
   OWNER_TRANSFER_REQUIRED: 'users.owner_transfer_required',
   OWNER_REQUIRED: 'users.owner_required',
   OWNER_TARGET_INVALID: 'users.owner_target_invalid',

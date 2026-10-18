@@ -59,7 +59,22 @@
     "empty_title": "No clients",
     "empty_no_results": "No results for this search",
     "empty_desc": "Create your first client",
-    "new_client": "New client"
+    "new_client": "New client",
+    "row_deactivate": "Deactivate",
+    "row_activate": "Activate",
+    "row_delete": "Delete",
+    "row_deactivated": "Client deactivated",
+    "row_activated": "Client reactivated",
+    "row_error": "Could not update the client",
+    "view_inactive": "Show deactivated clients",
+    "view_active": "← Active clients",
+    "delete_title": "Delete this client?",
+    "delete_message": "The client will be deleted for good. If they have projects, they are not erased: they are only deactivated.",
+    "delete_confirm": "Delete",
+    "deleted": "Client deleted",
+    "deleted_kept": "Client deactivated: they still have projects",
+    "delete_error": "Could not delete the client",
+    "no_inactive": "No deactivated clients"
   },
   "status": {
     "DRAFT": "Draft",
@@ -597,7 +612,17 @@
     "owner_required": "Only the owner can transfer ownership",
     "owner_target_invalid": "Ownership can only be transferred to an active administrator",
     "role_exceeds_permissions": "You can't assign a role that grants permissions you don't have",
-    "user_exceeds_permissions": "This account has permissions you don't have: you can't edit it"
+    "user_exceeds_permissions": "This account has permissions you don't have: you can't edit it",
+    "row_deactivate": "Deactivate",
+    "row_activate": "Reactivate",
+    "row_delete": "Delete",
+    "delete_title": "Delete {{name}}?",
+    "delete_message": "The account will be deleted for good. If it has projects, photos or assignments, it is not erased: it is only deactivated.",
+    "delete_confirm": "Delete",
+    "deleted": "Member deleted",
+    "deleted_kept": "Account deactivated: it leaves projects or photos behind",
+    "delete_error": "Could not delete the member",
+    "cannot_delete_self": "You can't delete your own account"
   },
   "report": {
     "title": "Works Completion Certificate",
@@ -718,7 +743,8 @@
     "bulk_deactivated_one": "{{count}} service deactivated",
     "bulk_deactivated_other": "{{count}} services deactivated",
     "bulk_activated_one": "{{count}} service activated",
-    "bulk_activated_other": "{{count}} services activated"
+    "bulk_activated_other": "{{count}} services activated",
+    "deleted_kept": "Service deactivated: it is used in reports"
   },
   "sign": {
     "error_sign_required": "Please sign the document",

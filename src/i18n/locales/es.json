@@ -59,7 +59,22 @@
     "empty_title": "Sin clientes",
     "empty_no_results": "Sin resultados para esta búsqueda",
     "empty_desc": "Crea tu primer cliente",
-    "new_client": "Nuevo cliente"
+    "new_client": "Nuevo cliente",
+    "row_deactivate": "Desactivar",
+    "row_activate": "Activar",
+    "row_delete": "Eliminar",
+    "row_deactivated": "Cliente desactivado",
+    "row_activated": "Cliente reactivado",
+    "row_error": "No se pudo modificar el cliente",
+    "view_inactive": "Ver clientes desactivados",
+    "view_active": "← Clientes activos",
+    "delete_title": "¿Eliminar este cliente?",
+    "delete_message": "El cliente se eliminará definitivamente. Si tiene obras, no se borra: solo se desactiva.",
+    "delete_confirm": "Eliminar",
+    "deleted": "Cliente eliminado",
+    "deleted_kept": "Cliente desactivado: aún tiene obras",
+    "delete_error": "No se pudo eliminar el cliente",
+    "no_inactive": "Ningún cliente desactivado"
   },
   "status": {
     "DRAFT": "Borrador",
@@ -597,7 +612,17 @@
     "owner_required": "Solo el propietario puede transferir la propiedad",
     "owner_target_invalid": "La propiedad solo puede transferirse a un administrador activo",
     "role_exceeds_permissions": "No puedes asignar un rol que otorga permisos que no tienes",
-    "user_exceeds_permissions": "Esta cuenta tiene permisos que no tienes: no puedes modificarla"
+    "user_exceeds_permissions": "Esta cuenta tiene permisos que no tienes: no puedes modificarla",
+    "row_deactivate": "Desactivar",
+    "row_activate": "Reactivar",
+    "row_delete": "Eliminar",
+    "delete_title": "¿Eliminar a {{name}}?",
+    "delete_message": "La cuenta se eliminará definitivamente. Si tiene obras, fotos o asignaciones, no se borra: solo se desactiva.",
+    "delete_confirm": "Eliminar",
+    "deleted": "Miembro eliminado",
+    "deleted_kept": "Cuenta desactivada: deja obras o fotos",
+    "delete_error": "No se pudo eliminar al miembro",
+    "cannot_delete_self": "No puedes eliminar tu propia cuenta"
   },
   "report": {
     "title": "Acta de recepción de obras",
@@ -718,7 +743,8 @@
     "bulk_deactivated_one": "{{count}} servicio desactivado",
     "bulk_deactivated_other": "{{count}} servicios desactivados",
     "bulk_activated_one": "{{count}} servicio activado",
-    "bulk_activated_other": "{{count}} servicios activados"
+    "bulk_activated_other": "{{count}} servicios activados",
+    "deleted_kept": "Servicio desactivado: se usa en informes"
   },
   "sign": {
     "error_sign_required": "Por favor firme el documento",

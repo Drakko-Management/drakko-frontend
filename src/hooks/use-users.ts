@@ -76,3 +76,29 @@ export function useTransferOwnership(id: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
   })
 }
+
+// Depuis la liste : l'identifiant se donne à l'appel, pas à la création du hook
+export function useSetUserActive() {
+  return useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+      apiRequest<User>(`/users/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
+export function useDeleteUser() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiRequest<{ result: 'deleted' | 'deactivated' }>(`/users/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}

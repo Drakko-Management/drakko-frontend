@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { useClients } from '@/hooks/use-clients'
+import { toast } from 'sonner'
+import { useClients, useDeleteClient, useSetClientActive } from '@/hooks/use-clients'
 import { useAuthStore } from '@/store/auth.store'
 import { makePermissions, EMPTY_PERMISSIONS } from '@/lib/permissions'
 import { ClientsPage } from './ClientsPage'
@@ -17,8 +18,12 @@ vi.mock('react-router', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+
 vi.mock('@/hooks/use-clients', () => ({
   useClients: vi.fn(),
+  useDeleteClient: vi.fn(),
+  useSetClientActive: vi.fn(),
 }))
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -46,6 +51,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   vi.mocked(useClients).mockReturnValue({ data: paginated([]), isLoading: false } as any)
+  vi.mocked(useSetClientActive).mockReturnValue({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false } as never)
+  vi.mocked(useDeleteClient).mockReturnValue({ mutateAsync: vi.fn().mockResolvedValue({ result: 'deleted' }), isPending: false } as never)
   useAuthStore.setState({
     accessToken: 'tok',
     username: 'admin',
@@ -210,5 +217,88 @@ describe('ClientsPage — recherche', () => {
         expect.objectContaining({ search: 'Pierre' }),
       )
     })
+  })
+})
+
+// ── Masquer et supprimer depuis la liste ───────────────────────────────────
+
+describe('ClientsPage — masquer et supprimer', () => {
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useClients).mockReturnValue({ data: paginated([CLIENT]), isLoading: false } as any)
+  })
+
+  it('l\'œil désactive le client sans confirmation (réversible)', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useSetClientActive).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderClients()
+
+    await userEvent.click(screen.getByLabelText('Désactiver'))
+
+    expect(mutateAsync).toHaveBeenCalledWith({ id: 'client-1', active: false })
+  })
+
+  it('un client désactivé se réactive avec l\'œil', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useSetClientActive).mockReturnValue({ mutateAsync, isPending: false } as never)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useClients).mockReturnValue({ data: paginated([{ ...CLIENT, active: false }]), isLoading: false } as any)
+    renderClients()
+
+    await userEvent.click(screen.getByLabelText('Activer'))
+
+    expect(mutateAsync).toHaveBeenCalledWith({ id: 'client-1', active: true })
+  })
+
+  it('la corbeille avertit d\'abord, et ne supprime rien avant la confirmation', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({ result: 'deleted' })
+    vi.mocked(useDeleteClient).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderClients()
+
+    await userEvent.click(screen.getByLabelText('Supprimer'))
+    expect(screen.getByText(/supprimé définitivement/i)).toBeInTheDocument()
+    expect(mutateAsync).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
+    expect(mutateAsync).toHaveBeenCalledWith('client-1')
+  })
+
+  it('un client qui a des chantiers est seulement désactivé : le message le dit', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({ result: 'deactivated' })
+    vi.mocked(useDeleteClient).mockReturnValue({ mutateAsync, isPending: false } as never)
+    renderClients()
+
+    await userEvent.click(screen.getByLabelText('Supprimer'))
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/encore des chantiers/i)))
+  })
+
+  it('« Voir les clients désactivés » interroge les clients inactifs', async () => {
+    renderClients()
+
+    await userEvent.click(screen.getByText('Voir les clients désactivés'))
+
+    const calls = vi.mocked(useClients).mock.calls
+    expect(calls[calls.length - 1]?.[0]).toMatchObject({ active: false })
+  })
+
+  it("vue des désactivés vide : un simple message, pas l'invitation à créer un premier client", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useClients).mockReturnValue({ data: paginated([]), isLoading: false } as any)
+    renderClients()
+
+    await userEvent.click(screen.getByText('Voir les clients désactivés'))
+
+    expect(screen.getByText('Aucun client désactivé')).toBeInTheDocument()
+    expect(screen.queryByText('Nouveau client')).not.toBeInTheDocument()
+    expect(screen.queryByText('Aucun client')).not.toBeInTheDocument()
+  })
+
+  it('sans droit de mise à jour ni de suppression : ni œil ni corbeille', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ clients: ['read'] }) })
+    renderClients()
+    expect(screen.queryByLabelText('Désactiver')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Supprimer')).not.toBeInTheDocument()
   })
 })

@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { Users, Search, Plus, ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
+import { Users, Search, Plus, ChevronRight, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Fab } from '@/components/common/Fab'
 import { Pagination } from '@/components/common/Pagination'
-import { useClients } from '@/hooks/use-clients'
+import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
+import { useClients, useDeleteClient, useSetClientActive } from '@/hooks/use-clients'
 import type { ClientSort } from '@/hooks/use-clients'
 import { usePermissions } from '@/hooks/use-permissions'
 import { useAuthStore } from '@/store/auth.store'
+import { apiErrorMessage } from '@/lib/api-error'
 import { fullName } from '@/lib/utils'
+import type { Client } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 export function ClientsPage() {
@@ -24,7 +28,37 @@ export function ClientsPage() {
   const defaultSort = useAuthStore((s) => s.defaultFilters.clientsSort)
   const [sort, setSort] = useState<ClientSort>(defaultSort)
 
-  const { data, isLoading } = useClients({ search: search || undefined, active: true, page, limit: 20, sort })
+  const [view, setView] = useState<'active' | 'inactive'>('active')
+  const [toDelete, setToDelete] = useState<Client | null>(null)
+
+  const { data, isLoading } = useClients({ search: search || undefined, active: view === 'active', page, limit: 20, sort })
+  const setActive = useSetClientActive()
+  const deleteClient = useDeleteClient()
+
+  function switchView(next: 'active' | 'inactive') {
+    setView(next)
+    setPage(1)
+  }
+
+  async function handleToggleActive(client: Client) {
+    try {
+      await setActive.mutateAsync({ id: client.id, active: !client.active })
+      toast.success(t(client.active ? 'clients.row_deactivated' : 'clients.row_activated'))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'clients.row_error'))
+    }
+  }
+
+  async function handleDelete() {
+    if (!toDelete) return
+    try {
+      const { result } = await deleteClient.mutateAsync(toDelete.id)
+      toast.success(t(result === 'deleted' ? 'clients.deleted' : 'clients.deleted_kept'))
+      setToDelete(null)
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'clients.delete_error'))
+    }
+  }
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
@@ -69,6 +103,12 @@ export function ClientsPage() {
             <option value="updated">{t('clients.sort_updated')}</option>
           </select>
         </div>
+        <button
+          className="text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
+          onClick={() => switchView(view === 'active' ? 'inactive' : 'active')}
+        >
+          {t(view === 'active' ? 'clients.view_inactive' : 'clients.view_active')}
+        </button>
       </div>
 
       {/* Scrollable list */}
@@ -81,7 +121,13 @@ export function ClientsPage() {
           </div>
         )}
 
-        {!isLoading && data?.data.length === 0 && (
+        {!isLoading && data?.data.length === 0 && view === 'inactive' && (
+          <p className="py-2 text-sm text-muted-foreground">
+            {search ? t('clients.empty_no_results') : t('clients.no_inactive')}
+          </p>
+        )}
+
+        {!isLoading && data?.data.length === 0 && view === 'active' && (
           <EmptyState
             icon={Users}
             title={t('clients.empty_title')}
@@ -93,27 +139,61 @@ export function ClientsPage() {
         {data && data.data.length > 0 && (
           <div className="divide-y rounded-xl border bg-card overflow-hidden mb-3">
             {data.data.map((client) => (
-              <button
+              <div
                 key={client.id}
-                onClick={() => void navigate(`/clients/${client.id}`)}
-                className="flex min-h-[72px] w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-muted"
+                className={`flex min-h-[72px] items-center pr-2 ${client.active ? '' : 'opacity-60'}`}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
-                  {client.firstName[0]}{client.lastName[0]}
+                <button
+                  onClick={() => void navigate(`/clients/${client.id}`)}
+                  className="flex min-h-[72px] min-w-0 flex-1 items-center gap-3 py-3 pl-4 text-left transition-colors active:bg-muted"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
+                    {client.firstName[0]}{client.lastName[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold">{fullName(client)}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {client.email}
+                      {client.phone && ` · ${client.phone}`}
+                    </p>
+                  </div>
+                </button>
+                <div className="flex shrink-0 items-center">
+                  {can('clients', 'update') && (
+                    <button
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted"
+                      onClick={() => void handleToggleActive(client)}
+                      aria-label={t(client.active ? 'clients.row_deactivate' : 'clients.row_activate')}
+                    >
+                      {client.active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  )}
+                  {can('clients', 'delete') && (
+                    <button
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-destructive/70 hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10"
+                      onClick={() => setToDelete(client)}
+                      aria-label={t('clients.row_delete')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                  <ChevronRight className="ml-1 h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold">{fullName(client)}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {client.email}
-                    {client.phone && ` · ${client.phone}`}
-                  </p>
-                </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </button>
+              </div>
             ))}
           </div>
         )}
       </div>
+
+      <ConfirmDestructiveDialog
+        open={toDelete !== null}
+        onOpenChange={(open) => !open && setToDelete(null)}
+        title={t('clients.delete_title')}
+        description={t('clients.delete_message')}
+        confirmLabel={t('clients.delete_confirm')}
+        pending={deleteClient.isPending}
+        onConfirm={() => void handleDelete()}
+      />
 
       {can('clients', 'create') && (
         <Fab tutorial="clients-new" onClick={() => void navigate('/clients/nouveau')} />

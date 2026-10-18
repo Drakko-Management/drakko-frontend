@@ -3,12 +3,13 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { toast } from 'sonner'
-import { useUsers, useCreateUser, useUpdateUser, useTransferOwnership } from '@/hooks/use-users'
+import { useUsers, useCreateUser, useUpdateUser, useTransferOwnership, useSetUserActive, useDeleteUser } from '@/hooks/use-users'
 import { useRoles, useAssignableRoles } from '@/hooks/use-roles'
 import { useAuthStore } from '@/store/auth.store'
 import { ApiError } from '@/lib/api-client'
 import { makePermissions } from '@/lib/permissions'
 import { UsersPage } from './UsersPage'
+import { EditUserPage } from './EditUserPage'
 import type { User } from '@/types/api'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -27,6 +28,8 @@ vi.mock('@/hooks/use-users', () => ({
   useCreateUser: vi.fn(),
   useUpdateUser: vi.fn(),
   useTransferOwnership: vi.fn(),
+  useSetUserActive: vi.fn(),
+  useDeleteUser: vi.fn(),
 }))
 
 vi.mock('@/hooks/use-roles', () => ({
@@ -79,6 +82,7 @@ function usersTree() {
     <MemoryRouter initialEntries={['/utilisateurs']}>
       <Routes>
         <Route path="/utilisateurs" element={<UsersPage />} />
+        <Route path="/utilisateurs/:id" element={<EditUserPage />} />
         <Route path="/utilisateurs/nouveau" element={<p>Page création membre</p>} />
         <Route path="/utilisateurs/roles/nouveau" element={<p>Page création rôle</p>} />
       </Routes>
@@ -103,6 +107,8 @@ beforeEach(() => {
   vi.mocked(useCreateUser).mockReturnValue(mockMutation() as never)
   vi.mocked(useUpdateUser).mockReturnValue(mockMutation() as never)
   vi.mocked(useTransferOwnership).mockReturnValue(mockMutation() as never)
+  vi.mocked(useSetUserActive).mockReturnValue(mockMutation({ mutateAsync: vi.fn().mockResolvedValue({}) }) as never)
+  vi.mocked(useDeleteUser).mockReturnValue(mockMutation({ mutateAsync: vi.fn().mockResolvedValue({ result: 'deleted' }) }) as never)
 })
 
 // ── Rendu de base ──────────────────────────────────────────────────────────
@@ -263,7 +269,7 @@ describe('UsersPage — liste des membres', () => {
 
 // ── Expansion d'un utilisateur ─────────────────────────────────────────────
 
-describe('UsersPage — expansion d\'un utilisateur', () => {
+describe('UsersPage — fiche d\'un utilisateur (page dédiée)', () => {
   beforeEach(() => {
      
     vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
@@ -852,5 +858,60 @@ describe('UsersPage — propriétaire', () => {
         expect(toast.error).toHaveBeenCalledWith('La propriété ne peut être transférée qu\'à un administrateur actif')
       })
     })
+  })
+})
+
+// ── Masquer et supprimer depuis la liste ───────────────────────────────────
+
+describe('UsersPage — masquer et supprimer', () => {
+  beforeEach(() => {
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+  })
+
+  it("l'œil désactive le membre sans confirmation (réversible)", async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    vi.mocked(useSetUserActive).mockReturnValue(mockMutation({ mutateAsync }) as never)
+    renderUsers()
+
+    await userEvent.click(screen.getByLabelText('Désactiver'))
+
+    expect(mutateAsync).toHaveBeenCalledWith({ id: 'u1', active: false })
+  })
+
+  it('la corbeille avertit, ne supprime rien avant la confirmation, puis supprime', async () => {
+    const mutateAsync = vi.fn().mockResolvedValue({ result: 'deleted' })
+    vi.mocked(useDeleteUser).mockReturnValue(mockMutation({ mutateAsync }) as never)
+    renderUsers()
+
+    await userEvent.click(screen.getByLabelText('Supprimer'))
+    expect(screen.getByText(/Supprimer Jean Dupont/)).toBeInTheDocument()
+    expect(mutateAsync).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
+    expect(mutateAsync).toHaveBeenCalledWith('u1')
+  })
+
+  it("ni œil ni corbeille sur son propre compte", () => {
+    useAuthStore.setState({ userId: 'u1' })
+    renderUsers()
+    expect(screen.queryByLabelText('Désactiver')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Supprimer')).not.toBeInTheDocument()
+  })
+
+  it("ni œil ni corbeille sur le propriétaire", () => {
+    vi.mocked(useUsers).mockReturnValue({
+      data: [{ ...USER_ACTIVE, role: 'ADMIN', isOwner: true }],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useUsers>)
+    renderUsers()
+    expect(screen.queryByLabelText('Désactiver')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Supprimer')).not.toBeInTheDocument()
+  })
+
+  it('un membre sans equipe.delete garde l\'œil mais pas la corbeille', () => {
+    useAuthStore.setState({ role: 'MEMBER', userId: 'u0', permissions: makePermissions({ equipe: ['read', 'update'] }) })
+    renderUsers()
+    expect(screen.getByLabelText('Désactiver')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Supprimer')).not.toBeInTheDocument()
   })
 })

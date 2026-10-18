@@ -2,18 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Plus, Pencil, Trash2, EyeOff, Eye, Loader2, Search, ListChecks } from "lucide-react";
+import { Plus, Trash2, EyeOff, Eye, Loader2, Search, ListChecks, ChevronRight } from "lucide-react";
 import { ConfirmDestructiveDialog } from "@/components/common/ConfirmDestructiveDialog";
 import { apiErrorMessage } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/common/Pagination";
 import { Fab } from "@/components/common/Fab";
 import {
   useServices,
-  useUpdateService,
   useDeleteService,
   useDeleteServices,
   useSetServicesActive,
@@ -25,93 +23,6 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAuthStore } from "@/store/auth.store";
 import type { Service } from "@/types/api";
 import { TutorialHelpButton } from "@/tutorials/TutorialHelpButton";
-
-interface ServiceFormData {
-  title: string;
-  description: string;
-  unit: string;
-}
-
-function ServiceForm({
-  initial,
-  onSubmit,
-  onCancel,
-  isPending,
-}: {
-  initial?: ServiceFormData;
-  onSubmit: (data: ServiceFormData) => void;
-  onCancel: () => void;
-  isPending: boolean;
-}) {
-  const { t } = useTranslation();
-  const [form, setForm] = useState<ServiceFormData>(
-    initial ?? { title: "", description: "", unit: "" },
-  );
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.title.trim()) return;
-    onSubmit(form);
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="space-y-1">
-        <Label htmlFor="svc-title">{t("services.form_title_label")}</Label>
-        <Input
-          id="svc-title"
-          value={form.title}
-          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-          placeholder={t("services.form_title_placeholder")}
-          autoFocus
-          required
-        />
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="svc-unit">{t("services.form_unit_label")}</Label>
-        <Input
-          id="svc-unit"
-          value={form.unit}
-          onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-          placeholder={t("services.form_unit_placeholder")}
-        />
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="svc-desc">{t("services.form_description_label")}</Label>
-        <Input
-          id="svc-desc"
-          value={form.description}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, description: e.target.value }))
-          }
-          placeholder={t("services.form_description_placeholder")}
-        />
-      </div>
-      <div className="flex gap-2 pt-1">
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 min-h-[44px]"
-          onClick={onCancel}
-          disabled={isPending}
-        >
-          {t("common.cancel")}
-        </Button>
-        <Button
-          type="submit"
-          className="flex-1 min-h-[44px]"
-          disabled={isPending || !form.title.trim()}
-        >
-          {isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            t("common.save")
-          )}
-        </Button>
-      </div>
-    </form>
-  );
-}
 
 function ServiceCard({
   service,
@@ -138,6 +49,12 @@ function ServiceCard({
 }) {
   const { t } = useTranslation();
 
+  const iconBtn =
+    "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted";
+
+  // Même carte que Clients : un tap ouvre la page de modification (ou coche en mode sélection)
+  const opensEdit = selecting || canUpdate;
+
   return (
     <div className="flex items-center gap-2">
       {selecting && (
@@ -149,67 +66,56 @@ function ServiceCard({
           aria-label={t("services.select_one", { title: service.title })}
         />
       )}
-    <div
-      className={`min-w-0 flex-1 rounded-xl border bg-card p-3 space-y-1 ${!service.active ? "opacity-60" : ""} ${selected ? "border-primary" : ""}`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div
-          className={`min-w-0 flex-1 ${selecting ? "cursor-pointer" : ""}`}
-          onClick={selecting ? () => onToggle(service.id) : undefined}
+      <div
+        className={`flex min-h-[72px] min-w-0 flex-1 items-center gap-1 rounded-xl border bg-card pl-4 pr-2 ${!service.active ? "opacity-60" : ""} ${selected ? "border-primary" : ""}`}
+      >
+        <button
+          type="button"
+          className={`min-w-0 flex-1 py-3 text-left transition-colors ${opensEdit ? "active:bg-muted" : "cursor-default"}`}
+          onClick={() => (selecting ? onToggle(service.id) : canUpdate && onEdit(service))}
         >
-          <p className="font-medium text-sm leading-snug truncate">
-            {service.title}
-          </p>
+          <p className="truncate font-semibold">{service.title}</p>
           {service.unit && (
             <p className="text-xs text-muted-foreground">{service.unit}</p>
           )}
           {service.description && (
-            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
               {service.description}
             </p>
           )}
-        </div>
+        </button>
         {!selecting && (
-        <div className="flex items-center gap-1 shrink-0">
-          {canUpdate && (
-            <button
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted"
-              onClick={() => onEdit(service)}
-              aria-label={t("services.edit")}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-          )}
-          {canUpdate && (service.active ? (
-            <button
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted"
-              onClick={() => onDeactivate(service.id)}
-              aria-label={t("services.deactivate")}
-            >
-              <EyeOff className="h-3.5 w-3.5" />
-            </button>
-          ) : (
-            <button
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted"
-              onClick={() => onActivate(service.id)}
-              aria-label={t("services.activate")}
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </button>
-          ))}
-          {canDelete && (
-            <button
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive/70 hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10"
-              onClick={() => onDelete(service.id)}
-              aria-label={t("services.delete")}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+          <div className="flex shrink-0 items-center">
+            {canUpdate && (service.active ? (
+              <button
+                className={iconBtn}
+                onClick={() => onDeactivate(service.id)}
+                aria-label={t("services.deactivate")}
+              >
+                <EyeOff className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                className={iconBtn}
+                onClick={() => onActivate(service.id)}
+                aria-label={t("services.activate")}
+              >
+                <Eye className="h-4 w-4" />
+              </button>
+            ))}
+            {canDelete && (
+              <button
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-destructive/70 hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10"
+                onClick={() => onDelete(service.id)}
+                aria-label={t("services.delete")}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+            {canUpdate && <ChevronRight className="ml-1 h-4 w-4 text-muted-foreground" />}
+          </div>
         )}
       </div>
-    </div>
     </div>
   );
 }
@@ -220,7 +126,6 @@ export function ServicesPage() {
   const { can } = usePermissions();
   const isAdmin = useAuthStore((s) => s.role === 'ADMIN');
   const { data: services, isLoading } = useServices();
-  const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const deleteServices = useDeleteServices();
   const setServicesActive = useSetServicesActive();
@@ -228,9 +133,6 @@ export function ServicesPage() {
   const activateService = useActivateService();
   const seedServices = useSeedServices();
 
-  const [modalState, setModalState] = useState<
-    { mode: "edit"; service: Service } | null
-  >(null);
   const [view, setView] = useState<"active" | "inactive">("active");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -240,6 +142,7 @@ export function ServicesPage() {
   const [selecting, setSelecting] = useState(false);
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [confirmBulk, setConfirmBulk] = useState(false);
+  const [toDelete, setToDelete] = useState<Service | null>(null);
 
   const PER_PAGE = 15;
 
@@ -323,33 +226,14 @@ export function ServicesPage() {
     setPage(1);
   }
 
-  function closeModal() {
-    setModalState(null);
-  }
-
-  async function handleSubmit(data: ServiceFormData) {
-    if (!modalState) return
+  async function handleDelete() {
+    if (!toDelete) return;
     try {
-      await updateService.mutateAsync({
-        id: modalState.service.id,
-        title: data.title,
-        description: data.description || undefined,
-        unit: data.unit || undefined,
-      });
-      toast.success(t("services.updated"));
-      closeModal();
-    } catch {
-      toast.error(t("services.update_error"));
-    }
-  }
-
-  async function handleDelete(id: string) {
-    if (!window.confirm(t("services.confirm_delete"))) return;
-    try {
-      await deleteService.mutateAsync(id);
-      toast.success(t("services.deleted"));
-    } catch {
-      toast.error(t("services.delete_error"));
+      const { result } = await deleteService.mutateAsync(toDelete.id);
+      toast.success(t(result === "deleted" ? "services.deleted" : "services.deleted_kept"));
+      setToDelete(null);
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, "services.delete_error"));
     }
   }
 
@@ -379,8 +263,6 @@ export function ServicesPage() {
       toast.error(t("services.seed_error"));
     }
   }
-
-  const isPending = updateService.isPending;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
@@ -538,10 +420,10 @@ export function ServicesPage() {
                 service={s}
                 canUpdate={can('prestations', 'update')}
                 canDelete={can('prestations', 'delete')}
-                onEdit={(svc) => setModalState({ mode: "edit", service: svc })}
+                onEdit={(svc) => void navigate(`/prestations/${svc.id}/modifier`)}
                 onDeactivate={(id) => void handleDeactivate(id)}
                 onActivate={(id) => void handleActivate(id)}
-                onDelete={(id) => void handleDelete(id)}
+                onDelete={() => setToDelete(s)}
                 selecting={selecting}
                 selected={selection.has(s.id)}
                 onToggle={toggleOne}
@@ -562,28 +444,15 @@ export function ServicesPage() {
         />
       </div>
 
-      {/* Form modal */}
-      {modalState && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={closeModal}
-          />
-          <div className="relative w-full max-w-md rounded-2xl bg-card p-5 shadow-xl space-y-4">
-            <h2 className="font-semibold">{t("services.form_edit_title")}</h2>
-            <ServiceForm
-              initial={{
-                title: modalState.service.title,
-                description: modalState.service.description ?? "",
-                unit: modalState.service.unit ?? "",
-              }}
-              onSubmit={(data) => void handleSubmit(data)}
-              onCancel={closeModal}
-              isPending={isPending}
-            />
-          </div>
-        </div>
-      )}
+      <ConfirmDestructiveDialog
+        open={toDelete !== null}
+        onOpenChange={(open) => !open && setToDelete(null)}
+        title={t("services.confirm_delete")}
+        description={t("services.bulk_confirm_message")}
+        confirmLabel={t("services.delete")}
+        pending={deleteService.isPending}
+        onConfirm={() => void handleDelete()}
+      />
 
       <ConfirmDestructiveDialog
         open={confirmBulk}

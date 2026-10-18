@@ -84,11 +84,44 @@ export function useUpdateClient(id: string) {
 export function useDeactivateClient(id: string) {
   return useMutation({
     mutationFn: () =>
-      apiRequest<void>(`/clients/${id}`, { method: 'DELETE' }),
+      apiRequest<Client>(`/clients/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active: false }),
+      }),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ['clients'] }),
         queryClient.invalidateQueries({ queryKey: ['projects'] }),
       ]),
+  })
+}
+
+const invalidateClients = () =>
+  Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  ])
+
+// Depuis la liste : l'identifiant se donne à l'appel, pas à la création du hook
+export function useSetClientActive() {
+  return useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+      apiRequest<Client>(`/clients/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active }),
+      }),
+    onSuccess: invalidateClients,
+  })
+}
+
+export interface DeleteResult {
+  // Un client (ou un membre) qui laisse des traces n'est pas effacé : il est désactivé
+  result: 'deleted' | 'deactivated'
+}
+
+export function useDeleteClient() {
+  return useMutation({
+    mutationFn: (id: string) => apiRequest<DeleteResult>(`/clients/${id}`, { method: 'DELETE' }),
+    onSuccess: invalidateClients,
   })
 }
