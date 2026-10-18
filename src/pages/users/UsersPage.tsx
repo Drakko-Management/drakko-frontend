@@ -114,6 +114,7 @@ export function UsersPage() {
   const { can, isAdmin } = usePermissions()
   const { data: users, isLoading } = useUsers()
   const [tab, setTab] = useState<Tab>('membres')
+  const [view, setView] = useState<'active' | 'inactive'>('active')
 
   const canCreate = isAdmin || can('equipe', 'create')
   const canEdit = useCanEditUser()
@@ -148,6 +149,7 @@ export function UsersPage() {
 
   const active = users?.filter((u) => u.active) ?? []
   const inactive = users?.filter((u) => !u.active) ?? []
+  const visible = view === 'active' ? active : inactive
 
   return (
     <div className="flex flex-col space-y-4 pb-4" data-team-tabs={isAdmin ? 'on' : 'off'}>
@@ -201,20 +203,24 @@ export function UsersPage() {
           {!isLoading && users?.length === 0 && (
             <EmptyState icon={UserCog} title={t('users.empty')} />
           )}
-          {active.length > 0 && (
-            <div className="divide-y overflow-hidden rounded-xl border bg-card">
-              {active.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} canToggle={canToggle(user)} canDelete={canDelete(user)} onToggle={(u) => void handleToggle(u)} onDelete={setToDelete} />)}
+          {/* Comme Clients et Prestations : une vue des comptes désactivés, derrière un lien sous les onglets */}
+          {!isLoading && (view === 'inactive' || inactive.length > 0) && (
+            <button
+              className="text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => setView(view === 'active' ? 'inactive' : 'active')}
+            >
+              {view === 'active'
+                ? t('users.view_inactive', { count: inactive.length })
+                : t('users.view_active', { count: active.length })}
+            </button>
+          )}
+          {visible.length > 0 && (
+            <div className={['divide-y overflow-hidden rounded-xl border bg-card', view === 'inactive' ? 'opacity-60' : ''].join(' ')}>
+              {visible.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} canToggle={canToggle(user)} canDelete={canDelete(user)} onToggle={(u) => void handleToggle(u)} onDelete={setToDelete} />)}
             </div>
           )}
-          {inactive.length > 0 && (
-            <div className="space-y-1">
-              <p className="px-1 text-xs font-medium text-muted-foreground">
-                {t('users.inactive_accounts')}
-              </p>
-              <div className="divide-y overflow-hidden rounded-xl border bg-card opacity-60">
-                {inactive.map((user) => <UserRow key={user.id} user={user} canUpdate={canEdit(user)} canToggle={canToggle(user)} canDelete={canDelete(user)} onToggle={(u) => void handleToggle(u)} onDelete={setToDelete} />)}
-              </div>
-            </div>
+          {!isLoading && view === 'inactive' && visible.length === 0 && (
+            <p className="py-2 text-sm text-muted-foreground">{t('users.no_inactive')}</p>
           )}
         </>
       )}

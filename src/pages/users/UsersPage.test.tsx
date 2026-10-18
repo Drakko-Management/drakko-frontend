@@ -242,15 +242,27 @@ describe('UsersPage — liste des membres', () => {
     expect(screen.getByText(/@jean\.dupont/)).toBeInTheDocument()
   })
 
-  it('affiche la section "Comptes inactifs" pour les utilisateurs inactifs', () => {
-     
+  it('les comptes désactivés ne sont pas dans la liste : un lien mène à leur vue', async () => {
     vi.mocked(useUsers).mockReturnValue({
       data: [USER_ACTIVE, USER_INACTIVE],
       isLoading: false,
     } as unknown as ReturnType<typeof useUsers>)
     renderUsers()
-    expect(screen.getByText('Comptes inactifs')).toBeInTheDocument()
+    expect(screen.queryByText('Marie Martin')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('Voir les comptes désactivés (1)'))
+
     expect(screen.getByText('Marie Martin')).toBeInTheDocument()
+    expect(screen.queryByText('Jean Dupont')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByText('← Comptes actifs (1)'))
+    expect(screen.getByText('Jean Dupont')).toBeInTheDocument()
+  })
+
+  it("sans compte désactivé, pas de lien", () => {
+    vi.mocked(useUsers).mockReturnValue({ data: [USER_ACTIVE], isLoading: false } as unknown as ReturnType<typeof useUsers>)
+    renderUsers()
+    expect(screen.queryByText(/Voir les comptes désactivés/)).not.toBeInTheDocument()
   })
 
   it('affiche 3 skeletons pendant le chargement', () => {
@@ -796,6 +808,8 @@ describe('UsersPage — propriétaire', () => {
 
     it('pas proposé sur la fiche d\'un administrateur désactivé', async () => {
       renderUsers()
+      // le compte désactivé se trouve dans la vue des comptes désactivés
+      await userEvent.click(screen.getByText(/Voir les comptes désactivés/))
       await userEvent.click(screen.getByText('Luc Parti'))
       expect(screen.queryByRole('button', { name: 'Transférer la propriété' })).not.toBeInTheDocument()
       expect(screen.queryByText(/nommez-le d'abord administrateur/i)).not.toBeInTheDocument()

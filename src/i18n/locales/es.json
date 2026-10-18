@@ -629,7 +629,10 @@
     "deleted_kept": "Cuenta desactivada: deja obras o fotos",
     "delete_error": "No se pudo eliminar al miembro",
     "cannot_delete_self": "No puedes eliminar tu propia cuenta",
-    "edit_title": "Modificar miembro"
+    "edit_title": "Modificar miembro",
+    "view_inactive": "Ver cuentas desactivadas ({{count}})",
+    "view_active": "← Cuentas activas ({{count}})",
+    "no_inactive": "Ninguna cuenta desactivada"
   },
   "report": {
     "title": "Acta de recepción de obras",

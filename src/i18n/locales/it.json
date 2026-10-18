@@ -629,7 +629,10 @@
     "deleted_kept": "Account disattivato: lascia cantieri o foto",
     "delete_error": "Impossibile eliminare il membro",
     "cannot_delete_self": "Non puoi eliminare il tuo account",
-    "edit_title": "Modifica membro"
+    "edit_title": "Modifica membro",
+    "view_inactive": "Mostra gli account disattivati ({{count}})",
+    "view_active": "← Account attivi ({{count}})",
+    "no_inactive": "Nessun account disattivato"
   },
   "report": {
     "title": "Verbale di fine lavori",

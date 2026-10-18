@@ -629,7 +629,10 @@
     "deleted_kept": "Konto deaktiviert: es hinterlässt Baustellen oder Fotos",
     "delete_error": "Das Mitglied konnte nicht gelöscht werden",
     "cannot_delete_self": "Sie können Ihr eigenes Konto nicht löschen",
-    "edit_title": "Mitglied bearbeiten"
+    "edit_title": "Mitglied bearbeiten",
+    "view_inactive": "Deaktivierte Konten anzeigen ({{count}})",
+    "view_active": "← Aktive Konten ({{count}})",
+    "no_inactive": "Keine deaktivierten Konten"
   },
   "report": {
     "title": "Abnahmeprotokoll",

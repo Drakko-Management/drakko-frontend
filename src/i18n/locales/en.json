@@ -629,7 +629,10 @@
     "deleted_kept": "Account deactivated: it leaves projects or photos behind",
     "delete_error": "Could not delete the member",
     "cannot_delete_self": "You can't delete your own account",
-    "edit_title": "Edit member"
+    "edit_title": "Edit member",
+    "view_inactive": "Show deactivated accounts ({{count}})",
+    "view_active": "← Active accounts ({{count}})",
+    "no_inactive": "No deactivated accounts"
   },
   "report": {
     "title": "Works Completion Certificate",

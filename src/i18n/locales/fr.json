@@ -629,7 +629,10 @@
     "deleted_kept": "Compte désactivé : il laisse des chantiers ou des photos",
     "delete_error": "Impossible de supprimer le membre",
     "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte",
-    "edit_title": "Modifier le membre"
+    "edit_title": "Modifier le membre",
+    "view_inactive": "Voir les comptes désactivés ({{count}})",
+    "view_active": "← Comptes actifs ({{count}})",
+    "no_inactive": "Aucun compte désactivé"
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",
