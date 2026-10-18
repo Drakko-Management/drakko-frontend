@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Plus, Pencil, Trash2, EyeOff, Eye, Loader2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, EyeOff, Eye, Loader2, Search, ListChecks } from "lucide-react";
 import { ConfirmDestructiveDialog } from "@/components/common/ConfirmDestructiveDialog";
 import { apiErrorMessage } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
@@ -376,6 +376,17 @@ export function ServicesPage() {
           </h1>
           <div className="flex items-center gap-2">
             <TutorialHelpButton scope="services" />
+            {!selecting && can('prestations', 'delete') && filteredServices.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-[44px] gap-1.5"
+                onClick={() => setSelecting(true)}
+              >
+                <ListChecks className="h-4 w-4" />
+                {t("services.select")}
+              </Button>
+            )}
             {view === "active" && can('prestations', 'create') ? (
               <Button
                 size="sm"
@@ -444,17 +455,7 @@ export function ServicesPage() {
               {t("common.cancel")}
             </Button>
           </div>
-        ) : (
-          can('prestations', 'delete') &&
-          filteredServices.length > 0 && (
-            <button
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
-              onClick={() => setSelecting(true)}
-            >
-              {t("services.select")}
-            </button>
-          )
-        )}
+        ) : null}
         {view === "active" && inactiveServices.length > 0 && !isLoading && (
           <button
             className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
