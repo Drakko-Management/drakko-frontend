@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { ChevronRight, User, Palette, Building2, LayoutGrid, Smartphone, GraduationCap } from 'lucide-react'
+import { ChevronRight, User, Palette, Building2, LayoutGrid, Smartphone, GraduationCap, SlidersHorizontal } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { usePermissions } from '@/hooks/use-permissions'
@@ -69,6 +69,13 @@ export function SettingsPage() {
             label={t('settings.hub_appearance')}
             sub={t('settings.hub_appearance_sub')}
             onClick={() => navigate('/parametres/apparence')}
+          />
+          <HubRow
+            icon={SlidersHorizontal}
+            iconClass="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+            label={t('settings.hub_filters')}
+            sub={t('settings.hub_filters_sub')}
+            onClick={() => navigate('/parametres/filtres')}
           />
           <HubRow
             icon={GraduationCap}

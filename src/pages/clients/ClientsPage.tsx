@@ -11,6 +11,7 @@ import { Pagination } from '@/components/common/Pagination'
 import { useClients } from '@/hooks/use-clients'
 import type { ClientSort } from '@/hooks/use-clients'
 import { usePermissions } from '@/hooks/use-permissions'
+import { useAuthStore } from '@/store/auth.store'
 import { fullName } from '@/lib/utils'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
@@ -20,7 +21,8 @@ export function ClientsPage() {
   const { can } = usePermissions()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [sort, setSort] = useState<ClientSort>('name')
+  const defaultSort = useAuthStore((s) => s.defaultFilters.clientsSort)
+  const [sort, setSort] = useState<ClientSort>(defaultSort)
 
   const { data, isLoading } = useClients({ search: search || undefined, active: true, page, limit: 20, sort })
 

@@ -204,7 +204,14 @@
     "reset_services_title": "Cancellare tutti i servizi?",
     "reset_services_message": "Tutta la tua libreria di servizi verrà cancellata. Questa azione è definitiva. I servizi già usati in un rapporto non vengono cancellati: vengono solo disattivati.",
     "reset_services_confirm": "Cancella tutto",
-    "reset_services_done": "{{deleted}} eliminati, {{deactivated}} disattivati"
+    "reset_services_done": "{{deleted}} eliminati, {{deactivated}} disattivati",
+    "hub_filters": "Filtri",
+    "hub_filters_sub": "Filtro e ordinamento predefiniti delle liste",
+    "filters_intro": "Scegli cosa trovare già impostato quando apri le tue liste. Questa impostazione è propria del tuo account.",
+    "filters_status": "Stato mostrato",
+    "filters_sort": "Ordinamento",
+    "filters_saved": "Filtri salvati",
+    "filters_reset": "Ripristina le impostazioni originali"
   },
   "common": {
     "back": "Indietro",

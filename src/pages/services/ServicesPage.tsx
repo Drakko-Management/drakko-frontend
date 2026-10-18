@@ -232,7 +232,8 @@ export function ServicesPage() {
   const [view, setView] = useState<"active" | "inactive">("active");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<"az" | "za" | "recent">("az");
+  const defaultSort = useAuthStore((s) => s.defaultFilters.servicesSort);
+  const [sort, setSort] = useState<"az" | "za" | "recent">(defaultSort);
 
   const [selecting, setSelecting] = useState(false);
   const [selection, setSelection] = useState<Set<string>>(new Set());

@@ -204,7 +204,14 @@
     "reset_services_title": "Erase all services?",
     "reset_services_message": "Your whole service library will be erased. This cannot be undone. Services already used in a report are not erased: they are only deactivated.",
     "reset_services_confirm": "Erase all",
-    "reset_services_done": "{{deleted}} deleted, {{deactivated}} deactivated"
+    "reset_services_done": "{{deleted}} deleted, {{deactivated}} deactivated",
+    "hub_filters": "Filters",
+    "hub_filters_sub": "Default filter and sort of your lists",
+    "filters_intro": "Choose what is already set when you open your lists. This setting is specific to your account.",
+    "filters_status": "Status shown",
+    "filters_sort": "Sort",
+    "filters_saved": "Filters saved",
+    "filters_reset": "Restore the original settings"
   },
   "common": {
     "back": "Back",

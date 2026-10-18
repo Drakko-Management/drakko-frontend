@@ -23,6 +23,7 @@ export function SessionProvider() {
   const setPreferences = useAuthStore((s) => s.setPreferences)
   const setPermissions = useAuthStore((s) => s.setPermissions)
   const setNavSlots = useAuthStore((s) => s.setNavSlots)
+  const setDefaultFilters = useAuthStore((s) => s.setDefaultFilters)
   const setCustomRoleName = useAuthStore((s) => s.setCustomRoleName)
   const setTwoFactorRequired = useAuthStore((s) => s.setTwoFactorRequired)
   const { setTheme, setColor, setHandedness } = useTheme()
@@ -40,6 +41,7 @@ export function SessionProvider() {
             const me = (await res.json()) as {
               username: string; firstName: string; lastName: string
               language: string; theme: string; accentColor: string; handedness: string; navSlots: string[]
+              defaultFilters?: Record<string, unknown>
               customRole?: { name: string; permissions: Record<string, string[]> } | null
               twoFactorRequired?: boolean
             }
@@ -54,6 +56,7 @@ export function SessionProvider() {
             setPermissions(me.customRole?.permissions as never ?? null)
             setCustomRoleName(me.customRole?.name ?? null)
             setNavSlots(me.navSlots ?? [])
+            setDefaultFilters(me.defaultFilters)
             setTwoFactorRequired(Boolean(me.twoFactorRequired))
           }
         } catch {
@@ -64,7 +67,7 @@ export function SessionProvider() {
       }
       setReady(true)
     })
-  }, [setAuth, setUsername, clearAuth, setName, setTheme, setColor, setHandedness, i18n, setPreferences, setNavSlots, setCustomRoleName, setTwoFactorRequired])
+  }, [setAuth, setUsername, clearAuth, setName, setTheme, setColor, setHandedness, i18n, setPreferences, setNavSlots, setDefaultFilters, setCustomRoleName, setTwoFactorRequired])
 
   if (!ready) {
     return (

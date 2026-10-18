@@ -204,7 +204,14 @@
     "reset_services_title": "Effacer toutes les prestations ?",
     "reset_services_message": "Toute votre bibliothèque de prestations sera effacée. Cette action est définitive. Les prestations déjà utilisées dans un rapport ne sont pas effacées : elles sont seulement désactivées.",
     "reset_services_confirm": "Tout effacer",
-    "reset_services_done": "{{deleted}} supprimée(s), {{deactivated}} désactivée(s)"
+    "reset_services_done": "{{deleted}} supprimée(s), {{deactivated}} désactivée(s)",
+    "hub_filters": "Filtres",
+    "hub_filters_sub": "Filtre et tri par défaut des listes",
+    "filters_intro": "Choisissez ce que vous trouvez déjà réglé à l'ouverture de vos listes. Ce réglage est propre à votre compte.",
+    "filters_status": "Statut affiché",
+    "filters_sort": "Tri",
+    "filters_saved": "Filtres enregistrés",
+    "filters_reset": "Rétablir les réglages d'origine"
   },
   "common": {
     "back": "Retour",

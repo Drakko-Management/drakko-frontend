@@ -204,7 +204,14 @@
     "reset_services_title": "¿Borrar todos los servicios?",
     "reset_services_message": "Se borrará toda tu biblioteca de servicios. Esta acción es definitiva. Los servicios ya utilizados en un informe no se borran: solo se desactivan.",
     "reset_services_confirm": "Borrar todo",
-    "reset_services_done": "{{deleted}} eliminados, {{deactivated}} desactivados"
+    "reset_services_done": "{{deleted}} eliminados, {{deactivated}} desactivados",
+    "hub_filters": "Filtros",
+    "hub_filters_sub": "Filtro y orden por defecto de tus listas",
+    "filters_intro": "Elige lo que quieres encontrar ya ajustado al abrir tus listas. Este ajuste es propio de tu cuenta.",
+    "filters_status": "Estado mostrado",
+    "filters_sort": "Orden",
+    "filters_saved": "Filtros guardados",
+    "filters_reset": "Restablecer los ajustes originales"
   },
   "common": {
     "back": "Volver",

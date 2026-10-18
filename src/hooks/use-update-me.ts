@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api-client'
 import type { User } from '@/types/api'
+import type { DefaultFilters } from '@/lib/default-filters'
 
 interface UpdateMePayload {
   language?: string
@@ -8,6 +9,7 @@ interface UpdateMePayload {
   accentColor?: string
   handedness?: string
   navSlots?: string[]
+  defaultFilters?: Partial<DefaultFilters>
 }
 
 export function useUpdateMe() {

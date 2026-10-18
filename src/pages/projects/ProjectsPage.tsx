@@ -11,6 +11,7 @@ import { Fab } from '@/components/common/Fab'
 import { Pagination } from '@/components/common/Pagination'
 import { useProjects } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
+import { useAuthStore } from '@/store/auth.store'
 import { formatDate } from '@/lib/utils'
 import type { Project, ProjectStatus } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
@@ -62,12 +63,18 @@ export function ProjectsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { can } = usePermissions()
 
-  const statusParam = searchParams.get('status') as ProjectStatus | null
-  const statusFilter = statusParam ?? undefined
+  const { projectsStatus: defaultStatus, projectsSort: defaultSort } = useAuthStore((s) => s.defaultFilters)
+  // Le lien du tableau de bord (?status=…) prime ; « ?status=all » est le « Tous » explicite quand un statut est
+  // réglé par défaut ; sans paramètre, c'est le réglage de l'utilisateur
+  const statusParam = searchParams.get('status')
+  const statusFilter: ProjectStatus | undefined =
+    statusParam === 'all'
+      ? undefined
+      : ((statusParam as ProjectStatus | null) ?? (defaultStatus === 'all' ? undefined : defaultStatus))
 
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
-  const [sort, setSort] = useState<ProjectSort>('recent')
+  const [sort, setSort] = useState<ProjectSort>(defaultSort)
 
   const { data, isLoading } = useProjects({ status: statusFilter, page, limit: 20, sort })
 
@@ -158,7 +165,7 @@ export function ProjectsPage() {
                 if (f.value) {
                   setSearchParams({ status: f.value })
                 } else {
-                  setSearchParams({})
+                  setSearchParams(defaultStatus === 'all' ? {} : { status: 'all' })
                 }
               }}
               className={[

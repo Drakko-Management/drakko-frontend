@@ -253,3 +253,35 @@ describe('ProjectsPage — intervention rapide', () => {
     expect(screen.queryByRole('button', { name: 'Intervention rapide' })).not.toBeInTheDocument()
   })
 })
+
+// ── Tests : filtre par défaut de l'utilisateur ─────────────────────────────
+
+describe('ProjectsPage — filtre par défaut', () => {
+  const lastCall = () => {
+    const calls = vi.mocked(useProjects).mock.calls
+    return calls[calls.length - 1]?.[0]
+  }
+
+  beforeEach(() => {
+    useAuthStore.getState().setDefaultFilters({ projectsStatus: 'IN_PROGRESS', projectsSort: 'title' })
+  })
+
+  it("applique le statut et le tri réglés quand l'adresse n'impose rien", () => {
+    renderProjects()
+    expect(lastCall()).toMatchObject({ status: 'IN_PROGRESS', sort: 'title' })
+  })
+
+  it('laisse le lien du tableau de bord (?status=…) l\'emporter', () => {
+    renderProjects('/?status=COMPLETED')
+    expect(lastCall()).toMatchObject({ status: 'COMPLETED' })
+  })
+
+  it('« Tous » reste possible malgré un statut par défaut', async () => {
+    const user = userEvent.setup()
+    renderProjects()
+
+    await user.click(screen.getByRole('button', { name: 'Tous' }))
+
+    expect(lastCall()?.status).toBeUndefined()
+  })
+})

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { queryClient } from '@/lib/query-client'
 import type { UserRole, Permissions } from '@/types/api'
+import { FILTER_FALLBACKS, resolveDefaultFilters, type DefaultFilters } from '@/lib/default-filters'
 
 const REFRESH_TOKEN_KEY = 'drakko-rt'
 
@@ -16,6 +17,7 @@ interface AuthState {
   theme: string
   accentColor: string
   navSlots: string[]
+  defaultFilters: DefaultFilters
   permissions: Permissions | null
   customRoleName: string | null
   /** La double authentification est exigée de ce compte (administrateur) et n'est pas encore configurée */
@@ -26,6 +28,7 @@ interface AuthState {
   setPreferences: (language: string, theme: string, accentColor: string) => void
   setPermissions: (permissions: Permissions | null) => void
   setNavSlots: (navSlots: string[]) => void
+  setDefaultFilters: (stored: Partial<Record<keyof DefaultFilters, unknown>> | null | undefined) => void
   setCustomRoleName: (name: string | null) => void
   setTwoFactorRequired: (required: boolean) => void
   clearAuth: () => void
@@ -57,6 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   theme: 'system',
   accentColor: 'green',
   navSlots: [],
+  defaultFilters: FILTER_FALLBACKS,
   permissions: null,
   customRoleName: null,
   twoFactorRequired: false,
@@ -97,6 +101,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ navSlots })
   },
 
+  setDefaultFilters: (stored) => {
+    set({ defaultFilters: resolveDefaultFilters(stored) })
+  },
+
   setCustomRoleName: (name) => {
     set({ customRoleName: name })
   },
@@ -112,7 +120,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem(REFRESH_TOKEN_KEY)
     // Ne jamais montrer à l'utilisateur suivant les données du précédent
     queryClient.clear()
-    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], customRoleName: null, twoFactorRequired: false })
+    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], defaultFilters: FILTER_FALLBACKS, customRoleName: null, twoFactorRequired: false })
   },
 }))
 

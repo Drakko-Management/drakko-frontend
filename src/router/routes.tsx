@@ -25,6 +25,7 @@ import { CreateRolePage } from '@/pages/users/CreateRolePage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { SettingsProfilPage } from '@/pages/settings/SettingsProfilPage'
 import { SettingsAppearancePage } from '@/pages/settings/SettingsAppearancePage'
+import { SettingsFiltersPage } from '@/pages/settings/SettingsFiltersPage'
 import { SettingsNavigationPage } from '@/pages/settings/SettingsNavigationPage'
 import { SettingsEnterprisePage } from '@/pages/settings/SettingsEnterprisePage'
 import { SettingsTutorialsPage } from '@/pages/settings/SettingsTutorialsPage'
@@ -88,6 +89,7 @@ const routeTree: RouteObject[] = [
                   { path: 'parametres', element: <SettingsPage /> },
                   { path: 'parametres/profil', element: <SettingsProfilPage /> },
                   { path: 'parametres/apparence', element: <SettingsAppearancePage /> },
+                  { path: 'parametres/filtres', element: <SettingsFiltersPage /> },
                   { path: 'parametres/navigation', element: <SettingsNavigationPage /> },
                   { path: 'parametres/entreprise', element: <SettingsEnterprisePage /> },
                   { path: 'parametres/tutoriels', element: <SettingsTutorialsPage /> },

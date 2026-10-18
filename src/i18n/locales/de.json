@@ -204,7 +204,14 @@
     "reset_services_title": "Alle Leistungen löschen?",
     "reset_services_message": "Ihre gesamte Leistungsbibliothek wird gelöscht. Diese Aktion ist endgültig. Leistungen, die bereits in einem Bericht verwendet werden, werden nicht gelöscht, sondern nur deaktiviert.",
     "reset_services_confirm": "Alles löschen",
-    "reset_services_done": "{{deleted}} gelöscht, {{deactivated}} deaktiviert"
+    "reset_services_done": "{{deleted}} gelöscht, {{deactivated}} deaktiviert",
+    "hub_filters": "Filter",
+    "hub_filters_sub": "Standardfilter und Sortierung Ihrer Listen",
+    "filters_intro": "Wählen Sie, was beim Öffnen Ihrer Listen bereits eingestellt ist. Diese Einstellung gilt nur für Ihr Konto.",
+    "filters_status": "Angezeigter Status",
+    "filters_sort": "Sortierung",
+    "filters_saved": "Filter gespeichert",
+    "filters_reset": "Ursprüngliche Einstellungen wiederherstellen"
   },
   "common": {
     "back": "Zurück",
