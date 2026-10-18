@@ -17,11 +17,17 @@ export function ServiceFormFields({
   onChange,
   onSubmit,
   isPending,
+  autoFocus = false,
+  unchanged = false,
 }: {
   values: ServiceFormValues
   onChange: (next: ServiceFormValues) => void
   onSubmit: () => void
   isPending: boolean
+  /** Création : le curseur arrive dans l'intitulé. Modification : jamais (on n'ouvre pas le clavier d'office) */
+  autoFocus?: boolean
+  /** Modification : « Enregistrer » reste inactif tant que rien n'a changé */
+  unchanged?: boolean
 }) {
   const { t } = useTranslation()
 
@@ -41,7 +47,7 @@ export function ServiceFormFields({
           value={values.title}
           onChange={(e) => onChange({ ...values, title: e.target.value })}
           placeholder={t('services.form_title_placeholder')}
-          autoFocus
+          autoFocus={autoFocus}
           required
         />
       </div>
@@ -69,7 +75,7 @@ export function ServiceFormFields({
         type="submit"
         className="w-full min-h-[48px] text-base"
         data-tutorial="service-submit"
-        disabled={isPending || !values.title.trim()}
+        disabled={isPending || unchanged || !values.title.trim()}
       >
         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {t('common.save')}

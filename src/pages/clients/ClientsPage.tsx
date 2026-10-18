@@ -70,13 +70,15 @@ export function ClientsPage() {
             <TutorialHelpButton scope="clients" />
             {can('clients', 'create') && (
               <Button
+                aria-label={t('clients.new_client')}
                 size="sm"
                 className="min-h-[44px] hidden md:flex"
                 data-tutorial="clients-new"
                 onClick={() => void navigate('/clients/nouveau')}
               >
                 <Plus className="mr-1 h-4 w-4" />
-                {t('clients.new')}
+                <span className="lg:hidden">{t('clients.new')}</span>
+                <span className="hidden lg:inline">{t('clients.new_client')}</span>
               </Button>
             )}
           </div>

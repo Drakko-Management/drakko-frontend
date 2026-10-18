@@ -74,7 +74,8 @@
     "deleted": "Kunde gelöscht",
     "deleted_kept": "Kunde deaktiviert: er hat noch Baustellen",
     "delete_error": "Der Kunde konnte nicht gelöscht werden",
-    "no_inactive": "Keine deaktivierten Kunden"
+    "no_inactive": "Keine deaktivierten Kunden",
+    "edit_title": "Kunde bearbeiten"
   },
   "status": {
     "DRAFT": "Entwurf",
@@ -529,7 +530,11 @@
     "send_sms": "SMS senden",
     "projects": "Projekte ({{count}})",
     "first_name": "Vorname",
-    "last_name": "Nachname"
+    "last_name": "Nachname",
+    "call": "Anrufen",
+    "sms": "SMS",
+    "write": "Schreiben",
+    "map": "Route"
   },
   "create_client": {
     "title": "Neuer Kunde",
@@ -622,7 +627,8 @@
     "deleted": "Mitglied gelöscht",
     "deleted_kept": "Konto deaktiviert: es hinterlässt Baustellen oder Fotos",
     "delete_error": "Das Mitglied konnte nicht gelöscht werden",
-    "cannot_delete_self": "Sie können Ihr eigenes Konto nicht löschen"
+    "cannot_delete_self": "Sie können Ihr eigenes Konto nicht löschen",
+    "edit_title": "Mitglied bearbeiten"
   },
   "report": {
     "title": "Abnahmeprotokoll",
@@ -692,7 +698,7 @@
   "services": {
     "title": "Leistungskatalog",
     "title_short": "Leistungen",
-    "add": "Hinzufügen",
+    "add": "Neue Leistung",
     "edit": "Bearbeiten",
     "activate": "Aktivieren",
     "deactivate": "Deaktivieren",
@@ -744,7 +750,8 @@
     "bulk_deactivated_other": "{{count}} Leistungen deaktiviert",
     "bulk_activated_one": "{{count}} Leistung aktiviert",
     "bulk_activated_other": "{{count}} Leistungen aktiviert",
-    "deleted_kept": "Leistung deaktiviert: sie wird in Berichten verwendet"
+    "deleted_kept": "Leistung deaktiviert: sie wird in Berichten verwendet",
+    "add_short": "Neu"
   },
   "sign": {
     "error_sign_required": "Bitte unterschreiben Sie das Dokument",

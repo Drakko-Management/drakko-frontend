@@ -74,7 +74,8 @@
     "deleted": "Client deleted",
     "deleted_kept": "Client deactivated: they still have projects",
     "delete_error": "Could not delete the client",
-    "no_inactive": "No deactivated clients"
+    "no_inactive": "No deactivated clients",
+    "edit_title": "Edit client"
   },
   "status": {
     "DRAFT": "Draft",
@@ -529,7 +530,11 @@
     "send_sms": "Send SMS",
     "projects": "Projects ({{count}})",
     "first_name": "First name",
-    "last_name": "Last name"
+    "last_name": "Last name",
+    "call": "Call",
+    "sms": "SMS",
+    "write": "Email",
+    "map": "Directions"
   },
   "create_client": {
     "title": "New client",
@@ -622,7 +627,8 @@
     "deleted": "Member deleted",
     "deleted_kept": "Account deactivated: it leaves projects or photos behind",
     "delete_error": "Could not delete the member",
-    "cannot_delete_self": "You can't delete your own account"
+    "cannot_delete_self": "You can't delete your own account",
+    "edit_title": "Edit member"
   },
   "report": {
     "title": "Works Completion Certificate",
@@ -692,7 +698,7 @@
   "services": {
     "title": "Service library",
     "title_short": "Services",
-    "add": "Add",
+    "add": "New service",
     "edit": "Edit",
     "activate": "Activate",
     "deactivate": "Deactivate",
@@ -744,7 +750,8 @@
     "bulk_deactivated_other": "{{count}} services deactivated",
     "bulk_activated_one": "{{count}} service activated",
     "bulk_activated_other": "{{count}} services activated",
-    "deleted_kept": "Service deactivated: it is used in reports"
+    "deleted_kept": "Service deactivated: it is used in reports",
+    "add_short": "New"
   },
   "sign": {
     "error_sign_required": "Please sign the document",

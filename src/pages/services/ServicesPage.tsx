@@ -288,13 +288,15 @@ export function ServicesPage() {
             )}
             {view === "active" && can('prestations', 'create') ? (
               <Button
+                aria-label={t("services.add")}
                 size="sm"
                 className="min-h-[44px] gap-1.5 hidden md:flex"
                 data-tutorial="services-new"
                 onClick={() => void navigate('/prestations/nouveau')}
               >
                 <Plus className="h-3.5 w-3.5" />
-                {t("services.add")}
+                <span className="lg:hidden">{t("services.add_short")}</span>
+                <span className="hidden lg:inline">{t("services.add")}</span>
               </Button>
             ) : view === "inactive" ? (
               <Button

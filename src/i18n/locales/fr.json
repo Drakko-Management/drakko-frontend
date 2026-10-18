@@ -74,7 +74,8 @@
     "deleted": "Client supprimé",
     "deleted_kept": "Client désactivé : il a encore des chantiers",
     "delete_error": "Impossible de supprimer le client",
-    "no_inactive": "Aucun client désactivé"
+    "no_inactive": "Aucun client désactivé",
+    "edit_title": "Modifier le client"
   },
   "status": {
     "DRAFT": "Brouillon",
@@ -529,7 +530,11 @@
     "send_sms": "Envoyer un SMS",
     "projects": "Chantiers ({{count}})",
     "first_name": "Prénom",
-    "last_name": "Nom"
+    "last_name": "Nom",
+    "call": "Appeler",
+    "sms": "SMS",
+    "write": "Écrire",
+    "map": "Itinéraire"
   },
   "create_client": {
     "title": "Nouveau client",
@@ -622,7 +627,8 @@
     "deleted": "Membre supprimé",
     "deleted_kept": "Compte désactivé : il laisse des chantiers ou des photos",
     "delete_error": "Impossible de supprimer le membre",
-    "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte"
+    "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte",
+    "edit_title": "Modifier le membre"
   },
   "report": {
     "title": "Procès-verbal de réception des travaux",
@@ -692,7 +698,7 @@
   "services": {
     "title": "Bibliothèque de prestations",
     "title_short": "Prestations",
-    "add": "Ajouter",
+    "add": "Nouvelle prestation",
     "edit": "Modifier",
     "activate": "Activer",
     "deactivate": "Désactiver",
@@ -744,7 +750,8 @@
     "bulk_deactivated_other": "{{count}} prestations désactivées",
     "bulk_activated_one": "{{count}} prestation activée",
     "bulk_activated_other": "{{count}} prestations activées",
-    "deleted_kept": "Prestation désactivée : elle est utilisée dans des rapports"
+    "deleted_kept": "Prestation désactivée : elle est utilisée dans des rapports",
+    "add_short": "Nouvelle"
   },
   "sign": {
     "error_sign_required": "Veuillez signer le document",

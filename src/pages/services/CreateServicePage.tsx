@@ -46,6 +46,7 @@ export function CreateServicePage() {
         onChange={setForm}
         onSubmit={() => void handleSubmit()}
         isPending={createService.isPending}
+        autoFocus
       />
     </div>
   )

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Mail, Phone, MapPin, FileText, Loader2, MessageSquare } from 'lucide-react'
@@ -7,87 +7,120 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
+import { EditPageTitle } from '@/components/common/EditPageTitle'
 import { RecordActions } from '@/components/common/RecordActions'
 import { useClient, useUpdateClient, useSetClientActive, useDeleteClient } from '@/hooks/use-clients'
+import type { Client } from '@/types/api'
 import { useProjects } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { fullName, formatDate, buildAddress, parseAddress } from '@/lib/utils'
 
-export function ClientDetailPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { t } = useTranslation()
-  const [editing, setEditing] = useState(false)
+type ClientForm = {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  street: string
+  postalCode: string
+  city: string
+  notes: string
+}
 
+function toForm(client: Client): ClientForm {
+  const { street, postalCode, city } = parseAddress(client.address ?? '')
+  return {
+    firstName: client.firstName,
+    lastName: client.lastName,
+    email: client.email,
+    phone: client.phone ?? '',
+    street,
+    postalCode,
+    city,
+    notes: client.notes ?? '',
+  }
+}
+
+function formatPhone(value: string): string {
+  const phone = parsePhoneNumberFromString(value, 'FR')
+  return phone?.isValid() ? phone.formatNational() : value
+}
+
+// Raccourcis de contact : appeler, écrire, itinéraire. Ils n'apparaissent que si la donnée existe.
+function ContactShortcuts({ client }: { client: Client }) {
+  const { t } = useTranslation()
+  const link =
+    'flex min-h-[44px] flex-1 basis-28 items-center justify-center gap-2 rounded-xl border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted/50 active:bg-muted'
+  return (
+    <div className="flex flex-wrap gap-2">
+      {client.phone && (
+        <a href={`tel:${client.phone}`} className={link}>
+          <Phone className="h-4 w-4 text-muted-foreground" />
+          {t('client_detail.call')}
+        </a>
+      )}
+      {client.phone && (
+        <a href={`sms:${client.phone}`} className={link} title={t('client_detail.send_sms')}>
+          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          {t('client_detail.sms')}
+        </a>
+      )}
+      <a href={`mailto:${client.email}`} className={link}>
+        <Mail className="h-4 w-4 text-muted-foreground" />
+        {t('client_detail.write')}
+      </a>
+      {client.address && (
+        <a
+          href={`https://maps.google.com/?q=${encodeURIComponent(client.address)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={link}
+        >
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+          {t('client_detail.map')}
+        </a>
+      )}
+    </div>
+  )
+}
+
+function ClientView({ client }: { client: Client }) {
+  const navigate = useNavigate()
+  const { t } = useTranslation()
   const { can } = usePermissions()
-  const { data: client, isLoading } = useClient(id ?? '')
-  const { data: projects } = useProjects({ clientId: id })
-  const updateClient = useUpdateClient(id ?? '')
+  const { data: projects } = useProjects({ clientId: client.id })
+  const updateClient = useUpdateClient(client.id)
   const setActive = useSetClientActive()
   const deleteClient = useDeleteClient()
 
-  const [form, setForm] = useState<{
-    firstName: string
-    lastName: string
-    email: string
-    phone: string
-    street: string
-    postalCode: string
-    city: string
-    notes: string
-  } | null>(null)
-
-  useEffect(() => {
-    if (client && searchParams.get('edit') === 'true') startEdit()
-  }, [client]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  function startEdit() {
-    if (!client) return
-    const { street, postalCode, city } = parseAddress(client.address ?? '')
-    setForm({
-      firstName: client.firstName,
-      lastName: client.lastName,
-      email: client.email,
-      phone: client.phone ?? '',
-      street,
-      postalCode,
-      city,
-      notes: client.notes ?? '',
-    })
-    setEditing(true)
-  }
-
-  function formatPhone(value: string): string {
-    const phone = parsePhoneNumberFromString(value, 'FR')
-    return phone?.isValid() ? phone.formatNational() : value
-  }
+  const canEdit = can('clients', 'update')
+  const initial = toForm(client)
+  const [form, setForm] = useState<ClientForm>(initial)
+  // « Enregistrer » ne s'active que si la fiche a changé
+  const dirty = (Object.keys(initial) as (keyof ClientForm)[]).some((k) => form[k].trim() !== initial[k].trim())
 
   async function handleSave() {
-    if (!form) return
     try {
       await updateClient.mutateAsync({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
-        phone: form.phone.trim() || undefined,
+        phone: form.phone.trim(),
         address: buildAddress(form.street, form.postalCode, form.city),
-        notes: form.notes.trim() || undefined,
+        notes: form.notes.trim(),
       })
       toast.success(t('client_detail.updated'))
-      setEditing(false)
     } catch {
       toast.error(t('client_detail.update_error'))
     }
   }
 
   async function handleToggleActive() {
-    if (!client) return
     try {
       await setActive.mutateAsync({ id: client.id, active: !client.active })
       toast.success(t(client.active ? 'clients.row_deactivated' : 'clients.row_activated'))
@@ -97,7 +130,6 @@ export function ClientDetailPage() {
   }
 
   async function handleDelete() {
-    if (!client) return
     try {
       const { result } = await deleteClient.mutateAsync(client.id)
       toast.success(t(result === 'deleted' ? 'clients.deleted' : 'clients.deleted_kept'))
@@ -107,39 +139,21 @@ export function ClientDetailPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4 pb-4">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 rounded-xl" />
-      </div>
-    )
-  }
-
-  if (!client) return null
-
   return (
     <div className="space-y-4 pb-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card active:bg-muted"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <h1 className="text-lg font-bold">{fullName(client)}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {!editing && can('clients', 'update') && (
-            <Button variant="outline" size="sm" className="min-h-[44px]" onClick={startEdit}>
-              {t('client_detail.edit')}
-            </Button>
-          )}
+      <div className="flex items-center gap-3">
+        <button
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card active:bg-muted"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <EditPageTitle kind={t('clients.edit_title')} name={fullName(client)} />
+        <div className="ml-auto flex items-center gap-2">
           <RecordActions
             active={client.active}
             pending={setActive.isPending || deleteClient.isPending}
-            onToggle={can('clients', 'update') ? () => void handleToggleActive() : undefined}
+            onToggle={canEdit ? () => void handleToggleActive() : undefined}
             toggleLabel={t(client.active ? 'clients.row_deactivate' : 'clients.row_activate')}
             onDelete={can('clients', 'delete') ? handleDelete : undefined}
             deleteLabel={t('clients.row_delete')}
@@ -150,7 +164,9 @@ export function ClientDetailPage() {
         </div>
       </div>
 
-      {editing && form ? (
+      <ContactShortcuts client={client} />
+
+      {canEdit ? (
         <Card className="space-y-4 p-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -220,57 +236,29 @@ export function ClientDetailPage() {
               />
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1 min-h-[44px]"
-              onClick={() => setEditing(false)}
-            >
-              {t('client_detail.cancel')}
-            </Button>
-            <Button
-              className="flex-1 min-h-[44px]"
-              onClick={() => void handleSave()}
-              disabled={updateClient.isPending}
-            >
-              {updateClient.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('client_detail.save')}
-            </Button>
+          <div className="space-y-2">
+            <Label>{t('create_client.notes_label')}</Label>
+            <Textarea
+              value={form.notes}
+              placeholder={t('create_client.notes_placeholder')}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            />
           </div>
+          <Button
+            className="w-full min-h-[48px]"
+            onClick={() => void handleSave()}
+            disabled={updateClient.isPending || !dirty}
+          >
+            {updateClient.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('client_detail.save')}
+          </Button>
         </Card>
       ) : (
         <Card className="divide-y">
-          <a
-            href={`mailto:${client.email}`}
-            className="flex items-center gap-3 p-4 min-h-[56px] hover:bg-muted/50 transition-colors"
-          >
-            <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <p className="text-sm text-primary underline-offset-2 hover:underline">{client.email}</p>
-          </a>
-          {client.phone && (
-            <div className="flex items-center gap-3 p-4 min-h-[56px]">
-              <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <a href={`tel:${client.phone}`} className="text-sm text-primary flex-1 underline-offset-2 hover:underline">
-                {client.phone}
-              </a>
-              <a
-                href={`sms:${client.phone}`}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                title={t('client_detail.send_sms')}
-              >
-                <MessageSquare className="h-4 w-4" />
-              </a>
-            </div>
-          )}
           {client.address && (
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(client.address)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 min-h-[56px] hover:bg-muted/50 transition-colors"
-            >
+            <div className="flex items-center gap-3 p-4 min-h-[56px]">
               <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <p className="text-sm text-primary underline-offset-2 hover:underline">{client.address}</p>
-            </a>
+              <p className="text-sm">{client.address}</p>
+            </div>
           )}
           {client.notes && (
             <div className="flex items-start gap-3 p-4">
@@ -301,7 +289,25 @@ export function ClientDetailPage() {
           </div>
         </div>
       )}
-
     </div>
   )
+}
+
+export function ClientDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const { data: client, isLoading } = useClient(id ?? '')
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 pb-4">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-32 rounded-xl" />
+      </div>
+    )
+  }
+
+  if (!client) return null
+
+  // La clé repart de la fiche enregistrée : après « Enregistrer », le formulaire reprend les valeurs du serveur
+  return <ClientView key={client.updatedAt} client={client} />
 }

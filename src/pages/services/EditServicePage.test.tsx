@@ -65,8 +65,25 @@ describe('EditServicePage', () => {
   it('affiche le formulaire rempli avec la prestation', () => {
     renderAt('/prestations/svc-1/modifier')
     expect(screen.getByText('Modifier la prestation')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tonte de pelouse' })).toBeInTheDocument()
     expect(screen.getByDisplayValue('Tonte de pelouse')).toBeInTheDocument()
     expect(screen.getByDisplayValue('m²')).toBeInTheDocument()
+  })
+
+  it("« Enregistrer » est inactif au départ et s'active dès que la fiche change", async () => {
+    const user = userEvent.setup()
+    renderAt('/prestations/svc-1/modifier')
+    const save = screen.getByRole('button', { name: 'Enregistrer' })
+    expect(save).toBeDisabled()
+
+    await user.type(screen.getByDisplayValue('m²'), '2')
+
+    expect(save).toBeEnabled()
+  })
+
+  it("n'envoie pas le curseur dans un champ en arrivant (pas de focus automatique)", () => {
+    renderAt('/prestations/svc-1/modifier')
+    expect(screen.getByDisplayValue('Tonte de pelouse')).not.toHaveFocus()
   })
 
   it('enregistre les changements puis revient à la liste', async () => {

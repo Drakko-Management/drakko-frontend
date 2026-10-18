@@ -74,7 +74,8 @@
     "deleted": "Cliente eliminado",
     "deleted_kept": "Cliente desactivado: aún tiene obras",
     "delete_error": "No se pudo eliminar el cliente",
-    "no_inactive": "Ningún cliente desactivado"
+    "no_inactive": "Ningún cliente desactivado",
+    "edit_title": "Modificar cliente"
   },
   "status": {
     "DRAFT": "Borrador",
@@ -529,7 +530,11 @@
     "send_sms": "Enviar SMS",
     "projects": "Proyectos ({{count}})",
     "first_name": "Nombre",
-    "last_name": "Apellido"
+    "last_name": "Apellido",
+    "call": "Llamar",
+    "sms": "SMS",
+    "write": "Escribir",
+    "map": "Ruta"
   },
   "create_client": {
     "title": "Nuevo cliente",
@@ -622,7 +627,8 @@
     "deleted": "Miembro eliminado",
     "deleted_kept": "Cuenta desactivada: deja obras o fotos",
     "delete_error": "No se pudo eliminar al miembro",
-    "cannot_delete_self": "No puedes eliminar tu propia cuenta"
+    "cannot_delete_self": "No puedes eliminar tu propia cuenta",
+    "edit_title": "Modificar miembro"
   },
   "report": {
     "title": "Acta de recepción de obras",
@@ -692,7 +698,7 @@
   "services": {
     "title": "Catálogo de servicios",
     "title_short": "Servicios",
-    "add": "Añadir",
+    "add": "Nuevo servicio",
     "edit": "Editar",
     "activate": "Activar",
     "deactivate": "Desactivar",
@@ -744,7 +750,8 @@
     "bulk_deactivated_other": "{{count}} servicios desactivados",
     "bulk_activated_one": "{{count}} servicio activado",
     "bulk_activated_other": "{{count}} servicios activados",
-    "deleted_kept": "Servicio desactivado: se usa en informes"
+    "deleted_kept": "Servicio desactivado: se usa en informes",
+    "add_short": "Nuevo"
   },
   "sign": {
     "error_sign_required": "Por favor firme el documento",

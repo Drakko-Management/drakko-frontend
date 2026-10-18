@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
+import { EditPageTitle } from '@/components/common/EditPageTitle'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RecordActions } from '@/components/common/RecordActions'
 import {
@@ -30,6 +31,12 @@ function EditServiceView({ service }: { service: Service }) {
     unit: service.unit ?? '',
     description: service.description ?? '',
   })
+
+  // « Enregistrer » ne s'active que si la fiche a changé (un espace autour d'un texte n'en est pas un)
+  const unchanged =
+    form.title.trim() === service.title.trim() &&
+    form.unit.trim() === (service.unit ?? '').trim() &&
+    form.description.trim() === (service.description ?? '').trim()
 
   async function handleSubmit() {
     try {
@@ -74,7 +81,7 @@ function EditServiceView({ service }: { service: Service }) {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="text-lg font-bold">{t('services.form_edit_title')}</h1>
+        <EditPageTitle kind={t('services.form_edit_title')} name={service.title} />
         <div className="ml-auto flex items-center gap-2">
           <RecordActions
             active={service.active}
@@ -94,6 +101,7 @@ function EditServiceView({ service }: { service: Service }) {
         onChange={setForm}
         onSubmit={() => void handleSubmit()}
         isPending={updateService.isPending}
+        unchanged={unchanged}
       />
     </div>
   )

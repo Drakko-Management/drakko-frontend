@@ -64,6 +64,7 @@ describe('EditUserPage', () => {
   it('affiche le nom du membre en titre et sa fiche', () => {
     renderAt('/utilisateurs/u1')
     expect(screen.getByRole('heading', { name: 'Jean Dupont' })).toBeInTheDocument()
+    expect(screen.getByText('Modifier le membre')).toBeInTheDocument()
     expect(screen.getByDisplayValue('jean.dupont')).toBeInTheDocument()
   })
 

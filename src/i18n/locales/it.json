@@ -74,7 +74,8 @@
     "deleted": "Cliente eliminato",
     "deleted_kept": "Cliente disattivato: ha ancora dei cantieri",
     "delete_error": "Impossibile eliminare il cliente",
-    "no_inactive": "Nessun cliente disattivato"
+    "no_inactive": "Nessun cliente disattivato",
+    "edit_title": "Modifica cliente"
   },
   "status": {
     "DRAFT": "Bozza",
@@ -529,7 +530,11 @@
     "send_sms": "Invia SMS",
     "projects": "Cantieri ({{count}})",
     "first_name": "Nome",
-    "last_name": "Cognome"
+    "last_name": "Cognome",
+    "call": "Chiama",
+    "sms": "SMS",
+    "write": "Scrivi",
+    "map": "Percorso"
   },
   "create_client": {
     "title": "Nuovo cliente",
@@ -622,7 +627,8 @@
     "deleted": "Membro eliminato",
     "deleted_kept": "Account disattivato: lascia cantieri o foto",
     "delete_error": "Impossibile eliminare il membro",
-    "cannot_delete_self": "Non puoi eliminare il tuo account"
+    "cannot_delete_self": "Non puoi eliminare il tuo account",
+    "edit_title": "Modifica membro"
   },
   "report": {
     "title": "Verbale di fine lavori",
@@ -692,7 +698,7 @@
   "services": {
     "title": "Catalogo servizi",
     "title_short": "Servizi",
-    "add": "Aggiungi",
+    "add": "Nuovo servizio",
     "edit": "Modifica",
     "activate": "Attiva",
     "deactivate": "Disattiva",
@@ -744,7 +750,8 @@
     "bulk_deactivated_other": "{{count}} servizi disattivati",
     "bulk_activated_one": "{{count}} servizio attivato",
     "bulk_activated_other": "{{count}} servizi attivati",
-    "deleted_kept": "Servizio disattivato: è usato in dei rapporti"
+    "deleted_kept": "Servizio disattivato: è usato in dei rapporti",
+    "add_short": "Nuovo"
   },
   "sign": {
     "error_sign_required": "Si prega di firmare il documento",

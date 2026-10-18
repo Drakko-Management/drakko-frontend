@@ -93,15 +93,19 @@ describe('ClientsPage — rendu', () => {
 
 // ── Bouton "Nouveau" — permissions ─────────────────────────────────────────
 
-describe('ClientsPage — bouton Nouveau', () => {
-  // « Nouveau » existe deux fois : bouton de l'en-tête (desktop) et bouton flottant (mobile) ; happy-dom ignore
-  // les classes responsive, les deux sont donc dans le DOM.
-  // L'EmptyState affiche "Nouveau client" (t('clients.new_client')) → ne doit pas compter
+describe('ClientsPage — bouton Nouveau client', () => {
+  // L'en-tête (desktop) s'appelle « Nouveau client » ; le bouton flottant (mobile) « Nouveau ». happy-dom ignore
+  // les classes responsive : les deux sont dans le DOM. Avec une liste remplie, l'EmptyState n'ajoute pas le sien.
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useClients).mockReturnValue({ data: paginated([CLIENT]), isLoading: false } as any)
+  })
 
   it('visible pour ADMIN (en-tête et bouton flottant)', () => {
     useAuthStore.setState({ role: 'ADMIN', permissions: null, accessToken: 'tok', username: 'admin', userId: 'u1' })
     renderClients()
-    expect(screen.getAllByRole('button', { name: 'Nouveau' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Nouveau client' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Nouveau' })).toBeInTheDocument()
   })
 
   it('visible pour MEMBER avec clients.create', () => {
@@ -113,37 +117,17 @@ describe('ClientsPage — bouton Nouveau', () => {
       userId: 'u2',
     })
     renderClients()
-    expect(screen.getAllByRole('button', { name: 'Nouveau' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Nouveau client' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Nouveau' })).toBeInTheDocument()
   })
 
-  it('absent pour MEMBER sans permission clients.create', () => {
-    useAuthStore.setState({
-      role: 'MEMBER',
-      permissions: makePermissions({ clients: ['read'] }),
-      accessToken: 'tok',
-      username: 'user',
-      userId: 'u2',
-    })
+  it.each([
+    ['MEMBER sans permission clients.create', makePermissions({ clients: ['read'] })],
+    ['MEMBER avec EMPTY_PERMISSIONS', EMPTY_PERMISSIONS],
+  ])('absent pour %s', (_label, permissions) => {
+    useAuthStore.setState({ role: 'MEMBER', permissions, accessToken: 'tok', username: 'user', userId: 'u2' })
     renderClients()
-    // Seul le bouton exact "Nouveau" doit être absent (pas "Nouveau client" de l'EmptyState)
-    expect(screen.queryByRole('button', { name: 'Nouveau' })).not.toBeInTheDocument()
-  })
-
-  it('absent pour MEMBER avec EMPTY_PERMISSIONS', () => {
-    useAuthStore.setState({
-      role: 'MEMBER',
-      permissions: EMPTY_PERMISSIONS,
-      accessToken: 'tok',
-      username: 'user',
-      userId: 'u2',
-    })
-    renderClients()
-    expect(screen.queryByRole('button', { name: 'Nouveau' })).not.toBeInTheDocument()
-  })
-
-  it('absent pour MEMBER sans permission clients:create', () => {
-    useAuthStore.setState({ role: 'MEMBER', permissions: { chantiers: [], clients: [], equipe: [], prestations: [] }, accessToken: 'tok', username: 'f', userId: 'u3' })
-    renderClients()
+    expect(screen.queryByRole('button', { name: 'Nouveau client' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Nouveau' })).not.toBeInTheDocument()
   })
 })
@@ -153,15 +137,14 @@ describe('ClientsPage — bouton Nouveau', () => {
 describe('ClientsPage — navigation', () => {
   it('cliquer Nouveau (en-tête) navigue vers /clients/nouveau', async () => {
     renderClients()
-    const [header] = screen.getAllByRole('button', { name: 'Nouveau' })
+    const header = screen.getAllByRole('button', { name: 'Nouveau client' })[0]
     await userEvent.click(header)
     expect(mockNavigate).toHaveBeenCalledWith('/clients/nouveau')
   })
 
   it('le bouton flottant mobile mène aussi à /clients/nouveau', async () => {
     renderClients()
-    const buttons = screen.getAllByRole('button', { name: 'Nouveau' })
-    await userEvent.click(buttons[buttons.length - 1])
+    await userEvent.click(screen.getByRole('button', { name: 'Nouveau' }))
     expect(mockNavigate).toHaveBeenCalledWith('/clients/nouveau')
   })
 
@@ -291,7 +274,7 @@ describe('ClientsPage — masquer et supprimer', () => {
     await userEvent.click(screen.getByText('Voir les clients désactivés'))
 
     expect(screen.getByText('Aucun client désactivé')).toBeInTheDocument()
-    expect(screen.queryByText('Nouveau client')).not.toBeInTheDocument()
+    expect(screen.queryByText('Créez votre premier client')).not.toBeInTheDocument()
     expect(screen.queryByText('Aucun client')).not.toBeInTheDocument()
   })
 

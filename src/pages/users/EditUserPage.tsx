@@ -1,5 +1,7 @@
 import { Navigate, useNavigate, useParams } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
+import { EditPageTitle } from '@/components/common/EditPageTitle'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUsers } from '@/hooks/use-users'
 import { useCanEditUser } from '@/hooks/use-can-edit-user'
@@ -10,6 +12,7 @@ import { UserEditForm, UserHeaderActions } from './UserEditForm'
 export function EditUserPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: users, isLoading } = useUsers()
   const canEdit = useCanEditUser()
   const viewerId = useAuthStore((s) => s.userId)
@@ -30,7 +33,7 @@ export function EditUserPage() {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="truncate text-lg font-bold">{fullName(user)}</h1>
+        <EditPageTitle kind={t('users.edit_title')} name={fullName(user)} />
         <div className="ml-auto flex items-center gap-2">
           <UserHeaderActions user={user} />
         </div>

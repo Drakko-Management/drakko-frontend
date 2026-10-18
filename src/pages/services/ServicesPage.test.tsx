@@ -127,12 +127,12 @@ describe('ServicesPage — rendu', () => {
   })
 })
 
-// ── Bouton "Ajouter" — permissions ─────────────────────────────────────────
+// ── Bouton « Nouvelle prestation » — permissions ─────────────────────────────────────────
 
 describe('ServicesPage — bouton Ajouter (RBAC)', () => {
   it('visible pour ADMIN (vue active)', () => {
     renderServices()
-    expect(screen.getByRole('button', { name: 'Ajouter' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Nouvelle prestation' })).toBeInTheDocument()
   })
 
   it('visible pour MEMBER avec prestations.create', () => {
@@ -144,7 +144,7 @@ describe('ServicesPage — bouton Ajouter (RBAC)', () => {
       userId: 'u2',
     })
     renderServices()
-    expect(screen.getByRole('button', { name: 'Ajouter' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Nouvelle prestation' })).toBeInTheDocument()
   })
 
   it('absent pour MEMBER sans permission prestations.create', () => {
@@ -156,7 +156,7 @@ describe('ServicesPage — bouton Ajouter (RBAC)', () => {
       userId: 'u2',
     })
     renderServices()
-    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Nouvelle prestation' })).not.toBeInTheDocument()
   })
 
   it('absent pour MEMBER avec EMPTY_PERMISSIONS', () => {
@@ -168,7 +168,7 @@ describe('ServicesPage — bouton Ajouter (RBAC)', () => {
       userId: 'u2',
     })
     renderServices()
-    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Nouvelle prestation' })).not.toBeInTheDocument()
   })
 })
 
@@ -235,7 +235,7 @@ describe('ServicesPage — ServiceCard (RBAC)', () => {
 describe('ServicesPage — ajout', () => {
   it('cliquer Ajouter navigue vers la page de création', async () => {
     renderServices()
-    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Nouvelle prestation' }))
     expect(mockNavigate).toHaveBeenCalledWith('/prestations/nouveau')
   })
 
@@ -319,7 +319,7 @@ describe('ServicesPage — vue inactive', () => {
     await userEvent.click(screen.getByText(/Voir les désactivées/i))
     // services.view_active = "← Actives ({{count}})" → "← Actives (1)"
     expect(screen.getByRole('button', { name: /← Actives/ })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Nouvelle prestation' })).not.toBeInTheDocument()
   })
 })
 
