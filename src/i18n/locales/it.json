@@ -197,7 +197,14 @@
     "payment_immediate": "Alla ricezione",
     "payment_days": "{{days}} giorni",
     "org_late_penalties_placeholder": "3 volte il tasso legale vigente",
-    "org_update_error": "Errore nell'aggiornamento"
+    "org_update_error": "Errore nell'aggiornamento",
+    "services_section": "Servizi",
+    "reset_services": "Reimposta i servizi",
+    "reset_services_sub": "Cancella tutta la libreria di servizi",
+    "reset_services_title": "Cancellare tutti i servizi?",
+    "reset_services_message": "Tutta la tua libreria di servizi verrà cancellata. Questa azione è definitiva. I servizi già usati in un rapporto non vengono cancellati: vengono solo disattivati.",
+    "reset_services_confirm": "Cancella tutto",
+    "reset_services_done": "{{deleted}} eliminati, {{deactivated}} disattivati"
   },
   "common": {
     "back": "Indietro",
@@ -688,7 +695,17 @@
     "sort_az": "A → Z",
     "sort_za": "Z → A",
     "sort_recent": "Più recente",
-    "no_results": "Nessun risultato"
+    "no_results": "Nessun risultato",
+    "select": "Seleziona",
+    "select_one": "Seleziona {{title}}",
+    "select_all": "Seleziona tutto ({{count}})",
+    "delete_selected": "Elimina ({{count}})",
+    "bulk_confirm_title_one": "Eliminare {{count}} servizio?",
+    "bulk_confirm_title_other": "Eliminare {{count}} servizi?",
+    "bulk_confirm_message": "Questa azione è definitiva. I servizi già usati in un rapporto non vengono cancellati: vengono solo disattivati.",
+    "bulk_confirm_btn_one": "Elimina {{count}} servizio",
+    "bulk_confirm_btn_other": "Elimina {{count}} servizi",
+    "bulk_done": "{{deleted}} eliminati, {{deactivated}} disattivati"
   },
   "sign": {
     "error_sign_required": "Si prega di firmare il documento",

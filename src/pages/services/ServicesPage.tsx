@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, EyeOff, Eye, Loader2, Search } from "lucide-react";
+import { ConfirmDestructiveDialog } from "@/components/common/ConfirmDestructiveDialog";
+import { apiErrorMessage } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +15,7 @@ import {
   useServices,
   useUpdateService,
   useDeleteService,
+  useDeleteServices,
   useDeactivateService,
   useActivateService,
   useSeedServices,
@@ -117,6 +120,9 @@ function ServiceCard({
   onDeactivate,
   onActivate,
   onDelete,
+  selecting,
+  selected,
+  onToggle,
 }: {
   service: Service;
   canUpdate: boolean;
@@ -125,15 +131,30 @@ function ServiceCard({
   onDeactivate: (id: string) => void;
   onActivate: (id: string) => void;
   onDelete: (id: string) => void;
+  selecting: boolean;
+  selected: boolean;
+  onToggle: (id: string) => void;
 }) {
   const { t } = useTranslation();
 
   return (
     <div
-      className={`rounded-xl border bg-card p-3 space-y-1 ${!service.active ? "opacity-60" : ""}`}
+      className={`rounded-xl border bg-card p-3 space-y-1 ${!service.active ? "opacity-60" : ""} ${selected ? "border-primary ring-1 ring-primary" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        {selecting && (
+          <input
+            type="checkbox"
+            className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+            checked={selected}
+            onChange={() => onToggle(service.id)}
+            aria-label={t("services.select_one", { title: service.title })}
+          />
+        )}
+        <div
+          className={`min-w-0 flex-1 ${selecting ? "cursor-pointer" : ""}`}
+          onClick={selecting ? () => onToggle(service.id) : undefined}
+        >
           <p className="font-medium text-sm leading-snug truncate">
             {service.title}
           </p>
@@ -146,6 +167,7 @@ function ServiceCard({
             </p>
           )}
         </div>
+        {!selecting && (
         <div className="flex items-center gap-1 shrink-0">
           {canUpdate && (
             <button
@@ -183,6 +205,7 @@ function ServiceCard({
             </button>
           )}
         </div>
+        )}
       </div>
     </div>
   );
@@ -196,6 +219,7 @@ export function ServicesPage() {
   const { data: services, isLoading } = useServices();
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
+  const deleteServices = useDeleteServices();
   const deactivateService = useDeactivateService();
   const activateService = useActivateService();
   const seedServices = useSeedServices();
@@ -207,6 +231,10 @@ export function ServicesPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"az" | "za" | "recent">("az");
+
+  const [selecting, setSelecting] = useState(false);
+  const [selection, setSelection] = useState<Set<string>>(new Set());
+  const [confirmBulk, setConfirmBulk] = useState(false);
 
   const PER_PAGE = 15;
 
@@ -228,6 +256,39 @@ export function ServicesPage() {
     (page - 1) * PER_PAGE,
     page * PER_PAGE,
   );
+
+  // La sélection porte sur toute la liste filtrée (toutes les pages), jamais sur ce qui n'est plus affiché
+  const selectedIds = filteredServices.filter((s) => selection.has(s.id)).map((s) => s.id);
+  const allSelected = filteredServices.length > 0 && selectedIds.length === filteredServices.length;
+
+  function toggleOne(id: string) {
+    setSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelection(allSelected ? new Set() : new Set(filteredServices.map((s) => s.id)));
+  }
+
+  function stopSelecting() {
+    setSelecting(false);
+    setSelection(new Set());
+  }
+
+  async function handleBulkDelete() {
+    try {
+      const { deleted, deactivated } = await deleteServices.mutateAsync(selectedIds);
+      toast.success(t("services.bulk_done", { deleted, deactivated }));
+      setConfirmBulk(false);
+      stopSelecting();
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, "services.delete_error"));
+    }
+  }
 
   function switchView(next: "active" | "inactive") {
     setView(next);
@@ -357,6 +418,43 @@ export function ServicesPage() {
             <option value="recent">{t("services.sort_recent")}</option>
           </select>
         </div>
+        {selecting ? (
+          <div className="flex items-center gap-2">
+            <label className="flex flex-1 items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-primary"
+                checked={allSelected}
+                onChange={toggleAll}
+                disabled={filteredServices.length === 0}
+              />
+              {t("services.select_all", { count: filteredServices.length })}
+            </label>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="min-h-[44px] gap-1.5"
+              disabled={selectedIds.length === 0}
+              onClick={() => setConfirmBulk(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {t("services.delete_selected", { count: selectedIds.length })}
+            </Button>
+            <Button size="sm" variant="outline" className="min-h-[44px]" onClick={stopSelecting}>
+              {t("common.cancel")}
+            </Button>
+          </div>
+        ) : (
+          can('prestations', 'delete') &&
+          filteredServices.length > 0 && (
+            <button
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
+              onClick={() => setSelecting(true)}
+            >
+              {t("services.select")}
+            </button>
+          )
+        )}
         {view === "active" && inactiveServices.length > 0 && !isLoading && (
           <button
             className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left"
@@ -414,6 +512,9 @@ export function ServicesPage() {
                 onDeactivate={(id) => void handleDeactivate(id)}
                 onActivate={(id) => void handleActivate(id)}
                 onDelete={(id) => void handleDelete(id)}
+                selecting={selecting}
+                selected={selection.has(s.id)}
+                onToggle={toggleOne}
               />
             ))}
           </div>
@@ -454,7 +555,17 @@ export function ServicesPage() {
         </div>
       )}
 
-      {view === "active" && can('prestations', 'create') && (
+      <ConfirmDestructiveDialog
+        open={confirmBulk}
+        onOpenChange={setConfirmBulk}
+        title={t("services.bulk_confirm_title", { count: selectedIds.length })}
+        description={t("services.bulk_confirm_message")}
+        confirmLabel={t("services.bulk_confirm_btn", { count: selectedIds.length })}
+        pending={deleteServices.isPending}
+        onConfirm={() => void handleBulkDelete()}
+      />
+
+      {view === "active" && !selecting && can('prestations', 'create') && (
         <Fab tutorial="services-new" onClick={() => void navigate('/prestations/nouveau')} />
       )}
     </div>

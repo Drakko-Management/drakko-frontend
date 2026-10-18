@@ -64,3 +64,27 @@ export function useSeedServices() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
   })
 }
+
+export interface DeleteServicesResult {
+  deleted: number
+  // Prestations déjà utilisées dans un rapport : désactivées plutôt qu'effacées
+  deactivated: number
+}
+
+export function useDeleteServices() {
+  return useMutation({
+    mutationFn: (serviceIds: string[]) =>
+      apiRequest<DeleteServicesResult>('/services/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ serviceIds }),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
+  })
+}
+
+export function useDeleteAllServices() {
+  return useMutation({
+    mutationFn: () => apiRequest<DeleteServicesResult>('/services', { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
+  })
+}

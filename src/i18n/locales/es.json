@@ -197,7 +197,14 @@
     "payment_immediate": "Al recibir",
     "payment_days": "{{days}} días",
     "org_late_penalties_placeholder": "3 veces el tipo legal vigente",
-    "org_update_error": "Error al actualizar"
+    "org_update_error": "Error al actualizar",
+    "services_section": "Servicios",
+    "reset_services": "Restablecer los servicios",
+    "reset_services_sub": "Borrar toda la biblioteca de servicios",
+    "reset_services_title": "¿Borrar todos los servicios?",
+    "reset_services_message": "Se borrará toda tu biblioteca de servicios. Esta acción es definitiva. Los servicios ya utilizados en un informe no se borran: solo se desactivan.",
+    "reset_services_confirm": "Borrar todo",
+    "reset_services_done": "{{deleted}} eliminados, {{deactivated}} desactivados"
   },
   "common": {
     "back": "Volver",
@@ -688,7 +695,17 @@
     "sort_az": "A → Z",
     "sort_za": "Z → A",
     "sort_recent": "Más reciente",
-    "no_results": "Sin resultados"
+    "no_results": "Sin resultados",
+    "select": "Seleccionar",
+    "select_one": "Seleccionar {{title}}",
+    "select_all": "Seleccionar todo ({{count}})",
+    "delete_selected": "Eliminar ({{count}})",
+    "bulk_confirm_title_one": "¿Eliminar {{count}} servicio?",
+    "bulk_confirm_title_other": "¿Eliminar {{count}} servicios?",
+    "bulk_confirm_message": "Esta acción es definitiva. Los servicios ya utilizados en un informe no se borran: solo se desactivan.",
+    "bulk_confirm_btn_one": "Eliminar {{count}} servicio",
+    "bulk_confirm_btn_other": "Eliminar {{count}} servicios",
+    "bulk_done": "{{deleted}} eliminados, {{deactivated}} desactivados"
   },
   "sign": {
     "error_sign_required": "Por favor firme el documento",

@@ -7,6 +7,7 @@ import {
   useCreateService,
   useUpdateService,
   useDeleteService,
+  useDeleteServices,
   useDeactivateService,
   useActivateService,
   useSeedServices,
@@ -34,6 +35,7 @@ vi.mock('@/hooks/use-services', () => ({
   useCreateService: vi.fn(),
   useUpdateService: vi.fn(),
   useDeleteService: vi.fn(),
+  useDeleteServices: vi.fn(),
   useDeactivateService: vi.fn(),
   useActivateService: vi.fn(),
   useSeedServices: vi.fn(),
@@ -74,6 +76,7 @@ beforeEach(() => {
   vi.mocked(useCreateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useUpdateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useDeleteService).mockReturnValue(mockMutation() as never)
+  vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync: vi.fn().mockResolvedValue({ deleted: 2, deactivated: 0 }) }) as never)
   vi.mocked(useDeactivateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useActivateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useSeedServices).mockReturnValue(mockMutation() as never)
@@ -312,5 +315,66 @@ describe('ServicesPage — vue inactive', () => {
     // services.view_active = "← Actives ({{count}})" → "← Actives (1)"
     expect(screen.getByRole('button', { name: /← Actives/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument()
+  })
+})
+
+
+// ── Suppression en masse ───────────────────────────────────────────────────
+
+describe('ServicesPage — suppression en masse', () => {
+  const SERVICE_THIRD: Service = { ...SERVICE_ACTIVE, id: 'svc-3', title: 'Arrosage' }
+
+  beforeEach(() => {
+    vi.mocked(useServices).mockReturnValue({
+      data: [SERVICE_ACTIVE, SERVICE_THIRD],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useServices>)
+  })
+
+  it('« Tout sélectionner » coche toutes les prestations et compte la sélection', async () => {
+    const user = userEvent.setup()
+    renderServices()
+
+    await user.click(screen.getByRole('button', { name: 'Sélectionner' }))
+    await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
+
+    expect(screen.getByRole('button', { name: /supprimer \(2\)/i })).toBeEnabled()
+  })
+
+  it('demande confirmation avant de supprimer, puis envoie les identifiants choisis', async () => {
+    const user = userEvent.setup()
+    const mutateAsync = vi.fn().mockResolvedValue({ deleted: 1, deactivated: 0 })
+    vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync }) as never)
+    renderServices()
+
+    await user.click(screen.getByRole('button', { name: 'Sélectionner' }))
+    await user.click(screen.getByRole('checkbox', { name: /Arrosage/ }))
+    await user.click(screen.getByRole('button', { name: /supprimer \(1\)/i }))
+
+    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(screen.getByText(/cette action est définitive/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /supprimer 1 prestation/i }))
+    expect(mutateAsync).toHaveBeenCalledWith(['svc-3'])
+  })
+
+  it("n'envoie rien quand on annule la confirmation", async () => {
+    const user = userEvent.setup()
+    const mutateAsync = vi.fn()
+    vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync }) as never)
+    renderServices()
+
+    await user.click(screen.getByRole('button', { name: 'Sélectionner' }))
+    await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
+    await user.click(screen.getByRole('button', { name: /supprimer \(2\)/i }))
+    await user.click(screen.getByRole('button', { name: 'Annuler', hidden: false }))
+
+    expect(mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('sans droit de suppression, pas de sélection', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ prestations: ['read'] }) })
+    renderServices()
+    expect(screen.queryByRole('button', { name: 'Sélectionner' })).not.toBeInTheDocument()
   })
 })

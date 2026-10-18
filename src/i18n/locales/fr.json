@@ -197,7 +197,14 @@
     "payment_immediate": "À réception",
     "payment_days": "{{days}} jours",
     "org_late_penalties_placeholder": "3× le taux légal en vigueur",
-    "org_update_error": "Erreur lors de la mise à jour"
+    "org_update_error": "Erreur lors de la mise à jour",
+    "services_section": "Prestations",
+    "reset_services": "Réinitialiser les prestations",
+    "reset_services_sub": "Effacer toute la bibliothèque de prestations",
+    "reset_services_title": "Effacer toutes les prestations ?",
+    "reset_services_message": "Toute votre bibliothèque de prestations sera effacée. Cette action est définitive. Les prestations déjà utilisées dans un rapport ne sont pas effacées : elles sont seulement désactivées.",
+    "reset_services_confirm": "Tout effacer",
+    "reset_services_done": "{{deleted}} supprimée(s), {{deactivated}} désactivée(s)"
   },
   "common": {
     "back": "Retour",
@@ -688,7 +695,17 @@
     "sort_az": "A → Z",
     "sort_za": "Z → A",
     "sort_recent": "Plus récent",
-    "no_results": "Aucun résultat"
+    "no_results": "Aucun résultat",
+    "select": "Sélectionner",
+    "select_one": "Sélectionner {{title}}",
+    "select_all": "Tout sélectionner ({{count}})",
+    "delete_selected": "Supprimer ({{count}})",
+    "bulk_confirm_title_one": "Supprimer {{count}} prestation ?",
+    "bulk_confirm_title_other": "Supprimer {{count}} prestations ?",
+    "bulk_confirm_message": "Cette action est définitive. Les prestations déjà utilisées dans un rapport ne sont pas effacées : elles sont seulement désactivées.",
+    "bulk_confirm_btn_one": "Supprimer {{count}} prestation",
+    "bulk_confirm_btn_other": "Supprimer {{count}} prestations",
+    "bulk_done": "{{deleted}} supprimée(s), {{deactivated}} désactivée(s)"
   },
   "sign": {
     "error_sign_required": "Veuillez signer le document",

@@ -8,6 +8,7 @@ import { usePwaInstall } from '@/hooks/use-pwa-install'
 import { InstallModal } from '@/components/common/InstallModal'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { ResetServicesButton } from '@/pages/settings/ResetServicesButton'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 interface HubRowProps {
@@ -40,7 +41,7 @@ function HubRow({ icon: Icon, iconClass, label, sub, onClick }: HubRowProps) {
 export function SettingsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { isAdmin } = usePermissions()
+  const { isAdmin, can } = usePermissions()
   const { isInstalled, isMobile } = usePwaInstall()
   const [installOpen, setInstallOpen] = useState(false)
 
@@ -99,6 +100,14 @@ export function SettingsPage() {
               onClick={() => navigate('/parametres/navigation')}
             />
           </Card>
+        </div>
+      )}
+
+      {/* Prestations : remise à zéro de la bibliothèque */}
+      {isAdmin && can('prestations', 'delete') && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold">{t('settings.services_section')}</p>
+          <ResetServicesButton />
         </div>
       )}
 

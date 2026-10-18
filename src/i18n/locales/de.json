@@ -197,7 +197,14 @@
     "payment_immediate": "Bei Erhalt",
     "payment_days": "{{days}} Tage",
     "org_late_penalties_placeholder": "3× der geltende gesetzliche Zinssatz",
-    "org_update_error": "Aktualisierungsfehler"
+    "org_update_error": "Aktualisierungsfehler",
+    "services_section": "Leistungen",
+    "reset_services": "Leistungen zurücksetzen",
+    "reset_services_sub": "Die gesamte Leistungsbibliothek löschen",
+    "reset_services_title": "Alle Leistungen löschen?",
+    "reset_services_message": "Ihre gesamte Leistungsbibliothek wird gelöscht. Diese Aktion ist endgültig. Leistungen, die bereits in einem Bericht verwendet werden, werden nicht gelöscht, sondern nur deaktiviert.",
+    "reset_services_confirm": "Alles löschen",
+    "reset_services_done": "{{deleted}} gelöscht, {{deactivated}} deaktiviert"
   },
   "common": {
     "back": "Zurück",
@@ -688,7 +695,17 @@
     "sort_az": "A → Z",
     "sort_za": "Z → A",
     "sort_recent": "Neueste",
-    "no_results": "Keine Ergebnisse"
+    "no_results": "Keine Ergebnisse",
+    "select": "Auswählen",
+    "select_one": "{{title}} auswählen",
+    "select_all": "Alle auswählen ({{count}})",
+    "delete_selected": "Löschen ({{count}})",
+    "bulk_confirm_title_one": "{{count}} Leistung löschen?",
+    "bulk_confirm_title_other": "{{count}} Leistungen löschen?",
+    "bulk_confirm_message": "Diese Aktion ist endgültig. Leistungen, die bereits in einem Bericht verwendet werden, werden nicht gelöscht, sondern nur deaktiviert.",
+    "bulk_confirm_btn_one": "{{count}} Leistung löschen",
+    "bulk_confirm_btn_other": "{{count}} Leistungen löschen",
+    "bulk_done": "{{deleted}} gelöscht, {{deactivated}} deaktiviert"
   },
   "sign": {
     "error_sign_required": "Bitte unterschreiben Sie das Dokument",

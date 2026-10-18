@@ -197,7 +197,14 @@
     "payment_immediate": "On receipt",
     "payment_days": "{{days}} days",
     "org_late_penalties_placeholder": "3× the legal rate in force",
-    "org_update_error": "Update error"
+    "org_update_error": "Update error",
+    "services_section": "Services",
+    "reset_services": "Reset services",
+    "reset_services_sub": "Erase the whole service library",
+    "reset_services_title": "Erase all services?",
+    "reset_services_message": "Your whole service library will be erased. This cannot be undone. Services already used in a report are not erased: they are only deactivated.",
+    "reset_services_confirm": "Erase all",
+    "reset_services_done": "{{deleted}} deleted, {{deactivated}} deactivated"
   },
   "common": {
     "back": "Back",
@@ -688,7 +695,17 @@
     "sort_az": "A → Z",
     "sort_za": "Z → A",
     "sort_recent": "Most recent",
-    "no_results": "No results"
+    "no_results": "No results",
+    "select": "Select",
+    "select_one": "Select {{title}}",
+    "select_all": "Select all ({{count}})",
+    "delete_selected": "Delete ({{count}})",
+    "bulk_confirm_title_one": "Delete {{count}} service?",
+    "bulk_confirm_title_other": "Delete {{count}} services?",
+    "bulk_confirm_message": "This cannot be undone. Services already used in a report are not erased: they are only deactivated.",
+    "bulk_confirm_btn_one": "Delete {{count}} service",
+    "bulk_confirm_btn_other": "Delete {{count}} services",
+    "bulk_done": "{{deleted}} deleted, {{deactivated}} deactivated"
   },
   "sign": {
     "error_sign_required": "Please sign the document",
