@@ -677,6 +677,8 @@ export function ProjectDetailPage() {
             <p className="p-3 text-xs font-medium text-muted-foreground">
               {t('project.add_member')}
             </p>
+            {/* Liste bornée : avec beaucoup de membres, elle dépasserait l'écran (et la bulle du tutoriel avec) */}
+            <div className="max-h-[35vh] divide-y overflow-y-auto" data-tutorial="project-team-list">
             {availableToAssign.map((user) => (
               <button
                 key={user.id}
@@ -693,6 +695,7 @@ export function ProjectDetailPage() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             ))}
+            </div>
           </Card>
         )}
       </div>
