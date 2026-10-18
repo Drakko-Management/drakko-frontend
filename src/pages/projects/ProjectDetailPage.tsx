@@ -698,11 +698,11 @@ export function ProjectDetailPage() {
       </div>
 
       {/* Photos */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between" data-tutorial="project-photos">
+      <div className="space-y-2" data-tutorial="project-photos">
+        <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">{t('project.photos')}</h2>
           <button
-            className="flex items-center gap-1 text-xs text-primary font-medium min-h-[44px]"
+            className="flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-3 text-sm text-primary font-medium min-h-[44px]"
             onClick={() => void navigate(`/chantiers/${id}/photos`)}
           >
             <Camera className="h-3.5 w-3.5" />
