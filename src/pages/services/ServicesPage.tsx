@@ -149,7 +149,7 @@ function ServiceCard({
         />
       )}
     <div
-      className={`min-w-0 flex-1 rounded-xl border bg-card p-3 space-y-1 ${!service.active ? "opacity-60" : ""} ${selected ? "border-primary ring-1 ring-primary" : ""}`}
+      className={`min-w-0 flex-1 rounded-xl border bg-card p-3 space-y-1 ${!service.active ? "opacity-60" : ""} ${selected ? "border-primary" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div
