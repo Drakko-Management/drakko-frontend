@@ -71,7 +71,7 @@ export function SettingsFiltersPage() {
   )
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="max-w-xl space-y-4 pb-4">
       <SettingsSubHeader title={t('settings.hub_filters')} />
       <p className="text-sm text-muted-foreground">{t('settings.filters_intro')}</p>
 
