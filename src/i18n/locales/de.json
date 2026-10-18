@@ -703,7 +703,7 @@
     "sort_za": "Z → A",
     "sort_recent": "Neueste",
     "no_results": "Keine Ergebnisse",
-    "select": "Mehrere löschen",
+    "select": "Mehrfachauswahl",
     "select_one": "{{title}} auswählen",
     "select_all": "Alle auswählen ({{count}})",
     "delete_selected": "Löschen ({{count}})",
@@ -712,7 +712,13 @@
     "bulk_confirm_message": "Diese Aktion ist endgültig. Leistungen, die bereits in einem Bericht verwendet werden, werden nicht gelöscht, sondern nur deaktiviert.",
     "bulk_confirm_btn_one": "{{count}} Leistung löschen",
     "bulk_confirm_btn_other": "{{count}} Leistungen löschen",
-    "bulk_done": "{{deleted}} gelöscht, {{deactivated}} deaktiviert"
+    "bulk_done": "{{deleted}} gelöscht, {{deactivated}} deaktiviert",
+    "deactivate_selected": "Deaktivieren ({{count}})",
+    "activate_selected": "Aktivieren ({{count}})",
+    "bulk_deactivated_one": "{{count}} Leistung deaktiviert",
+    "bulk_deactivated_other": "{{count}} Leistungen deaktiviert",
+    "bulk_activated_one": "{{count}} Leistung aktiviert",
+    "bulk_activated_other": "{{count}} Leistungen aktiviert"
   },
   "sign": {
     "error_sign_required": "Bitte unterschreiben Sie das Dokument",

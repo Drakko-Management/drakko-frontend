@@ -8,6 +8,7 @@ import {
   useUpdateService,
   useDeleteService,
   useDeleteServices,
+  useSetServicesActive,
   useDeactivateService,
   useActivateService,
   useSeedServices,
@@ -36,6 +37,7 @@ vi.mock('@/hooks/use-services', () => ({
   useUpdateService: vi.fn(),
   useDeleteService: vi.fn(),
   useDeleteServices: vi.fn(),
+  useSetServicesActive: vi.fn(),
   useDeactivateService: vi.fn(),
   useActivateService: vi.fn(),
   useSeedServices: vi.fn(),
@@ -76,6 +78,7 @@ beforeEach(() => {
   vi.mocked(useCreateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useUpdateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useDeleteService).mockReturnValue(mockMutation() as never)
+  vi.mocked(useSetServicesActive).mockReturnValue(mockMutation({ mutateAsync: vi.fn().mockResolvedValue({ updated: 1 }) }) as never)
   vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync: vi.fn().mockResolvedValue({ deleted: 2, deactivated: 0 }) }) as never)
   vi.mocked(useDeactivateService).mockReturnValue(mockMutation() as never)
   vi.mocked(useActivateService).mockReturnValue(mockMutation() as never)
@@ -335,7 +338,7 @@ describe('ServicesPage — suppression en masse', () => {
     const user = userEvent.setup()
     renderServices()
 
-    await user.click(screen.getByRole('button', { name: /supprimer plusieurs/i }))
+    await user.click(screen.getByRole('button', { name: /sélection multiple/i }))
     await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
 
     expect(screen.getByRole('button', { name: /supprimer \(2\)/i })).toBeEnabled()
@@ -347,7 +350,7 @@ describe('ServicesPage — suppression en masse', () => {
     vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync }) as never)
     renderServices()
 
-    await user.click(screen.getByRole('button', { name: /supprimer plusieurs/i }))
+    await user.click(screen.getByRole('button', { name: /sélection multiple/i }))
     await user.click(screen.getByRole('checkbox', { name: /Arrosage/ }))
     await user.click(screen.getByRole('button', { name: /supprimer \(1\)/i }))
 
@@ -364,7 +367,7 @@ describe('ServicesPage — suppression en masse', () => {
     vi.mocked(useDeleteServices).mockReturnValue(mockMutation({ mutateAsync }) as never)
     renderServices()
 
-    await user.click(screen.getByRole('button', { name: /supprimer plusieurs/i }))
+    await user.click(screen.getByRole('button', { name: /sélection multiple/i }))
     await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
     await user.click(screen.getByRole('button', { name: /supprimer \(2\)/i }))
     await user.click(screen.getByRole('button', { name: 'Annuler', hidden: false }))
@@ -372,9 +375,40 @@ describe('ServicesPage — suppression en masse', () => {
     expect(mutateAsync).not.toHaveBeenCalled()
   })
 
+  it('désactive en masse la sélection, sans confirmation (réversible)', async () => {
+    const user = userEvent.setup()
+    const mutateAsync = vi.fn().mockResolvedValue({ updated: 1 })
+    vi.mocked(useSetServicesActive).mockReturnValue(mockMutation({ mutateAsync }) as never)
+    renderServices()
+
+    await user.click(screen.getByRole('button', { name: /sélection multiple/i }))
+    await user.click(screen.getByRole('checkbox', { name: /Arrosage/ }))
+    await user.click(screen.getByRole('button', { name: /désactiver \(1\)/i }))
+
+    expect(mutateAsync).toHaveBeenCalledWith({ serviceIds: ['svc-3'], active: false })
+  })
+
+  it('réactive la sélection depuis la vue des désactivées', async () => {
+    const user = userEvent.setup()
+    const mutateAsync = vi.fn().mockResolvedValue({ updated: 1 })
+    vi.mocked(useSetServicesActive).mockReturnValue(mockMutation({ mutateAsync }) as never)
+    vi.mocked(useServices).mockReturnValue({
+      data: [SERVICE_ACTIVE, SERVICE_INACTIVE],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useServices>)
+    renderServices()
+
+    await user.click(screen.getByRole('button', { name: /voir les désactivées/i }))
+    await user.click(screen.getByRole('button', { name: /sélection multiple/i }))
+    await user.click(screen.getByRole('checkbox', { name: /tout sélectionner/i }))
+    await user.click(screen.getByRole('button', { name: /^activer \(1\)/i }))
+
+    expect(mutateAsync).toHaveBeenCalledWith({ serviceIds: ['svc-2'], active: true })
+  })
+
   it('sans droit de suppression, pas de sélection', () => {
     useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ prestations: ['read'] }) })
     renderServices()
-    expect(screen.queryByRole('button', { name: /supprimer plusieurs/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /sélection multiple/i })).not.toBeInTheDocument()
   })
 })

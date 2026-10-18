@@ -88,3 +88,14 @@ export function useDeleteAllServices() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
   })
 }
+
+export function useSetServicesActive() {
+  return useMutation({
+    mutationFn: ({ serviceIds, active }: { serviceIds: string[]; active: boolean }) =>
+      apiRequest<{ updated: number }>('/services/bulk-active', {
+        method: 'POST',
+        body: JSON.stringify({ serviceIds, active }),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['services'] }),
+  })
+}

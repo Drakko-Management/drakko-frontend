@@ -16,6 +16,7 @@ import {
   useUpdateService,
   useDeleteService,
   useDeleteServices,
+  useSetServicesActive,
   useDeactivateService,
   useActivateService,
   useSeedServices,
@@ -222,6 +223,7 @@ export function ServicesPage() {
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const deleteServices = useDeleteServices();
+  const setServicesActive = useSetServicesActive();
   const deactivateService = useDeactivateService();
   const activateService = useActivateService();
   const seedServices = useSeedServices();
@@ -280,6 +282,18 @@ export function ServicesPage() {
   function stopSelecting() {
     setSelecting(false);
     setSelection(new Set());
+  }
+
+  // Vue « actives » : on désactive la sélection ; vue « désactivées » : on la réactive
+  async function handleBulkActive() {
+    const active = view === "inactive";
+    try {
+      const { updated } = await setServicesActive.mutateAsync({ serviceIds: selectedIds, active });
+      toast.success(t(active ? "services.bulk_activated" : "services.bulk_deactivated", { count: updated }));
+      stopSelecting();
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, "services.update_error"));
+    }
   }
 
   async function handleBulkDelete() {
@@ -433,7 +447,7 @@ export function ServicesPage() {
           </select>
         </div>
         {selecting ? (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <label className="flex flex-1 items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -444,6 +458,18 @@ export function ServicesPage() {
               />
               {t("services.select_all", { count: filteredServices.length })}
             </label>
+            {can('prestations', 'update') && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-[44px] gap-1.5"
+                disabled={selectedIds.length === 0 || setServicesActive.isPending}
+                onClick={() => void handleBulkActive()}
+              >
+                {view === "inactive" ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                {t(view === "inactive" ? "services.activate_selected" : "services.deactivate_selected", { count: selectedIds.length })}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="destructive"

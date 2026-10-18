@@ -703,7 +703,7 @@
     "sort_za": "Z → A",
     "sort_recent": "Plus récent",
     "no_results": "Aucun résultat",
-    "select": "Supprimer plusieurs",
+    "select": "Sélection multiple",
     "select_one": "Sélectionner {{title}}",
     "select_all": "Tout sélectionner ({{count}})",
     "delete_selected": "Supprimer ({{count}})",
@@ -712,7 +712,13 @@
     "bulk_confirm_message": "Cette action est définitive. Les prestations déjà utilisées dans un rapport ne sont pas effacées : elles sont seulement désactivées.",
     "bulk_confirm_btn_one": "Supprimer {{count}} prestation",
     "bulk_confirm_btn_other": "Supprimer {{count}} prestations",
-    "bulk_done": "{{deleted}} supprimée(s), {{deactivated}} désactivée(s)"
+    "bulk_done": "{{deleted}} supprimée(s), {{deactivated}} désactivée(s)",
+    "deactivate_selected": "Désactiver ({{count}})",
+    "activate_selected": "Activer ({{count}})",
+    "bulk_deactivated_one": "{{count}} prestation désactivée",
+    "bulk_deactivated_other": "{{count}} prestations désactivées",
+    "bulk_activated_one": "{{count}} prestation activée",
+    "bulk_activated_other": "{{count}} prestations activées"
   },
   "sign": {
     "error_sign_required": "Veuillez signer le document",

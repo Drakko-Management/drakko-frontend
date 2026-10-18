@@ -703,7 +703,7 @@
     "sort_za": "Z → A",
     "sort_recent": "Più recente",
     "no_results": "Nessun risultato",
-    "select": "Elimina più elementi",
+    "select": "Selezione multipla",
     "select_one": "Seleziona {{title}}",
     "select_all": "Seleziona tutto ({{count}})",
     "delete_selected": "Elimina ({{count}})",
@@ -712,7 +712,13 @@
     "bulk_confirm_message": "Questa azione è definitiva. I servizi già usati in un rapporto non vengono cancellati: vengono solo disattivati.",
     "bulk_confirm_btn_one": "Elimina {{count}} servizio",
     "bulk_confirm_btn_other": "Elimina {{count}} servizi",
-    "bulk_done": "{{deleted}} eliminati, {{deactivated}} disattivati"
+    "bulk_done": "{{deleted}} eliminati, {{deactivated}} disattivati",
+    "deactivate_selected": "Disattiva ({{count}})",
+    "activate_selected": "Attiva ({{count}})",
+    "bulk_deactivated_one": "{{count}} servizio disattivato",
+    "bulk_deactivated_other": "{{count}} servizi disattivati",
+    "bulk_activated_one": "{{count}} servizio attivato",
+    "bulk_activated_other": "{{count}} servizi attivati"
   },
   "sign": {
     "error_sign_required": "Si prega di firmare il documento",

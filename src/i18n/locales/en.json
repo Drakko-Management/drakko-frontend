@@ -703,7 +703,7 @@
     "sort_za": "Z → A",
     "sort_recent": "Most recent",
     "no_results": "No results",
-    "select": "Delete several",
+    "select": "Multi-select",
     "select_one": "Select {{title}}",
     "select_all": "Select all ({{count}})",
     "delete_selected": "Delete ({{count}})",
@@ -712,7 +712,13 @@
     "bulk_confirm_message": "This cannot be undone. Services already used in a report are not erased: they are only deactivated.",
     "bulk_confirm_btn_one": "Delete {{count}} service",
     "bulk_confirm_btn_other": "Delete {{count}} services",
-    "bulk_done": "{{deleted}} deleted, {{deactivated}} deactivated"
+    "bulk_done": "{{deleted}} deleted, {{deactivated}} deactivated",
+    "deactivate_selected": "Deactivate ({{count}})",
+    "activate_selected": "Activate ({{count}})",
+    "bulk_deactivated_one": "{{count}} service deactivated",
+    "bulk_deactivated_other": "{{count}} services deactivated",
+    "bulk_activated_one": "{{count}} service activated",
+    "bulk_activated_other": "{{count}} services activated"
   },
   "sign": {
     "error_sign_required": "Please sign the document",
