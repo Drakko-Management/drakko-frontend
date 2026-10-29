@@ -190,7 +190,7 @@ export function CreateUserPage() {
           <PasswordStrength check={passwordCheck} />
         </div>
         <div className="space-y-2" data-tutorial="user-role">
-          <Label>{t('common.role')}</Label>
+          <Label>{t('common.role')} *</Label>
           <RoleSelect
             value={form.role}
             customRoleId={form.customRoleId}

@@ -37,6 +37,9 @@ export function SettingsTutorialsPage() {
                   )}
                 </p>
                 <p className="text-xs text-muted-foreground">{t(`tutorials.${tuto.id}.desc`)}</p>
+                <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  {t(`tutorials.kind_${tuto.kind}`)}
+                </span>
               </div>
               <Button
                 variant={done ? 'outline' : 'default'}

@@ -34,6 +34,14 @@ describe('TutorialHelpButton', () => {
     expect(within(dialog).getAllByRole('button', { name: /tutorials\.start/ }).length).toBeGreaterThanOrEqual(2)
   })
 
+  it('indique pour chaque tutoriel s\'il crée de vraies données ou s\'il s\'agit d\'une visite guidée', async () => {
+    const dialog = await openHelp('projects')
+
+    // création de chantier et intervention rapide enregistrent pour de vrai ; les trois autres guides sont des visites
+    expect(within(dialog).getAllByText('tutorials.kind_create')).toHaveLength(2)
+    expect(within(dialog).getAllByText('tutorials.kind_tour').length).toBeGreaterThanOrEqual(1)
+  })
+
   it('est centrée sur l\'écran, y compris sur mobile', async () => {
     const dialog = await openHelp()
 

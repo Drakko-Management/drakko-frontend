@@ -57,4 +57,21 @@ describe('tutoriels — textes et liens', () => {
       expect(locale.tutorials.link_label, lang).toContain('{{title}}')
     }
   })
+
+  it('la nature d\'un tutoriel (création réelle ou visite guidée) a son libellé dans les 5 langues', () => {
+    const missing: string[] = []
+    for (const [lang, locale] of Object.entries(LOCALES)) {
+      for (const kind of new Set(TUTORIALS.map((tuto) => tuto.kind))) {
+        const label: unknown = locale.tutorials[`kind_${kind}`]
+        if (typeof label !== 'string' || !label.trim()) missing.push(`${lang}: kind_${kind}`)
+      }
+    }
+    expect(missing).toEqual([])
+  })
+
+  it('un tutoriel qui crée de vraies données demande la permission de créer', () => {
+    for (const tuto of TUTORIALS.filter((other) => other.kind === 'create')) {
+      expect(tuto.permission?.action, tuto.id).toBe('create')
+    }
+  })
 })

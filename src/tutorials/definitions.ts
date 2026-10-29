@@ -53,8 +53,16 @@ export interface TutorialStepDef {
   floating?: string
 }
 
+/**
+ * - `create` : l'utilisateur saisit et enregistre pour de vrai, les données sont créées.
+ * - `tour`   : visite guidée, le guide n'enregistre ni n'envoie rien (boutons verrouillés).
+ * Affiché dans la liste des tutoriels pour que l'utilisateur sache à quoi s'attendre.
+ */
+export type TutorialKind = 'create' | 'tour'
+
 export interface TutorialDef {
   id: TutorialId
+  kind: TutorialKind
   /** Page(s) dont le bouton « ? » propose ce tutoriel */
   scope: TutorialScope | TutorialScope[]
   /** Page de départ du tutoriel (`null` : on reste sur la page courante) */
@@ -98,6 +106,7 @@ const PROJECT_DETAIL = /^\/chantiers\/(?!nouveau$|express$)[^/]+$/
 export const TUTORIALS: TutorialDef[] = [
   {
     id: 'create_client',
+    kind: 'create',
     scope: ['clients', 'client_form'],
     startRoute: '/clients',
     permission: { module: 'clients', action: 'create' },
@@ -114,6 +123,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_project',
+    kind: 'create',
     scope: ['projects', 'project_form'],
     startRoute: '/chantiers',
     permission: { module: 'chantiers', action: 'create' },
@@ -132,6 +142,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'express_project',
+    kind: 'create',
     scope: ['projects', 'express_form'],
     startRoute: '/chantiers',
     permission: { module: 'chantiers', action: 'create' },
@@ -145,6 +156,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'send_signature',
+    kind: 'tour',
     scope: ['projects', 'project'],
     startRoute: '/chantiers',
     permission: { module: 'chantiers', action: 'update' },
@@ -165,6 +177,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_service',
+    kind: 'create',
     scope: ['services', 'service_form'],
     startRoute: '/prestations',
     permission: { module: 'prestations', action: 'create' },
@@ -179,6 +192,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_member',
+    kind: 'create',
     scope: ['team', 'user_form'],
     startRoute: '/utilisateurs',
     permission: { module: 'equipe', action: 'create' },
@@ -196,6 +210,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'install_app',
+    kind: 'tour',
     scope: 'settings',
     startRoute: '/parametres',
     requires: 'pwa_installable',
@@ -207,6 +222,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'run_project',
+    kind: 'tour',
     scope: ['projects', 'project', 'photos'],
     startRoute: '/chantiers',
     dataRoute: '/chantiers/:id',
@@ -232,6 +248,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'fill_report',
+    kind: 'tour',
     scope: ['projects', 'project', 'report'],
     startRoute: '/chantiers',
     dataRoute: '/chantiers/:id/rapport',
@@ -254,6 +271,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'sign_page',
+    kind: 'tour',
     scope: 'sign',
     audience: 'public',
     startRoute: null,
@@ -270,6 +288,7 @@ export const TUTORIALS: TutorialDef[] = [
   },
   {
     id: 'create_role',
+    kind: 'create',
     scope: ['team', 'role_form'],
     startRoute: '/utilisateurs',
     permission: { module: 'equipe', action: 'create' },

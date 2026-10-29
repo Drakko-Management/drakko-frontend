@@ -83,6 +83,7 @@ describe('traductions — clés utilisées dans le code', () => {
     onglets: ['membres', 'roles'].map((tab) => `users.tab_${tab}`),
     navigation: Object.values(NAV_SLOT_REGISTRY).flatMap((slot) => [slot.labelKey, slot.nameKey]),
     'choix de réception': ['accepted', 'accepted_with_reserves', 'refused'].map((c) => `sign.choice_${c}`),
+    'nature des tutoriels': ['create', 'tour'].map((kind) => `tutorials.kind_${kind}`),
   }
 
   it.each(Object.keys(LOCALES))('%s : les clés dynamiques existent', (lang) => {
