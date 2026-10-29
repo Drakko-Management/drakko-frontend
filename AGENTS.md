@@ -39,6 +39,7 @@ Ne pas lire toute la doc : seulement ce qui concerne la tâche. Un écran → `0
 
 ## Conventions d'interface (détails et raisons dans `08-decisions.md`)
 - **Mode gaucher** (`User.handedness`) : pour tout nouvel élément interactif principal du mobile (bouton flottant, panneau latéral, barre d'actions, swipe, drawer…), se demander s'il doit se déplacer ou s'inverser. Si oui : override CSS dans `src/index.css` sous `[data-handedness="left"]` (modèle `.bottom-fab`) ou classes Tailwind lues dans `useTheme().handedness` (modèle `AppDrawer`), puis l'ajouter au tableau « Éléments affectés » de `08-decisions.md`.
+- **Modules** : la liste des modules est dans `src/modules/registry.ts` (menus, tiroir, barre du bas, tableau de bord la lisent) : ne jamais la recopier dans un composant. Ajouter un module : procédure dans ADR-027 (back et front) ; les tests de `src/modules/registry.test.ts` signalent les oublis.
 - **Créer / modifier un objet** (chantier, client, membre, prestation) : une page dédiée (`…/nouveau`, `…/:id`, `…/:id/modifier`), jamais une modale ni une ligne dépliée sur place (ADR-026). Les modales ne servent qu'aux confirmations.
 - **Fenêtres modales** : centrées, titre fixe, contenu qui défile, rendues par portail dans `<body>`. Couches : barre du bas `z-50`, fenêtre `z-[60]`, fenêtre utilisable pendant un tutoriel `z-[1100]`.
 - **Champs de date** : chaque champ d'une paire garde toujours un `min` et un `max` (`dateRangeBounds`, sinon l'icône du calendrier glisse sous Chrome) ; dates reçues de l'API converties par `toDateInput`.

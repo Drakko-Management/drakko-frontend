@@ -22,7 +22,8 @@
     "new_project": "Neues Projekt",
     "no_projects": "Noch keine Projekte",
     "expected_end": "Voraussichtliches Ende: {{date}}",
-    "modules": "Module"
+    "empty_title": "Noch nichts anzuzeigen",
+    "empty_desc": "Das Dashboard füllt sich entsprechend Ihren Zugriffsrechten. Öffnen Sie ein Modul über das Menü."
   },
   "projects": {
     "title": "Projekte",

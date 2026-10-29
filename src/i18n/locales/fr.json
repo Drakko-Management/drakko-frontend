@@ -22,7 +22,8 @@
     "new_project": "Nouveau chantier",
     "no_projects": "Aucun chantier pour le moment",
     "expected_end": "Fin prévue : {{date}}",
-    "modules": "Modules"
+    "empty_title": "Rien à afficher pour le moment",
+    "empty_desc": "Le tableau de bord se remplit selon vos accès. Ouvrez un module depuis le menu."
   },
   "projects": {
     "title": "Chantiers",

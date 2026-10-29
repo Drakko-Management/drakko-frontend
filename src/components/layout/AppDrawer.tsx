@@ -1,23 +1,23 @@
 import { useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { X, Settings, LogOut, Monitor, Sun, Moon, LayoutDashboard, HardHat, Users, UserCog, BookOpen } from 'lucide-react'
+import { X, Settings, LogOut, Monitor, Sun, Moon, LayoutDashboard } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useTheme } from '@/providers/ThemeProvider'
-import { usePermissions } from '@/hooks/use-permissions'
+import { useAppModules } from '@/modules/use-app-modules'
 import { apiRequest } from '@/lib/api-client'
 import { logout } from '@/lib/logout'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import type { PermModule } from '@/types/api'
 
-const NAV_ITEMS: { to: string; icon: React.ElementType; labelKey: string; permModule?: PermModule; end?: boolean }[] = [
-  { to: '/',             icon: LayoutDashboard, labelKey: 'nav.dashboard', end: true },
-  { to: '/chantiers',   icon: HardHat,         labelKey: 'nav.projects',  permModule: 'chantiers' },
-  { to: '/clients',     icon: Users,           labelKey: 'nav.clients',   permModule: 'clients' },
-  { to: '/utilisateurs',icon: UserCog,         labelKey: 'nav.team',      permModule: 'equipe' },
-  { to: '/prestations', icon: BookOpen,        labelKey: 'nav.services',  permModule: 'prestations' },
-]
+interface DrawerNavItem {
+  to: string
+  icon: React.ElementType
+  labelKey: string
+  end?: boolean
+}
+
+const DASHBOARD_ITEM: DrawerNavItem = { to: '/', icon: LayoutDashboard, labelKey: 'nav.dashboard', end: true }
 
 interface AppDrawerProps {
   open: boolean
@@ -29,12 +29,13 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
   const navigate = useNavigate()
   const { firstName, lastName, username, role, customRoleName } = useAuthStore()
   const { theme, setTheme, handedness } = useTheme()
-  const { can } = usePermissions()
+  const modules = useAppModules()
   const isLeft = handedness === 'left'
 
-  const visibleNavItems = NAV_ITEMS.filter(
-    item => !item.permModule || can(item.permModule, 'read'),
-  )
+  const visibleNavItems: DrawerNavItem[] = [
+    DASHBOARD_ITEM,
+    ...modules.map(({ to, icon, nameKey }) => ({ to, icon, labelKey: nameKey })),
+  ]
 
   const ROLE_LABELS: Record<string, string> = {
     ADMIN: t('settings.role_admin'),

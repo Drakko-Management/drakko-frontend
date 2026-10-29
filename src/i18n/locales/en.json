@@ -22,7 +22,8 @@
     "new_project": "New project",
     "no_projects": "No projects yet",
     "expected_end": "Expected end: {{date}}",
-    "modules": "Modules"
+    "empty_title": "Nothing to show yet",
+    "empty_desc": "Your dashboard fills up according to your access. Open a module from the menu."
   },
   "projects": {
     "title": "Projects",

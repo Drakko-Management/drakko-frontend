@@ -22,7 +22,8 @@
     "new_project": "Nuovo cantiere",
     "no_projects": "Nessun cantiere al momento",
     "expected_end": "Fine prevista: {{date}}",
-    "modules": "Moduli"
+    "empty_title": "Niente da mostrare per ora",
+    "empty_desc": "La dashboard si riempie in base ai tuoi accessi. Apri un modulo dal menu."
   },
   "projects": {
     "title": "Cantieri",

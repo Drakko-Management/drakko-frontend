@@ -1,18 +1,14 @@
 import { NavLink, useNavigate } from "react-router";
 import {
   LayoutDashboard,
-  HardHat,
-  Users,
-  UserCog,
   Settings,
-  BookOpen,
   LogOut,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth.store";
 import { useOrganization } from "@/hooks/use-organization";
-import { usePermissions } from "@/hooks/use-permissions";
+import { useAppModules } from "@/modules/use-app-modules";
 import { logout } from "@/lib/logout";
 import { toast } from "sonner";
 
@@ -21,25 +17,9 @@ interface NavItem {
   icon: React.ElementType;
   labelKey: string;
   end?: boolean;
-  permModule?: string;
-  permAction?: string;
 }
 
-const ADMIN_NAV: NavItem[] = [
-  { to: "/", icon: LayoutDashboard, labelKey: "nav.dashboard", end: true },
-  { to: "/chantiers", icon: HardHat, labelKey: "nav.projects" },
-  { to: "/clients", icon: Users, labelKey: "nav.clients" },
-  { to: "/utilisateurs", icon: UserCog, labelKey: "nav.team" },
-  { to: "/prestations", icon: BookOpen, labelKey: "nav.services" },
-];
-
-const MEMBER_NAV: NavItem[] = [
-  { to: "/", icon: LayoutDashboard, labelKey: "nav.dashboard", end: true },
-  { to: "/chantiers", icon: HardHat, labelKey: "nav.projects", permModule: "chantiers", permAction: "read" },
-  { to: "/clients", icon: Users, labelKey: "nav.clients", permModule: "clients", permAction: "read" },
-  { to: "/utilisateurs", icon: UserCog, labelKey: "nav.team", permModule: "equipe", permAction: "read" },
-  { to: "/prestations", icon: BookOpen, labelKey: "nav.services", permModule: "prestations", permAction: "read" },
-];
+const DASHBOARD_ITEM: NavItem = { to: "/", icon: LayoutDashboard, labelKey: "nav.dashboard", end: true };
 
 interface SidebarProps {
   className?: string;
@@ -50,16 +30,14 @@ export function Sidebar({ className }: SidebarProps) {
   const firstName = useAuthStore((s) => s.firstName);
   const lastName = useAuthStore((s) => s.lastName);
   const { t } = useTranslation();
-  const { can } = usePermissions();
+  const modules = useAppModules();
   const { data: org } = useOrganization();
   const navigate = useNavigate();
 
-  const rawItems = role === "ADMIN" ? ADMIN_NAV : MEMBER_NAV;
-  const items = rawItems.filter((item) =>
-    item.permModule && item.permAction
-      ? can(item.permModule as never, item.permAction as never)
-      : true,
-  );
+  const items: NavItem[] = [
+    DASHBOARD_ITEM,
+    ...modules.map(({ to, icon, nameKey }) => ({ to, icon, labelKey: nameKey })),
+  ];
 
   async function handleLogout() {
     if ((await logout()) === 'failed') {

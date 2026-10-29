@@ -6,6 +6,7 @@ import itLocale from './locales/it.json'
 import de from './locales/de.json'
 import { TUTORIALS } from '@/tutorials/definitions'
 import { NAV_SLOT_REGISTRY } from '@/lib/nav-slots'
+import { APP_MODULES } from '@/modules/registry'
 import { MODULES, ACTIONS } from '@/lib/permissions'
 
 const LOCALES: Record<string, unknown> = { fr, en, es, it: itLocale, de }
@@ -82,6 +83,7 @@ describe('traductions — clés utilisées dans le code', () => {
     actions: ACTIONS.map((a) => `users.action_${a}`),
     onglets: ['membres', 'roles'].map((tab) => `users.tab_${tab}`),
     navigation: Object.values(NAV_SLOT_REGISTRY).flatMap((slot) => [slot.labelKey, slot.nameKey]),
+    'actions du tableau de bord': APP_MODULES.flatMap((m) => (m.createAction ? [m.createAction.labelKey] : [])),
     'choix de réception': ['accepted', 'accepted_with_reserves', 'refused'].map((c) => `sign.choice_${c}`),
     'sections des tutoriels': ['create', 'tour'].flatMap((kind) => [`tutorials.group_${kind}`, `tutorials.group_${kind}_hint`]),
   }

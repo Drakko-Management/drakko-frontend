@@ -22,7 +22,8 @@
     "new_project": "Nuevo proyecto",
     "no_projects": "Sin proyectos por el momento",
     "expected_end": "Fin prevista: {{date}}",
-    "modules": "Módulos"
+    "empty_title": "Nada que mostrar por ahora",
+    "empty_desc": "El panel se llena según tus accesos. Abre un módulo desde el menú."
   },
   "projects": {
     "title": "Proyectos",

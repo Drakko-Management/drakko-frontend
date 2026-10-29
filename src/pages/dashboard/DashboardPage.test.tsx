@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { useProjects } from '@/hooks/use-projects'
 import { useAuthStore } from '@/store/auth.store'
+import { makePermissions } from '@/lib/permissions'
 import { DashboardPage } from './DashboardPage'
 import type { Paginated, Project } from '@/types/api'
 
@@ -128,6 +129,68 @@ describe('DashboardPage — compteurs par statut', () => {
     renderDashboard()
     await userEvent.click(screen.getByRole('button', { name: new RegExp(label) }))
     expect(mockNavigate).toHaveBeenCalledWith(`/chantiers?status=${status}`)
+  })
+})
+
+// ── Droits : le tableau de bord ne montre que ce que l'utilisateur peut lire ──
+
+function loginAsMember(permissions: Parameters<typeof makePermissions>[0]) {
+  useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions(permissions) })
+}
+
+describe('DashboardPage — droits', () => {
+  it('un membre sans lecture des chantiers ne voit pas le bloc chantiers et ne l\'interroge pas', () => {
+    loginAsMember({ clients: ['read'] })
+    renderDashboard()
+    expect(screen.queryByRole('heading', { name: 'Chantiers récents' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /En cours/ })).not.toBeInTheDocument()
+    expect(useProjects).not.toHaveBeenCalled()
+  })
+
+  it('affiche un message quand aucun bloc n\'est disponible', () => {
+    loginAsMember({ clients: ['read'] })
+    renderDashboard()
+    expect(screen.getByText('Rien à afficher pour le moment')).toBeInTheDocument()
+  })
+
+  it('n\'affiche pas ce message quand le bloc chantiers est visible', () => {
+    renderDashboard()
+    expect(screen.queryByText('Rien à afficher pour le moment')).not.toBeInTheDocument()
+  })
+
+  it('un membre qui lit les chantiers voit le bloc chantiers', () => {
+    loginAsMember({ chantiers: ['read'] })
+    renderDashboard()
+    expect(screen.getByRole('heading', { name: 'Chantiers récents' })).toBeInTheDocument()
+  })
+})
+
+// ── Actions rapides ────────────────────────────────────────────────────────
+
+describe('DashboardPage — actions rapides', () => {
+  it('un administrateur peut créer un chantier ou un client', () => {
+    renderDashboard()
+    expect(screen.getByRole('link', { name: 'Nouveau chantier' })).toHaveAttribute('href', '/chantiers/nouveau')
+    expect(screen.getByRole('link', { name: 'Nouveau client' })).toHaveAttribute('href', '/clients/nouveau')
+  })
+
+  it('un membre ne voit que les créations qu\'il a le droit de faire', () => {
+    loginAsMember({ chantiers: ['read', 'create'], clients: ['read'] })
+    renderDashboard()
+    expect(screen.getByRole('link', { name: 'Nouveau chantier' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Nouveau client' })).not.toBeInTheDocument()
+  })
+
+  it('créer sans pouvoir lire le module ne propose pas l\'action', () => {
+    loginAsMember({ chantiers: ['create'] })
+    renderDashboard()
+    expect(screen.queryByRole('link', { name: 'Nouveau chantier' })).not.toBeInTheDocument()
+  })
+
+  it('un membre en lecture seule n\'a aucune action rapide', () => {
+    loginAsMember({ chantiers: ['read'], clients: ['read'] })
+    renderDashboard()
+    expect(screen.queryByRole('link', { name: /Nouveau/ })).not.toBeInTheDocument()
   })
 })
 
