@@ -34,12 +34,26 @@ describe('TutorialHelpButton', () => {
     expect(within(dialog).getAllByRole('button', { name: /tutorials\.start/ }).length).toBeGreaterThanOrEqual(2)
   })
 
-  it('indique pour chaque tutoriel s\'il crée de vraies données ou s\'il s\'agit d\'une visite guidée', async () => {
+  it('range les tutoriels par nature, avec un titre de section pour chacune', async () => {
     const dialog = await openHelp('projects')
 
-    // création de chantier et intervention rapide enregistrent pour de vrai ; les trois autres guides sont des visites
-    expect(within(dialog).getAllByText('tutorials.kind_create')).toHaveLength(2)
-    expect(within(dialog).getAllByText('tutorials.kind_tour').length).toBeGreaterThanOrEqual(1)
+    const titles = within(dialog).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
+    expect(titles).toEqual(['tutorials.group_create', 'tutorials.group_tour'])
+
+    // créer un chantier et l'intervention rapide enregistrent pour de vrai ; le rapport n'est qu'une visite
+    const create = within(dialog).getByText('tutorials.group_create').closest('section')!
+    expect(within(create).getByText('tutorials.create_project.title')).toBeInTheDocument()
+    expect(within(create).getByText('tutorials.express_project.title')).toBeInTheDocument()
+    expect(within(create).queryByText('tutorials.fill_report.title')).not.toBeInTheDocument()
+    const tour = within(dialog).getByText('tutorials.group_tour').closest('section')!
+    expect(within(tour).getByText('tutorials.fill_report.title')).toBeInTheDocument()
+  })
+
+  it('ne montre que les sections des natures proposées par la page', async () => {
+    const dialog = await openHelp('clients')
+
+    const titles = within(dialog).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
+    expect(titles).toEqual(['tutorials.group_create'])
   })
 
   it('est centrée sur l\'écran, y compris sur mobile', async () => {

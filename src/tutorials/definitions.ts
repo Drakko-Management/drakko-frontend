@@ -322,6 +322,16 @@ export function isTutorialAvailable(
   return def.permission ? can(def.permission.module, def.permission.action) : true
 }
 
+/** Ordre des sections dans les listes de tutoriels. */
+const KIND_ORDER: TutorialKind[] = ['create', 'tour']
+
+/** Regroupe des tutoriels par nature (création d'abord) ; une nature sans tutoriel n'a pas de section. */
+export function groupByKind(list: TutorialDef[]): { kind: TutorialKind; tutorials: TutorialDef[] }[] {
+  return KIND_ORDER
+    .map((kind) => ({ kind, tutorials: list.filter((tuto) => tuto.kind === kind) }))
+    .filter((group) => group.tutorials.length > 0)
+}
+
 export function getTutorial(id: TutorialId): TutorialDef {
   const def = TUTORIALS.find((t) => t.id === id)
   if (!def) throw new Error(`Unknown tutorial: ${id}`)

@@ -8,19 +8,21 @@ beforeEach(() => {
   useAuthStore.setState({ accessToken: 'tok', username: 'admin', role: 'ADMIN', userId: 'u1', permissions: null })
 })
 
-function rowOf(title: string) {
-  return screen.getByText(title).closest('.min-w-0') as HTMLElement
-}
-
 describe('SettingsTutorialsPage', () => {
-  it('indique pour chaque guide s\'il crée de vraies données ou s\'il s\'agit d\'une visite guidée', () => {
+  it('range les guides en deux sections : création réelle d\'abord, puis visites guidées', () => {
     render(
       <MemoryRouter>
         <SettingsTutorialsPage />
       </MemoryRouter>,
     )
 
-    expect(within(rowOf('Créer un client')).getByText('Crée de vraies données')).toBeInTheDocument()
-    expect(within(rowOf('Remplir le rapport d\'intervention')).getByText('Visite guidée')).toBeInTheDocument()
+    const create = screen.getByText('Créer pour de vrai').closest('section')!
+    const tour = screen.getByText('Visites guidées').closest('section')!
+
+    expect(within(create).getByText('Créer un client')).toBeInTheDocument()
+    expect(within(create).queryByText('Remplir le rapport d\'intervention')).not.toBeInTheDocument()
+    expect(within(tour).getByText('Remplir le rapport d\'intervention')).toBeInTheDocument()
+    expect(within(tour).queryByText('Créer un client')).not.toBeInTheDocument()
+    expect(create.compareDocumentPosition(tour) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

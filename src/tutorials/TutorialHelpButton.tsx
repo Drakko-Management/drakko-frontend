@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CheckCircle2, GraduationCap, HelpCircle, PlayCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePermissions } from '@/hooks/use-permissions'
-import { TUTORIALS, isTutorialAvailable } from './definitions'
+import { TUTORIALS, groupByKind, isTutorialAvailable } from './definitions'
 import type { TutorialScope } from './definitions'
 import { usePwaInstall } from '@/hooks/use-pwa-install'
 import { useTutorial } from './TutorialProvider'
@@ -64,38 +64,43 @@ export function TutorialHelpButton({ scope, className }: Props) {
               <p className="mb-4 text-sm text-muted-foreground">{t('tutorials.help_intro')}</p>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5">
-              <div className="divide-y rounded-xl border">
-                {available.map((tuto) => {
-                  const done = completed.includes(tuto.id)
-                  return (
-                    <div key={tuto.id} className="flex items-center gap-3 p-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-1.5 text-sm font-medium">
-                          {t(`tutorials.${tuto.id}.title`)}
-                          {done && <CheckCircle2 className="h-4 w-4 text-green-600" aria-label={t('tutorials.done_badge')} />}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{t(`tutorials.${tuto.id}.desc`)}</p>
-                        <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          {t(`tutorials.kind_${tuto.kind}`)}
-                        </span>
-                      </div>
-                      <Button
-                        variant={done ? 'outline' : 'default'}
-                        size="sm"
-                        className="min-h-[44px] gap-1.5"
-                        onClick={() => {
-                          setOpen(false)
-                          start(tuto.id)
-                        }}
-                      >
-                        <PlayCircle className="h-4 w-4" />
-                        {done ? t('tutorials.replay') : t('tutorials.start')}
-                      </Button>
-                    </div>
-                  )
-                })}
-              </div>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 pb-5">
+              {groupByKind(available).map(({ kind, tutorials }) => (
+                <section key={kind} className="space-y-2">
+                  <div>
+                    <h3 className="text-sm font-semibold">{t(`tutorials.group_${kind}`)}</h3>
+                    <p className="text-xs text-muted-foreground">{t(`tutorials.group_${kind}_hint`)}</p>
+                  </div>
+                  <div className="divide-y rounded-xl border">
+                    {tutorials.map((tuto) => {
+                      const done = completed.includes(tuto.id)
+                      return (
+                        <div key={tuto.id} className="flex items-center gap-3 p-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="flex items-center gap-1.5 text-sm font-medium">
+                              {t(`tutorials.${tuto.id}.title`)}
+                              {done && <CheckCircle2 className="h-4 w-4 text-green-600" aria-label={t('tutorials.done_badge')} />}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{t(`tutorials.${tuto.id}.desc`)}</p>
+                          </div>
+                          <Button
+                            variant={done ? 'outline' : 'default'}
+                            size="sm"
+                            className="min-h-[44px] gap-1.5"
+                            onClick={() => {
+                              setOpen(false)
+                              start(tuto.id)
+                            }}
+                          >
+                            <PlayCircle className="h-4 w-4" />
+                            {done ? t('tutorials.replay') : t('tutorials.start')}
+                          </Button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           </div>
         </div>

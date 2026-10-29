@@ -4,7 +4,7 @@ import en from '@/i18n/locales/en.json'
 import es from '@/i18n/locales/es.json'
 import itLocale from '@/i18n/locales/it.json'
 import de from '@/i18n/locales/de.json'
-import { TUTORIALS } from './definitions'
+import { TUTORIALS, groupByKind } from './definitions'
 
 type Texts = Record<string, unknown>
 const LOCALES = { fr, en, es, it: itLocale, de } as unknown as Record<string, { tutorials: Record<string, Texts> }>
@@ -58,15 +58,26 @@ describe('tutoriels — textes et liens', () => {
     }
   })
 
-  it('la nature d\'un tutoriel (création réelle ou visite guidée) a son libellé dans les 5 langues', () => {
+  it('le titre et la consigne de chaque section (création réelle, visite guidée) existent dans les 5 langues', () => {
     const missing: string[] = []
     for (const [lang, locale] of Object.entries(LOCALES)) {
       for (const kind of new Set(TUTORIALS.map((tuto) => tuto.kind))) {
-        const label: unknown = locale.tutorials[`kind_${kind}`]
-        if (typeof label !== 'string' || !label.trim()) missing.push(`${lang}: kind_${kind}`)
+        for (const key of [`group_${kind}`, `group_${kind}_hint`]) {
+          const text: unknown = locale.tutorials[key]
+          if (typeof text !== 'string' || !text.trim()) missing.push(`${lang}: ${key}`)
+        }
       }
     }
     expect(missing).toEqual([])
+  })
+
+  it('groupByKind range les tutoriels par nature, création d\'abord, sans section vide', () => {
+    const create = TUTORIALS.filter((tuto) => tuto.kind === 'create')
+    const tour = TUTORIALS.filter((tuto) => tuto.kind === 'tour')
+
+    expect(groupByKind([...tour, ...create]).map((group) => group.kind)).toEqual(['create', 'tour'])
+    expect(groupByKind(tour).map((group) => group.kind)).toEqual(['tour'])
+    expect(groupByKind([])).toEqual([])
   })
 
   it('un tutoriel qui crée de vraies données demande la permission de créer', () => {
