@@ -7,6 +7,7 @@ import { Joyride, EVENTS, ACTIONS } from 'react-joyride'
 import type { EventHandler, Step } from 'react-joyride'
 import { TutorialTooltip } from './TutorialTooltip'
 import type { TutorialStepData } from './TutorialTooltip'
+import { tooltipFloatingOptions } from './floating'
 import { getSteps, getTutorial } from './definitions'
 import { findVisible } from './dom'
 import type { TutorialId, TutorialStepDef, TutorialVariant } from './definitions'
@@ -366,6 +367,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
         continuous
         onEvent={onEvent}
         tooltipComponent={TutorialTooltip}
+        floatingOptions={tooltipFloatingOptions}
         options={{
           skipBeacon: true,
           overlayColor: 'rgba(0, 0, 0, 0.75)',

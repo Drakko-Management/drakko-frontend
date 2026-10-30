@@ -885,9 +885,9 @@
       "new_body": "Tap this button to create a project.",
       "title_title": "Reference and title",
       "title_body": "The reference is required: enter the one you want to identify the project. Also give it a clear title, for example “Terrace and planting”.",
-      "title_body_autoref": "The reference is required, but it is numbered automatically: you have nothing to enter (you can change it if needed). Just give the project a clear title, for example “Terrace and planting”.",
+      "title_body_autoref": "The reference (required) is numbered automatically: nothing to enter, editable if needed. Just give the project a clear title, for example “Terrace and planting”.",
       "client_title": "Client",
-      "client_body": "Search for the client by name and pick them from the list. Not there yet? Type the name, then choose “Create”: a window opens to add them without leaving this form.",
+      "client_body": "Search for the client by name and pick them from the list. Not there? Type the name, then “Create”: a window adds them without leaving this form.",
       "address_title": "Project address",
       "address_body": "This is where the work takes place. If it is the same as the client's billing address, turn on the switch.",
       "planning_title": "Dates and amount (optional)",
@@ -929,7 +929,7 @@
       "submit_title": "Save",
       "submit_body": "Tap here to create the role.",
       "done_title": "Role created!",
-      "done_body": "You can now assign it to a member: expand their card in the \"Members\" tab and pick the role."
+      "done_body": "You can now assign it to a member: open their page in the \"Members\" tab and pick the role."
     },
     "send_signature": {
       "title": "Send a signature link",

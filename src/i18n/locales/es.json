@@ -885,9 +885,9 @@
       "new_body": "Toca este botón para crear una obra.",
       "title_title": "Referencia y título",
       "title_body": "La referencia es obligatoria: escribe la que quieras para identificar la obra. Ponle también un título claro, por ejemplo «Terraza y plantaciones».",
-      "title_body_autoref": "La referencia es obligatoria, pero se numera automáticamente: no tienes que escribir nada (puedes modificarla si hace falta). Solo ponle un título claro a la obra, por ejemplo «Terraza y plantaciones».",
+      "title_body_autoref": "La referencia (obligatoria) se numera automáticamente: no hay nada que escribir, y puedes modificarla. Solo ponle un título claro a la obra, por ejemplo «Terraza y plantaciones».",
       "client_title": "Cliente",
-      "client_body": "Busca al cliente por su nombre y elígelo en la lista. ¿Aún no existe? Escribe su nombre y elige «Crear»: se abre una ventana para añadirlo sin salir de este formulario.",
+      "client_body": "Busca al cliente por su nombre y elígelo en la lista. ¿No existe? Escribe su nombre y elige «Crear»: una ventana lo añade sin salir de este formulario.",
       "address_title": "Dirección de la obra",
       "address_body": "Es donde se realizan los trabajos. Si es la misma que la dirección de facturación del cliente, activa el interruptor.",
       "planning_title": "Fechas e importe (opcional)",
@@ -929,7 +929,7 @@
       "submit_title": "Guardar",
       "submit_body": "Toca aquí para crear el rol.",
       "done_title": "¡Rol creado!",
-      "done_body": "Ahora puedes asignarlo a un miembro: despliega su ficha en la pestaña «Miembros» y elige el rol."
+      "done_body": "Ahora puedes asignarlo a un miembro: abre su ficha en la pestaña «Miembros» y elige el rol."
     },
     "send_signature": {
       "title": "Enviar un enlace de firma",

@@ -885,9 +885,9 @@
       "new_body": "Appuyez sur ce bouton pour créer un chantier.",
       "title_title": "Référence et titre",
       "title_body": "La référence est obligatoire : saisissez celle de votre choix pour identifier le chantier. Donnez-lui aussi un titre clair, par exemple « Terrasse et plantations ».",
-      "title_body_autoref": "La référence est obligatoire, mais elle est numérotée automatiquement : vous n'avez rien à saisir (vous pouvez la modifier si besoin). Donnez simplement un titre clair au chantier, par exemple « Terrasse et plantations ».",
+      "title_body_autoref": "La référence (obligatoire) est numérotée automatiquement : rien à saisir, modifiable si besoin. Donnez simplement un titre clair au chantier, par exemple « Terrasse et plantations ».",
       "client_title": "Client",
-      "client_body": "Cherchez le client par son nom et choisissez-le dans la liste. Il n'existe pas encore ? Tapez son nom puis choisissez « Créer » : une fenêtre s'ouvre pour l'ajouter sans quitter ce formulaire.",
+      "client_body": "Cherchez le client par son nom et choisissez-le dans la liste. Il n'existe pas ? Tapez son nom puis « Créer » : une fenêtre l'ajoute sans quitter ce formulaire.",
       "address_title": "Adresse du chantier",
       "address_body": "C'est l'adresse où se déroulent les travaux. Si elle est identique à l'adresse de facturation du client, activez l'interrupteur.",
       "planning_title": "Dates et montant (facultatif)",
@@ -929,7 +929,7 @@
       "submit_title": "Enregistrer",
       "submit_body": "Appuyez ici pour créer le rôle.",
       "done_title": "Rôle créé !",
-      "done_body": "Vous pouvez maintenant l'attribuer à un membre : dépliez sa fiche dans l'onglet « Membres » et choisissez le rôle."
+      "done_body": "Vous pouvez maintenant l'attribuer à un membre : ouvrez sa fiche dans l'onglet « Membres » et choisissez le rôle."
     },
     "send_signature": {
       "title": "Envoyer un lien de signature",
