@@ -3,6 +3,9 @@ import { enterSupportSession, leaveSupportSession, type SupportGrant } from './s
 import { apiRequest, ApiError } from './api-client'
 import { useAuthStore } from '@/store/auth.store'
 import { queryClient } from './query-client'
+import { toast } from 'sonner'
+
+vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
 
 // Mode dépannage (ADR-028) : le jeton reste en mémoire, rien ne touche à la session ni aux préférences du navigateur
 
@@ -157,5 +160,7 @@ describe('apiRequest en mode dépannage', () => {
     expect((error as ApiError).code).toBe('SUPPORT_READ_ONLY')
     expect(useAuthStore.getState().support).not.toBeNull()
     expect(assign).not.toHaveBeenCalled()
+    // quel que soit l'écran, l'utilisateur est prévenu que c'est la lecture seule
+    expect(toast.error).toHaveBeenCalledWith('Mode dépannage : lecture seule, rien ne peut être modifié', { id: 'support-read-only' })
   })
 })

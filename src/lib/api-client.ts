@@ -1,3 +1,5 @@
+import i18n from 'i18next'
+import { toast } from 'sonner'
 import { useAuthStore } from '@/store/auth.store'
 import { refreshSession } from '@/lib/session-refresh'
 import { leaveSupportSession } from '@/lib/support-session'
@@ -106,6 +108,9 @@ export async function apiRequest<T = unknown>(
     const error = await apiErrorFromResponse(res)
     // Le serveur exige la double authentification de ce compte : l'interface le renvoie vers sa configuration
     if (error.code === 'TWO_FACTOR_REQUIRED') useAuthStore.getState().setTwoFactorRequired(true)
+    // Mode dépannage (ADR-028) : quel que soit l'écran qui a tenté d'écrire, on dit clairement que c'est la lecture
+    // seule, pas une panne (l'écran, lui, affiche son message générique)
+    if (error.code === 'SUPPORT_READ_ONLY') toast.error(i18n.t('platform.err_read_only'), { id: 'support-read-only' })
     throw error
   }
 
