@@ -39,6 +39,14 @@ async function submitPassword() {
   await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }))
 }
 
+describe('PlatformLoginPage — logo', () => {
+  it('affiche le logo Drakko (variantes claire et sombre), comme la connexion des clients', () => {
+    renderPage()
+    const sources = screen.getAllByRole('img', { name: 'Drakko' }).map((img) => img.getAttribute('src'))
+    expect(sources).toEqual(['/drakko/logo_light.png', '/drakko/logo_dark.png'])
+  })
+})
+
 describe('PlatformLoginPage — appareil déjà configuré', () => {
   it('le mot de passe ne suffit pas : le code est demandé, et aucune session ne démarre avant', async () => {
     publicRequest.mockResolvedValueOnce({ mfaRequired: true, mfaToken: 'mfa-1' })

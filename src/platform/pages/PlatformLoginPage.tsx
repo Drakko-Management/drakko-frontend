@@ -102,6 +102,9 @@ export function PlatformLoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="space-y-1 text-center">
+          {/* Les deux variantes sont dans le DOM : le thème en masque une avec des classes `dark:` (comme la connexion des clients) */}
+          <img src="/drakko/logo_light.png" alt="Drakko" className="mx-auto h-44 w-auto dark:hidden" />
+          <img src="/drakko/logo_dark.png" alt="Drakko" className="mx-auto hidden h-44 w-auto dark:block" />
           <h1 className="text-xl font-semibold">{t('platform.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('platform.login_subtitle')}</p>
         </div>
