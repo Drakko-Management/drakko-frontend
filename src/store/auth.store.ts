@@ -5,6 +5,19 @@ import { FILTER_FALLBACKS, resolveDefaultFilters, type DefaultFilters } from '@/
 
 const REFRESH_TOKEN_KEY = 'drakko-rt'
 
+/**
+ * Session de dépannage (ADR-028) : un super admin regarde l'application comme un client, en lecture seule. Tenue
+ * en mémoire seulement, jamais de jeton de renouvellement : recharger la page ou 30 minutes mettent fin au mode.
+ */
+export interface SupportSession {
+  /** Fin de la session, en millisecondes depuis 1970 */
+  expiresAt: number
+  reason: string
+  organizationName: string
+  /** La personne dont on voit l'écran */
+  viewingAs: string
+}
+
 interface AuthState {
   accessToken: string | null
   username: string
@@ -22,6 +35,9 @@ interface AuthState {
   customRoleName: string | null
   /** La double authentification est exigée de ce compte (administrateur) et n'est pas encore configurée */
   twoFactorRequired: boolean
+  /** Non nul : mode dépannage, l'API refuse toute écriture */
+  support: SupportSession | null
+  setSupport: (support: SupportSession | null) => void
   setAuth: (accessToken: string, username: string, refreshToken?: string) => void
   setUsername: (username: string) => void
   setName: (firstName: string, lastName: string) => void
@@ -64,6 +80,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   permissions: null,
   customRoleName: null,
   twoFactorRequired: false,
+  support: null,
+
+  setSupport: (support) => {
+    set({ support })
+  },
 
   setAuth: (accessToken, username, refreshToken) => {
     const decoded = decodeJwtPayload(accessToken)
@@ -120,7 +141,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem(REFRESH_TOKEN_KEY)
     // Ne jamais montrer à l'utilisateur suivant les données du précédent
     queryClient.clear()
-    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], defaultFilters: FILTER_FALLBACKS, customRoleName: null, twoFactorRequired: false })
+    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], defaultFilters: FILTER_FALLBACKS, customRoleName: null, twoFactorRequired: false, support: null })
   },
 }))
 

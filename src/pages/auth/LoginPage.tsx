@@ -91,7 +91,9 @@ export function LoginPage() {
           ? t('login.error_401')
           : err instanceof ApiError && err.status === 429
             ? t('login.error_locked')
-            : t('login.error_generic')
+            : err instanceof ApiError && err.code === 'ORGANIZATION_SUSPENDED'
+              ? t('login.error_suspended')
+              : t('login.error_generic')
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -125,7 +127,13 @@ export function LoginPage() {
         setCodeRejected(true)
         toast.error(t(useRecovery ? 'two_factor.recovery_invalid' : 'two_factor.code_invalid_login'))
       } else {
-        toast.error(err instanceof ApiError && err.status === 429 ? t('login.error_locked') : t('login.error_generic'))
+        toast.error(
+          err instanceof ApiError && err.status === 429
+            ? t('login.error_locked')
+            : err instanceof ApiError && err.code === 'ORGANIZATION_SUSPENDED'
+              ? t('login.error_suspended')
+              : t('login.error_generic'),
+        )
       }
     } finally {
       setLoading(false)

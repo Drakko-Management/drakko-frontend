@@ -208,4 +208,38 @@ describe('apiErrorMessage', () => {
       'Eine Rolle mit diesem Namen existiert bereits',
     )
   })
+
+  // Plateforme (ADR-028) : chaque code du backoffice a son texte dans les 5 langues, jamais le message de repli
+  it.each([
+    ['ORGANIZATION_SUSPENDED', 403],
+    ['SUPPORT_READ_ONLY', 403],
+    ['ORGANIZATION_SLUG_TAKEN', 409],
+    ['ORGANIZATION_SLUG_INVALID', 409],
+    ['USERNAME_TAKEN', 409],
+    ['OWNER_EMAIL_REQUIRED', 400],
+    ['OWNER_EMAIL_ALREADY_SET', 400],
+    ['OWNER_NOT_FOUND', 404],
+    ['OWNER_INACTIVE', 409],
+    ['EMAIL_SEND_FAILED', 503],
+    ['ORGANIZATION_ALREADY_SUSPENDED', 409],
+    ['ORGANIZATION_NOT_SUSPENDED', 409],
+    ['ORGANIZATION_NOT_FOUND', 404],
+    ['USER_NOT_FOUND', 404],
+    ['WAITLIST_ENTRY_NOT_FOUND', 404],
+  ])('traduit %s (plateforme) dans chaque langue, jamais le message de repli', (code, status) => {
+    const message = (lng: string) =>
+      apiErrorMessage(new ApiError(status, 'Texte technique', code), i18n.getFixedT(lng), 'platform.action_error')
+    const fallback = (lng: string) => i18n.getFixedT(lng)('platform.action_error')
+
+    for (const lng of ['fr', 'en', 'es', 'it', 'de']) {
+      expect(message(lng)).not.toBe(fallback(lng))
+      expect(message(lng)).not.toContain('technique')
+    }
+  })
+
+  it('une organisation suspendue dit pourquoi la connexion est refusée', () => {
+    expect(apiErrorMessage(new ApiError(403, 'x', 'ORGANIZATION_SUSPENDED'), i18n.getFixedT('fr'), 'login.error_generic')).toBe(
+      'Votre organisation est suspendue. Contactez le support Drakko.',
+    )
+  })
 })

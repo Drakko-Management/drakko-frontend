@@ -37,6 +37,7 @@ describe('routes : adresse inconnue', () => {
     '/prestations', '/prestations/nouveau',
     '/parametres', '/parametres/profil', '/parametres/apparence', '/parametres/navigation',
     '/parametres/entreprise', '/parametres/tutoriels',
+    '/plateforme', '/plateforme/connexion', '/plateforme/organisations/abc', '/plateforme/liste-attente', '/plateforme/journal',
   ])('%s garde son écran (la route « * » ne l’avale pas)', (path) => {
     expect(lastRoute(path)?.path).not.toBe('*')
   })
@@ -74,3 +75,28 @@ describe('routes : page d’erreur d’affichage', () => {
   })
 })
 
+describe('routes : la plateforme (ADR-028)', () => {
+  const routesSource = import.meta.glob('./routes.tsx', { query: '?raw', import: 'default', eager: true })['./routes.tsx'] as string
+
+  it('/plateforme est une route à part, hors de la coque de l’application et de la connexion des clients', () => {
+    const chain = matchRoutes(routes, '/plateforme/organisations/abc') ?? []
+
+    expect(chain).toHaveLength(1)
+    expect(chain[0]?.route.path).toBe('/plateforme/*')
+    expect(chain.some((m) => (m.route.element as { type?: unknown } | undefined)?.type === PrivateRoute)).toBe(false)
+  })
+
+  it('le backoffice est chargé à la demande : le paquet principal n’en importe rien directement', () => {
+    expect(routesSource).toMatch(/lazy\(\(\) => import\('@\/platform\/PlatformApp'\)\)/)
+    expect(routesSource).not.toMatch(/^import .* from '@\/platform\//m)
+  })
+
+  it('aucun menu ni écran de l’application ne renvoie vers la plateforme', () => {
+    const sources = import.meta.glob(
+      ['../components/layout/*.tsx', '../modules/*.ts', '../pages/**/*.tsx', '!../**/*.test.tsx'],
+      { query: '?raw', import: 'default', eager: true },
+    ) as Record<string, string>
+    const links = Object.entries(sources).filter(([, code]) => code.includes('/plateforme'))
+    expect(links.map(([file]) => file)).toEqual([])
+  })
+})

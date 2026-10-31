@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/store/auth.store'
 import { refreshSession } from '@/lib/session-refresh'
+import { leaveSupportSession } from '@/lib/support-session'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -83,6 +84,12 @@ export async function apiRequest<T = unknown>(
   let res = await fetchWithAuth(path, options, token)
 
   if (res.status === 401) {
+    // Une session de dépannage ne se renouvelle pas (et ne doit jamais toucher à la session du navigateur) : elle
+    // est finie, on revient à la plateforme
+    if (useAuthStore.getState().support) {
+      leaveSupportSession()
+      throw new ApiError(401, 'Support session ended')
+    }
     let newToken: string | null
 
     if (isRefreshing) {

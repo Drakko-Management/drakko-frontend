@@ -38,6 +38,22 @@ const API_ERROR_KEYS: Record<string, string> = {
   SIGNATURE_IMAGE_INVALID: 'sign.error_image_invalid',
   SIGNATURE_REQUEST_OUTDATED: 'sign.error_outdated',
   SIGNATURE_REQUEST_WRONG_TYPE: 'sign.error_wrong_type',
+  // Plateforme (ADR-028)
+  ORGANIZATION_SUSPENDED: 'login.error_suspended',
+  SUPPORT_READ_ONLY: 'platform.err_read_only',
+  ORGANIZATION_SLUG_TAKEN: 'platform.err_slug_taken',
+  ORGANIZATION_SLUG_INVALID: 'platform.err_slug_invalid',
+  USERNAME_TAKEN: 'platform.err_username_taken',
+  OWNER_EMAIL_REQUIRED: 'platform.err_owner_email_required',
+  OWNER_EMAIL_ALREADY_SET: 'platform.err_owner_email_already',
+  OWNER_NOT_FOUND: 'platform.err_owner_not_found',
+  OWNER_INACTIVE: 'platform.err_owner_inactive',
+  EMAIL_SEND_FAILED: 'platform.err_email_send_failed',
+  ORGANIZATION_ALREADY_SUSPENDED: 'platform.err_already_suspended',
+  ORGANIZATION_NOT_SUSPENDED: 'platform.err_not_suspended',
+  ORGANIZATION_NOT_FOUND: 'platform.err_organization_not_found',
+  USER_NOT_FOUND: 'platform.err_user_not_found',
+  WAITLIST_ENTRY_NOT_FOUND: 'platform.err_waitlist_not_found',
 }
 
 /** Message traduit pour une erreur API : celui du code connu, sinon le message générique de repli. */

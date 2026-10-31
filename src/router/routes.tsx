@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import type { RouteObject } from 'react-router'
 import { PrivateRoute } from './PrivateRoute'
 import { TWO_FACTOR_ROUTE } from './two-factor-route'
@@ -37,6 +38,9 @@ import { SignPage } from '@/pages/public/SignPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { RouteErrorPage } from '@/pages/errors/RouteErrorPage'
 
+// Le backoffice de la plateforme (ADR-028) n'est chargé que si on ouvre /plateforme : le paquet principal n'en contient rien
+const PlatformApp = lazy(() => import('@/platform/PlatformApp'))
+
 // Les routes sont séparées du routeur pour pouvoir être lues dans les tests sans créer un routeur de navigateur
 const routeTree: RouteObject[] = [
   {
@@ -54,6 +58,20 @@ const routeTree: RouteObject[] = [
   {
     path: '/sign/:token',
     element: <SignPage />,
+  },
+  {
+    path: '/plateforme/*',
+    element: (
+      <Suspense
+        fallback={
+          <div className="flex h-screen items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-muted border-t-primary" />
+          </div>
+        }
+      >
+        <PlatformApp />
+      </Suspense>
+    ),
   },
   {
     element: <PrivateRoute />,

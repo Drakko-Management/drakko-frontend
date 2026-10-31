@@ -4,6 +4,7 @@ import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import { InstallBanner } from '@/components/common/InstallBanner'
 import { PwaAutoUpdate } from '@/components/common/PwaAutoUpdate'
+import { SupportBanner } from '@/components/common/SupportBanner'
 import { TutorialProvider } from '@/tutorials/TutorialProvider'
 import { useProjectLiveRefresh, useProjectUpdateSync } from '@/hooks/use-project-sync'
 import { useSessionSync } from '@/hooks/use-session-sync'
@@ -18,16 +19,20 @@ export function AppShell() {
     // La numérotation automatique des chantiers change ce que disent les tutoriels (référence à saisir ou non)
     <TutorialProvider textVariants={org?.autoProjectReference ? ['autoref'] : []}>
       {/* Collé aux bords de l'écran (et non « 100dvh ») : la page elle-même ne défile jamais, seuls les écrans le font. Sur iPhone, une page qui peut bouger un peu sous la barre d'état y fait apparaître un fondu flou sur l'en-tête. */}
-      <div className="fixed inset-0 flex bg-background">
-        <Sidebar className="hidden lg:flex" />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Header className="lg:hidden" />
-          <InstallBanner />
-          <PwaAutoUpdate />
-          <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
-            <Outlet />
-          </main>
-          <BottomNav className="lg:hidden" />
+      <div className="fixed inset-0 flex flex-col bg-background">
+        {/* Mode dépannage (ADR-028) : bandeau permanent au-dessus de tout, hors du défilement */}
+        <SupportBanner />
+        <div className="flex min-h-0 flex-1">
+          <Sidebar className="hidden lg:flex" />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <Header className="lg:hidden" />
+            <InstallBanner />
+            <PwaAutoUpdate />
+            <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
+              <Outlet />
+            </main>
+            <BottomNav className="lg:hidden" />
+          </div>
         </div>
       </div>
     </TutorialProvider>
