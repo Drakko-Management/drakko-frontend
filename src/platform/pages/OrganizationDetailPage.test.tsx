@@ -103,6 +103,27 @@ describe('OrganizationDetailPage — suspension', () => {
   })
 })
 
+describe('OrganizationDetailPage — actions', () => {
+  it('chaque action dit ce qu\'elle fait, à côté de son bouton', async () => {
+    setup()
+    await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' })
+
+    expect(screen.getByText('Envoie par email un lien pour choisir un nouveau mot de passe.')).toBeInTheDocument()
+    expect(screen.getByText(/Ouvre l'application en lecture seule, comme le propriétaire, pendant 30 minutes/)).toBeInTheDocument()
+    expect(screen.getByText(/Efface son appareil et ses codes de secours/)).toBeInTheDocument()
+    expect(screen.getByText(/Bloque la connexion de toute l'équipe/)).toBeInTheDocument()
+    // l'ancien libellé n'existe plus
+    expect(screen.queryByRole('button', { name: 'Envoyer un lien au propriétaire' })).toBeNull()
+  })
+
+  it('une organisation suspendue explique ce que fait « Réactiver »', async () => {
+    setup(org({ active: false }))
+    await screen.findByRole('button', { name: 'Réactiver' })
+    expect(screen.getByText("Rend l'accès à l'équipe, qui devra se reconnecter.")).toBeInTheDocument()
+    expect(screen.queryByText(/Bloque la connexion de toute l'équipe/)).toBeNull()
+  })
+})
+
 describe('OrganizationDetailPage — dépannage', () => {
   it('« Voir ce que voit le client » : motif obligatoire, session de lecture seule en tant que le propriétaire, puis ouverture de l’application', async () => {
     const grant = { accessToken: 'support-token', expiresAt: '2026-10-31T12:30:00Z', reason: 'Ticket 4512', organization: { id: 'org-1', name: 'Jardins du Sud' }, user: user() }
@@ -161,7 +182,7 @@ describe('OrganizationDetailPage — dépannage', () => {
 
   it('envoyer un lien : l’adresse du propriétaire est utilisée, sans la redemander', async () => {
     setup()
-    await userEvent.click(await screen.findByRole('button', { name: 'Envoyer un lien au propriétaire' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' }))
     const dialog = await screen.findByRole('alertdialog')
     expect(within(dialog).queryByLabelText('Email')).toBeNull()
     await userEvent.type(within(dialog).getByLabelText('Motif'), 'Mot de passe perdu')
@@ -173,7 +194,7 @@ describe('OrganizationDetailPage — dépannage', () => {
 
   it('envoyer un lien à un propriétaire sans adresse : l’adresse est demandée et envoyée', async () => {
     setup(org({ users: [user({ email: null })] }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Envoyer un lien au propriétaire' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' }))
     const dialog = await screen.findByRole('alertdialog')
     const send = within(dialog).getByRole('button', { name: 'Envoyer le lien' })
     await userEvent.type(within(dialog).getByLabelText('Motif'), 'Mot de passe perdu')

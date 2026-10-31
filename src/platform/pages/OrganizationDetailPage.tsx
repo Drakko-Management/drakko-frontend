@@ -14,6 +14,19 @@ import type { OrganizationUser } from '../types'
 
 type Dialog = 'suspend' | 'reactivate' | 'resetLink' | 'resetTwoFactor' | 'support' | null
 
+// Un libellé long (« Réinitialiser le mot de passe du propriétaire ») passe à la ligne au lieu de déborder
+const ACTION_BUTTON = 'h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left'
+
+// Une action : le bouton, et à côté une phrase qui dit ce qu'il fait (à côté en grand écran, dessous sur téléphone)
+function ActionRow({ hint, children }: { hint: string; children: React.ReactNode }) {
+  return (
+    <li className="grid items-center gap-2 px-4 py-3 sm:grid-cols-[minmax(0,19rem)_1fr] sm:gap-4">
+      {children}
+      <p className="text-sm text-muted-foreground">{hint}</p>
+    </li>
+  )
+}
+
 // La fiche d'une organisation : l'équipe, les gestes de dépannage et les dernières actions (ADR-028). Aucune donnée
 // métier du client ici : pour la voir, le mode dépannage (lecture seule, motivé, journalisé).
 export function OrganizationDetailPage() {
@@ -73,26 +86,36 @@ export function OrganizationDetailPage() {
 
       <section className="space-y-2">
         <h2 className="font-medium">{t('platform.actions_title')}</h2>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => open('support')} disabled={!org.active}>
-            {t('platform.action_support')}
-          </Button>
-          <Button variant="outline" onClick={() => open('resetLink')} disabled={!owner}>
-            {t('platform.action_reset_link')}
-          </Button>
-          <Button variant="outline" onClick={() => open('resetTwoFactor')} disabled={!owner?.twoFactorEnabled}>
-            {t('platform.action_reset_two_factor')}
-          </Button>
+        <ul className="divide-y rounded-lg border bg-card">
+          <ActionRow hint={t('platform.action_support_hint')}>
+            <Button className={ACTION_BUTTON} onClick={() => open('support')} disabled={!org.active}>
+              {t('platform.action_support')}
+            </Button>
+          </ActionRow>
+          <ActionRow hint={t('platform.action_reset_password_hint')}>
+            <Button className={ACTION_BUTTON} variant="outline" onClick={() => open('resetLink')} disabled={!owner}>
+              {t('platform.action_reset_password')}
+            </Button>
+          </ActionRow>
+          <ActionRow hint={t('platform.action_reset_two_factor_hint')}>
+            <Button className={ACTION_BUTTON} variant="outline" onClick={() => open('resetTwoFactor')} disabled={!owner?.twoFactorEnabled}>
+              {t('platform.action_reset_two_factor')}
+            </Button>
+          </ActionRow>
           {org.active ? (
-            <Button variant="destructive" onClick={() => open('suspend')}>
-              {t('platform.action_suspend')}
-            </Button>
+            <ActionRow hint={t('platform.action_suspend_hint')}>
+              <Button className={ACTION_BUTTON} variant="destructive" onClick={() => open('suspend')}>
+                {t('platform.action_suspend')}
+              </Button>
+            </ActionRow>
           ) : (
-            <Button variant="outline" onClick={() => open('reactivate')}>
-              {t('platform.action_reactivate')}
-            </Button>
+            <ActionRow hint={t('platform.action_reactivate_hint')}>
+              <Button className={ACTION_BUTTON} variant="outline" onClick={() => open('reactivate')}>
+                {t('platform.action_reactivate')}
+              </Button>
+            </ActionRow>
           )}
-        </div>
+        </ul>
         {!org.active && <p className="text-xs text-muted-foreground">{t('platform.suspended_hint')}</p>}
       </section>
 
