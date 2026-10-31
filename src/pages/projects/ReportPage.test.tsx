@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
+import { toast } from 'sonner'
 import { useProject } from '@/hooks/use-projects'
 import {
   useReport,
@@ -73,5 +75,38 @@ describe('ReportPage — chantier verrouillé', () => {
     renderPage()
     expect(screen.queryByText('Le rapport est verrouillé après signature.')).not.toBeInTheDocument()
     expect(screen.getByText('Ajouter')).toBeInTheDocument()
+  })
+})
+
+describe('ReportPage — ce qui s\'enregistre tout seul et ce qui demande un clic', () => {
+  it('annonce que les prestations s\'enregistrent automatiquement', () => {
+    projectWith('IN_PROGRESS')
+    renderPage()
+    expect(screen.getByText('Enregistrées automatiquement')).toBeInTheDocument()
+  })
+
+  it('ne l\'annonce pas quand le rapport est verrouillé (rien n\'est modifiable)', () => {
+    projectWith('COMPLETED')
+    renderPage()
+    expect(screen.queryByText('Enregistrées automatiquement')).not.toBeInTheDocument()
+  })
+
+  it('le bouton du bas ne parle que du commentaire : au repos il le dit enregistré, après une saisie il l\'invite à l\'être', async () => {
+    projectWith('IN_PROGRESS')
+    const update = mutation()
+    vi.mocked(useUpdateReport).mockReturnValue(update as never)
+    renderPage()
+    expect(screen.getByRole('button', { name: 'Commentaire enregistré' })).toBeDisabled()
+
+    await userEvent.type(screen.getByLabelText('Commentaire de fin de chantier'), 'Haie taillée')
+
+    // le bouton du haut (court, « Enregistrer ») porte le même nom accessible que celui du bas
+    const save = screen.getAllByRole('button', { name: 'Enregistrer le commentaire' })
+    expect(save).toHaveLength(2)
+    await userEvent.click(save[1]!)
+
+    expect(update.mutateAsync).toHaveBeenCalledWith('Haie taillée')
+    expect(toast.success).toHaveBeenCalledWith('Commentaire enregistré')
+    expect(screen.getByRole('button', { name: 'Commentaire enregistré' })).toBeDisabled()
   })
 })

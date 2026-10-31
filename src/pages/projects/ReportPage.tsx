@@ -159,7 +159,7 @@ export function ReportPage() {
     try {
       await updateReport.mutateAsync(comment)
       setDirty(false)
-      toast.success(t('report.report_saved'))
+      toast.success(t('report.comment_saved'))
     } catch (err) {
       toast.error(apiErrorMessage(err, t, 'report.save_error'))
     }
@@ -224,6 +224,7 @@ export function ReportPage() {
             <Button
               size="sm"
               className="min-h-[44px] gap-1.5"
+              aria-label={t('report.save_comment')}
               onClick={() => void handleSave()}
               disabled={updateReport.isPending}
             >
@@ -253,7 +254,10 @@ export function ReportPage() {
       {/* Service lines section */}
       <div className="space-y-2" data-tutorial="report-lines">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">{t('report.lines_title')}</p>
+          <div>
+            <p className="text-sm font-semibold">{t('report.lines_title')}</p>
+            {canEdit && !isLocked && <p className="text-xs text-muted-foreground">{t('report.lines_autosave')}</p>}
+          </div>
           {canEdit && !isLocked && !addOpen && (
             <button
               className="flex items-center gap-1 text-xs text-primary font-medium min-h-[36px] px-2 rounded-lg active:bg-primary/10"
@@ -387,7 +391,7 @@ export function ReportPage() {
           {updateReport.isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : null}
-          {dirty ? t('report.save') : t('report.saved')}
+          {dirty ? t('report.save_comment') : t('report.comment_saved')}
         </Button>
       )}
     </div>
