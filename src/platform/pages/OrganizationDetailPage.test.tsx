@@ -104,23 +104,30 @@ describe('OrganizationDetailPage — suspension', () => {
 })
 
 describe('OrganizationDetailPage — actions', () => {
-  it('chaque action dit ce qu\'elle fait, à côté de son bouton', async () => {
+  it("chaque bouton dit ce qu'il fait au survol (infobulle), et le mot de passe est nommé clairement", async () => {
     setup()
-    await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' })
+    const reset = await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' })
 
-    expect(screen.getByText('Envoie par email un lien pour choisir un nouveau mot de passe.')).toBeInTheDocument()
-    expect(screen.getByText(/Ouvre l'application en lecture seule, comme le propriétaire, pendant 30 minutes/)).toBeInTheDocument()
-    expect(screen.getByText(/Efface son appareil et ses codes de secours/)).toBeInTheDocument()
-    expect(screen.getByText(/Bloque la connexion de toute l'équipe/)).toBeInTheDocument()
+    expect(reset).toHaveAttribute('title', 'Envoie par email un lien pour choisir un nouveau mot de passe.')
+    expect(screen.getByRole('button', { name: 'Voir ce que voit le client' })).toHaveAttribute('title', expect.stringContaining('lecture seule'))
+    expect(screen.getByRole('button', { name: 'Lever la double authentification du propriétaire' })).toHaveAttribute('title', expect.stringContaining('codes de secours'))
+    expect(screen.getByRole('button', { name: 'Suspendre' })).toHaveAttribute('title', expect.stringContaining("toute l'équipe"))
     // l'ancien libellé n'existe plus
     expect(screen.queryByRole('button', { name: 'Envoyer un lien au propriétaire' })).toBeNull()
   })
 
+  it('les boutons restent en rangée, sans liste ni phrases en dessous', async () => {
+    setup()
+    const reset = await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' })
+    expect(reset.closest('li')).toBeNull()
+    expect(screen.queryByText('Envoie par email un lien pour choisir un nouveau mot de passe.')).toBeNull()
+  })
+
   it('une organisation suspendue explique ce que fait « Réactiver »', async () => {
     setup(org({ active: false }))
-    await screen.findByRole('button', { name: 'Réactiver' })
-    expect(screen.getByText("Rend l'accès à l'équipe, qui devra se reconnecter.")).toBeInTheDocument()
-    expect(screen.queryByText(/Bloque la connexion de toute l'équipe/)).toBeNull()
+    const reactivate = await screen.findByRole('button', { name: 'Réactiver' })
+    expect(reactivate).toHaveAttribute('title', "Rend l'accès à l'équipe, qui devra se reconnecter.")
+    expect(screen.queryByRole('button', { name: 'Suspendre' })).toBeNull()
   })
 })
 
