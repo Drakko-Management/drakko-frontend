@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { InstallModal } from './InstallModal'
 import { parseSafariMajor } from '@/hooks/use-pwa-install'
 
@@ -10,6 +10,9 @@ const SAFARI_18 =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1'
 const CHROME_IOS =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.90 Mobile/15E148 Safari/604.1'
+
+const CHROME_ANDROID =
+  'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36'
 
 function renderWithUserAgent(ua: string) {
   vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(ua)
@@ -29,6 +32,29 @@ describe('parseSafariMajor', () => {
 
   it('renvoie null sans « Version/ » (Chrome sur iOS)', () => {
     expect(parseSafariMajor(CHROME_IOS)).toBeNull()
+  })
+})
+
+describe('InstallModal sur Android', () => {
+  it('Chrome sans invite native : menu à droite de la barre d\'adresse, « Installer et créer un raccourci », puis Installer', () => {
+    renderWithUserAgent(CHROME_ANDROID)
+
+    const [menu, shortcut, confirm] = steps()
+    expect(steps()).toHaveLength(3)
+    expect(menu).toHaveTextContent('Appuyez sur le menu ⋮ à droite de la barre d\'adresse')
+    expect(shortcut).toHaveTextContent('Sélectionnez « Installer et créer un raccourci »')
+    // le renommage arrive par paliers : les anciennes versions de Chrome affichent encore l'ancien libellé
+    expect(shortcut).toHaveTextContent('« Ajouter à l\'écran d\'accueil » sur une ancienne version de Chrome')
+    expect(confirm).toHaveTextContent('Confirmez en appuyant sur « Installer »')
+  })
+
+  it('Chrome avec invite native : un bouton Installer, pas d\'étapes manuelles', () => {
+    renderWithUserAgent(CHROME_ANDROID)
+    // l'invite native arrive après le premier rendu (beforeinstallprompt)
+    act(() => { window.dispatchEvent(new Event('beforeinstallprompt')) })
+
+    expect(screen.getByRole('button', { name: 'Installer' })).toBeInTheDocument()
+    expect(screen.queryByText(/Installer et créer un raccourci/)).not.toBeInTheDocument()
   })
 })
 

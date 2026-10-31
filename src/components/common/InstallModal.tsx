@@ -122,7 +122,12 @@ export function InstallModal({ open, onClose }: Props) {
           </Step>
           <Step number={2}>
             {t('install.android_manual_step2')}{' '}
-            <strong>« {t('install.android_manual_step2_label')} »</strong>
+            <strong>« {t('install.android_manual_step2_label')} »</strong>{' '}
+            {t('install.android_manual_step2_older')}
+          </Step>
+          <Step number={3}>
+            {t('install.android_manual_step3')}{' '}
+            <strong>« {t('install.android_native_btn')} »</strong>
           </Step>
         </div>
       )
