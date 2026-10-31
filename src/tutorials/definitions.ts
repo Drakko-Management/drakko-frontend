@@ -259,7 +259,8 @@ export const TUTORIALS: TutorialDef[] = [
     // Les boutons qui enregistrent sont verrouillés : on peut saisir, rien n'est enregistré par le guide
     steps: [
       { id: 'lines', route: PROJECT_REPORT, target: 'report-lines', advance: 'next' },
-      { id: 'add', route: PROJECT_REPORT, target: 'report-add', advance: 'click', optional: true },
+      // Formulaire de ligne déjà ouvert : le bouton « Ajouter » a disparu, l'étape n'a plus lieu d'être
+      { id: 'add', route: PROJECT_REPORT, target: 'report-add', advance: 'click', optional: true, skipWhen: '[data-tutorial="report-service"]' },
       { id: 'service', route: PROJECT_REPORT, target: 'report-service', advance: 'next', interactive: true, optional: true },
       { id: 'complement', route: PROJECT_REPORT, target: 'report-complement', advance: 'next', interactive: true, optional: true },
       { id: 'validate', route: PROJECT_REPORT, target: 'report-validate', advance: 'next', blockInteraction: true, optional: true },

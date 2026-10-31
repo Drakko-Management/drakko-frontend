@@ -344,7 +344,15 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
         if (data.index + 1 >= data.size) complete(activeId)
         else setIndex(data.index + 1)
       } else if (data.action === ACTIONS.PREV) {
-        setIndex(Math.max(0, data.index - 1))
+        // Reculer sur une étape déjà « faite » (`skipWhen`, ex. le formulaire de ligne est ouvert) la rejouerait dans
+        // le vide, bulle absente le temps que la cible manque : on la retire et on recule d'une de plus.
+        const previous = activeSteps[data.index - 1]
+        if (previous?.skipWhen && document.querySelector(previous.skipWhen)) {
+          setStepsOverride(activeSteps.filter((_, i) => i !== data.index - 1))
+          setIndex(Math.max(0, data.index - 2))
+        } else {
+          setIndex(Math.max(0, data.index - 1))
+        }
       } else if (data.action === ACTIONS.SKIP || data.action === ACTIONS.CLOSE) {
         stop()
       }
