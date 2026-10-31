@@ -47,6 +47,23 @@ describe('PlatformLoginPage — logo', () => {
   })
 })
 
+describe('PlatformLoginPage — mot de passe', () => {
+  it('le mot de passe est masqué au départ, et un œil l’affiche ou le masque', async () => {
+    renderPage()
+    const field = screen.getByLabelText('Mot de passe')
+    await userEvent.type(field, 'correct cheval pile agrafe')
+    expect(field).toHaveAttribute('type', 'password')
+
+    const eye = screen.getByRole('button', { name: 'Afficher ou masquer le mot de passe' })
+    await userEvent.click(eye)
+    expect(field).toHaveAttribute('type', 'text')
+    expect(field).toHaveValue('correct cheval pile agrafe')
+
+    await userEvent.click(eye)
+    expect(field).toHaveAttribute('type', 'password')
+  })
+})
+
 describe('PlatformLoginPage — appareil déjà configuré', () => {
   it('le mot de passe ne suffit pas : le code est demandé, et aucune session ne démarre avant', async () => {
     publicRequest.mockResolvedValueOnce({ mfaRequired: true, mfaToken: 'mfa-1' })

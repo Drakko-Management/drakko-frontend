@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { OtpInput } from '@/components/ui/otp-input'
@@ -127,15 +128,12 @@ export function PlatformLoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="platform-password">{t('login.password_label')}</Label>
-              <Input
+              <PasswordInput
                 id="platform-password"
-                type="password"
                 autoComplete="current-password"
-                className="min-h-[44px] text-base"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={setPassword}
                 disabled={loading}
-                required
               />
             </div>
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
