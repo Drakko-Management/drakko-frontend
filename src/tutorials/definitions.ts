@@ -149,7 +149,9 @@ export const TUTORIALS: TutorialDef[] = [
     steps: [
       { id: 'new', route: /^\/chantiers$/, target: 'projects-express', advance: 'action' },
       { id: 'client', route: /^\/chantiers\/express$/, target: 'express-client', advance: 'next', gate: true },
-      { id: 'project', route: /^\/chantiers\/express$/, target: 'express-project', advance: 'next' },
+      // Les suggestions d'adresse dépassent de la cible : on étend la zone cliquable vers le bas tant qu'elles sont affichées
+      { id: 'project', route: /^\/chantiers\/express$/, target: 'express-project', advance: 'next', gate: true, floating: 'ul' },
+      { id: 'billing', route: /^\/chantiers\/express$/, target: 'express-billing', advance: 'next', gate: true, floating: 'ul' },
       { id: 'submit', route: /^\/chantiers\/express$/, target: 'express-submit', advance: 'action', placement: 'top' },
       { id: 'done', route: /^\/chantiers\/[^/]+\/rapport$/, target: 'center', advance: 'next' },
     ],

@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Mail, Phone, MapPin, FileText, Loader2, MessageSquare } from 'lucide-react'
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -20,6 +19,7 @@ import { useProjects } from '@/hooks/use-projects'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { fullName, formatDate, buildAddress, parseAddress } from '@/lib/utils'
+import { formatPhone } from '@/lib/phone'
 
 type ClientForm = {
   firstName: string
@@ -44,11 +44,6 @@ function toForm(client: Client): ClientForm {
     city,
     notes: client.notes ?? '',
   }
-}
-
-function formatPhone(value: string): string {
-  const phone = parsePhoneNumberFromString(value, 'FR')
-  return phone?.isValid() ? phone.formatNational() : value
 }
 
 // Raccourcis de contact : appeler, écrire, itinéraire. Ils n'apparaissent que si la donnée existe.

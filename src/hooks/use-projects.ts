@@ -132,6 +132,9 @@ interface ExpressProjectInput {
   clientFirstName: string
   clientLastName: string
   clientEmail: string
+  clientPhone?: string
+  /** Adresse de facturation ; absente, le back reprend l'adresse de l'intervention */
+  clientAddress?: string
   title?: string
   description?: string
   address?: string

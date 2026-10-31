@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeftRight, Loader2 } from 'lucide-react'
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
 import { useCreateClient } from '@/hooks/use-clients'
 import { buildAddress } from '@/lib/utils'
+import { formatPhone } from '@/lib/phone'
 import type { Client } from '@/types/api'
 
 export interface ClientFormValues {
@@ -32,11 +32,6 @@ const EMPTY: ClientFormValues = {
   postalCode: '',
   city: '',
   notes: '',
-}
-
-function formatPhone(value: string): string {
-  const phone = parsePhoneNumberFromString(value, 'FR')
-  return phone?.isValid() ? phone.formatNational() : value
 }
 
 interface ClientFormProps {
