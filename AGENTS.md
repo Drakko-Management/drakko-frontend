@@ -31,7 +31,7 @@ Ne pas lire toute la doc : seulement ce qui concerne la tâche. Un écran → `0
 5 langues : `fr`, `en`, `es`, `it`, `de`, fichiers dans `src/i18n/locales/`.
 - Aucun texte visible écrit en dur dans un composant : `const { t } = useTranslation()` puis `t('section.clé')`.
 - Toute nouvelle clé s'ajoute dans les **5 fichiers JSON**, traduite dans chaque langue (ton actuel : vouvoiement en `fr` et `de`, tutoiement en `es` et `it`).
-- Sections de clés : `common`, `nav`, `dashboard`, `projects`, `project`, `create_project`, `edit_project`, `clients`, `client_detail`, `create_client`, `users`, `report`, `photos`, `status`, `settings`, `tutorials`, `login`, `services`, `sign`, `express_project`, `install`, `not_found`, `route_error`.
+- Sections de clés : `common`, `nav`, `dashboard`, `projects`, `project`, `create_project`, `edit_project`, `clients`, `client_detail`, `create_client`, `users`, `report`, `photos`, `status`, `settings`, `tutorials`, `login`, `services`, `sign`, `express_project`, `install`, `not_found`, `route_error`, `platform`.
 - Dates et montants : `i18n.language`, jamais `"fr-FR"` en dur. Labels statiques (`ROLE_LABELS`…) définis **dans** le composant ; hors composant (hook, utilitaire) : `i18n.t(...)` importé de `i18next`.
 - Ne jamais afficher le message d'une erreur de l'API : `apiErrorMessage(err, t, 'section.clé_de_repli')` (`src/lib/api-error.ts`) traduit le `code` renvoyé par le serveur.
 - Un `<option>` garde une `value` explicite : seul son libellé est traduit.
@@ -44,6 +44,8 @@ Ne pas lire toute la doc : seulement ce qui concerne la tâche. Un écran → `0
 - **Fenêtres modales** : centrées, titre fixe, contenu qui défile, rendues par portail dans `<body>`. Couches : barre du bas `z-50`, fenêtre `z-[60]`, fenêtre utilisable pendant un tutoriel `z-[1100]`.
 - **Champs de date** : chaque champ d'une paire garde toujours un `min` et un `max` (`dateRangeBounds`, sinon l'icône du calendrier glisse sous Chrome) ; dates reçues de l'API converties par `toDateInput`.
 - **Mises à jour de l'appli** : `registerType: "autoUpdate"`, sans bouton « Recharger ». Ne pas repasser en `prompt` sans demande explicite (un test le garde).
+- **Plateforme** (`src/platform/`, route `/plateforme/*`, ADR-028) : chargée par `React.lazy` depuis `routes.tsx` (jamais d'import statique, un test le garde), aucun lien dans les menus de l'application, sa propre session en mémoire (`usePlatformStore`, cookie de renouvellement `httpOnly`) jamais mêlée à `useAuthStore`. Tout geste qui touche un client passe par `ReasonDialog` (motif obligatoire).
+- **Mode dépannage** (`useAuthStore.support`) : jeton en mémoire, **jamais** `clearAuth`, jamais de jeton de renouvellement écrit dans le navigateur ; un 401 ou la fin du temps recharge sur `/plateforme`. `SupportBanner` reste le premier élément d'`AppShell`.
 - **Tutoriels** : ils ciblent les éléments par `data-tutorial="…"`. Ne jamais retirer ni renommer ces attributs.
 
 ## Tests
