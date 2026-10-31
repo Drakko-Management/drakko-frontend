@@ -12,6 +12,13 @@ function getIsInstalled() {
   )
 }
 
+// Version de Safari (« Version/26.0 »). iOS gèle le numéro d'iOS dans le user-agent
+// (« iPhone OS 18_6 » sous iOS 26) : seule cette version distingue l'iOS 26 des précédents
+export function parseSafariMajor(ua: string): number | null {
+  const match = /Version\/(\d+)/.exec(ua)
+  return match ? Number(match[1]) : null
+}
+
 export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(getIsInstalled)
@@ -36,6 +43,7 @@ export function usePwaInstall() {
   const isMobile = isIOS || isAndroid
   // Safari strict (not Chrome/Firefox on iOS which also include "Safari")
   const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(ua)
+  const safariMajor = parseSafariMajor(ua)
   const canNativePrompt = !!deferredPrompt
 
   async function triggerInstall(): Promise<boolean> {
@@ -47,5 +55,5 @@ export function usePwaInstall() {
     return outcome === 'accepted'
   }
 
-  return { isInstalled, isIOS, isAndroid, isMobile, isSafari, canNativePrompt, triggerInstall }
+  return { isInstalled, isIOS, isAndroid, isMobile, isSafari, safariMajor, canNativePrompt, triggerInstall }
 }

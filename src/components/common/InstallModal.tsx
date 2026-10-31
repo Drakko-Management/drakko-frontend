@@ -22,8 +22,10 @@ function Step({ number, children }: { number: number; children: React.ReactNode 
 
 export function InstallModal({ open, onClose }: Props) {
   const { t } = useTranslation()
-  const { isIOS, isAndroid, isSafari, canNativePrompt, isInstalled, triggerInstall } = usePwaInstall()
+  const { isIOS, isAndroid, isSafari, safariMajor, canNativePrompt, isInstalled, triggerInstall } = usePwaInstall()
   const [installing, setInstalling] = useState(false)
+  // Depuis iOS 26, la barre d'outils de Safari n'affiche plus « Partager » : il faut passer par le menu de la barre d'adresse
+  const hasAddressBarMenu = safariMajor === null || safariMajor >= 26
 
   if (!open) return null
 
@@ -58,6 +60,27 @@ export function InstallModal({ open, onClose }: Props) {
             {installing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             {t('install.android_native_btn')}
           </Button>
+        </div>
+      )
+    }
+
+    if (isIOS && isSafari && hasAddressBarMenu) {
+      return (
+        <div className="space-y-4">
+          <Step number={1}>{t('install.ios26_menu_step')}</Step>
+          <Step number={2}>
+            {t('install.ios_safari_step3')}{' '}
+            <strong>« {t('install.ios26_share_label')} »</strong>{' '}
+            <Share className="mb-0.5 inline h-4 w-4 text-blue-500" />
+          </Step>
+          <Step number={3}>
+            {t('install.ios_safari_step2')}{' '}
+            <strong>« {t('install.ios_safari_step2_label')} »</strong>
+          </Step>
+          <Step number={4}>
+            {t('install.ios26_webapp_step')}{' '}
+            <strong>« {t('install.ios_safari_step3_label')} »</strong>
+          </Step>
         </div>
       )
     }
