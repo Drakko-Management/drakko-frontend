@@ -17,6 +17,18 @@ type Dialog = 'suspend' | 'reactivate' | 'resetLink' | 'resetTwoFactor' | 'suppo
 // Un libellé long (« Réinitialiser le mot de passe du propriétaire ») passe à la ligne au lieu de déborder d'un petit écran
 const ACTION_BUTTON = 'h-auto min-h-10 whitespace-normal py-2'
 
+// Un bouton grisé ne reçoit plus la souris (pointer-events-none) : l'infobulle est portée par son enveloppe, qui dit
+// aussi pourquoi il est grisé
+function ActionButton({ title, children, ...props }: React.ComponentProps<typeof Button> & { title: string }) {
+  return (
+    <span title={title} className="inline-flex">
+      <Button className={ACTION_BUTTON} {...props}>
+        {children}
+      </Button>
+    </span>
+  )
+}
+
 // La fiche d'une organisation : l'équipe, les gestes de dépannage et les dernières actions (ADR-028). Aucune donnée
 // métier du client ici : pour la voir, le mode dépannage (lecture seule, motivé, journalisé).
 export function OrganizationDetailPage() {
@@ -76,31 +88,45 @@ export function OrganizationDetailPage() {
 
       <section className="space-y-2">
         <h2 className="font-medium">{t('platform.actions_title')}</h2>
-        {/* La phrase qui dit ce que fait chaque bouton s'affiche au survol (title) */}
+        {/* La phrase qui dit ce que fait chaque bouton (ou pourquoi il est grisé) s'affiche au survol */}
         <div className="flex flex-wrap gap-2">
-          <Button className={ACTION_BUTTON} onClick={() => open('support')} disabled={!org.active} title={t('platform.action_support_hint')}>
+          <ActionButton
+            onClick={() => open('support')}
+            disabled={!org.active}
+            title={t(org.active ? 'platform.action_support_hint' : 'platform.action_support_disabled')}
+          >
             {t('platform.action_support')}
-          </Button>
-          <Button className={ACTION_BUTTON} variant="outline" onClick={() => open('resetLink')} disabled={!owner} title={t('platform.action_reset_password_hint')}>
+          </ActionButton>
+          <ActionButton
+            variant="outline"
+            onClick={() => open('resetLink')}
+            disabled={!owner}
+            title={t(owner ? 'platform.action_reset_password_hint' : 'platform.err_owner_not_found')}
+          >
             {t('platform.action_reset_password')}
-          </Button>
-          <Button
-            className={ACTION_BUTTON}
+          </ActionButton>
+          <ActionButton
             variant="outline"
             onClick={() => open('resetTwoFactor')}
             disabled={!owner?.twoFactorEnabled}
-            title={t('platform.action_reset_two_factor_hint')}
+            title={t(
+              !owner
+                ? 'platform.err_owner_not_found'
+                : owner.twoFactorEnabled
+                  ? 'platform.action_reset_two_factor_hint'
+                  : 'platform.action_reset_two_factor_disabled',
+            )}
           >
             {t('platform.action_reset_two_factor')}
-          </Button>
+          </ActionButton>
           {org.active ? (
-            <Button className={ACTION_BUTTON} variant="destructive" onClick={() => open('suspend')} title={t('platform.action_suspend_hint')}>
+            <ActionButton variant="destructive" onClick={() => open('suspend')} title={t('platform.action_suspend_hint')}>
               {t('platform.action_suspend')}
-            </Button>
+            </ActionButton>
           ) : (
-            <Button className={ACTION_BUTTON} variant="outline" onClick={() => open('reactivate')} title={t('platform.action_reactivate_hint')}>
+            <ActionButton variant="outline" onClick={() => open('reactivate')} title={t('platform.action_reactivate_hint')}>
               {t('platform.action_reactivate')}
-            </Button>
+            </ActionButton>
           )}
         </div>
         {!org.active && <p className="text-xs text-muted-foreground">{t('platform.suspended_hint')}</p>}

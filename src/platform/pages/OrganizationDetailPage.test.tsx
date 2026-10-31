@@ -104,14 +104,17 @@ describe('OrganizationDetailPage — suspension', () => {
 })
 
 describe('OrganizationDetailPage — actions', () => {
+  // L'infobulle est portée par l'enveloppe du bouton : un bouton grisé ne reçoit plus la souris
+  const tip = (button: HTMLElement) => button.closest('span[title]')?.getAttribute('title')
+
   it("chaque bouton dit ce qu'il fait au survol (infobulle), et le mot de passe est nommé clairement", async () => {
     setup()
     const reset = await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' })
 
-    expect(reset).toHaveAttribute('title', 'Envoie par email un lien pour choisir un nouveau mot de passe.')
-    expect(screen.getByRole('button', { name: 'Voir ce que voit le client' })).toHaveAttribute('title', expect.stringContaining('lecture seule'))
-    expect(screen.getByRole('button', { name: 'Lever la double authentification du propriétaire' })).toHaveAttribute('title', expect.stringContaining('codes de secours'))
-    expect(screen.getByRole('button', { name: 'Suspendre' })).toHaveAttribute('title', expect.stringContaining("toute l'équipe"))
+    expect(tip(reset)).toBe('Envoie par email un lien pour choisir un nouveau mot de passe.')
+    expect(tip(screen.getByRole('button', { name: 'Voir ce que voit le client' }))).toContain('lecture seule')
+    expect(tip(screen.getByRole('button', { name: 'Lever la double authentification du propriétaire' }))).toContain('codes de secours')
+    expect(tip(screen.getByRole('button', { name: 'Suspendre' }))).toContain("toute l'équipe")
     // l'ancien libellé n'existe plus
     expect(screen.queryByRole('button', { name: 'Envoyer un lien au propriétaire' })).toBeNull()
   })
@@ -123,11 +126,31 @@ describe('OrganizationDetailPage — actions', () => {
     expect(screen.queryByText('Envoie par email un lien pour choisir un nouveau mot de passe.')).toBeNull()
   })
 
-  it('une organisation suspendue explique ce que fait « Réactiver »', async () => {
+  it('une organisation suspendue explique ce que fait « Réactiver », et pourquoi le dépannage est grisé', async () => {
     setup(org({ active: false }))
     const reactivate = await screen.findByRole('button', { name: 'Réactiver' })
-    expect(reactivate).toHaveAttribute('title', "Rend l'accès à l'équipe, qui devra se reconnecter.")
+    expect(tip(reactivate)).toBe("Rend l'accès à l'équipe, qui devra se reconnecter.")
     expect(screen.queryByRole('button', { name: 'Suspendre' })).toBeNull()
+    const support = screen.getByRole('button', { name: 'Voir ce que voit le client' })
+    expect(support).toBeDisabled()
+    expect(tip(support)).toBe("Cette organisation est suspendue : réactivez-la d'abord.")
+  })
+
+  it("un bouton grisé dit pourquoi : propriétaire sans double authentification, ou sans propriétaire", async () => {
+    setup(org({ users: [user({ twoFactorEnabled: false })] }))
+    const lift = await screen.findByRole('button', { name: 'Lever la double authentification du propriétaire' })
+    expect(lift).toBeDisabled()
+    expect(tip(lift)).toBe("Le propriétaire n'a pas de double authentification à lever.")
+  })
+
+  it("sans propriétaire, la réinitialisation et la double authentification sont grisées avec la raison", async () => {
+    setup(org({ users: [user({ isOwner: false })] }))
+    const reset = await screen.findByRole('button', { name: 'Réinitialiser le mot de passe du propriétaire' })
+    const lift = screen.getByRole('button', { name: 'Lever la double authentification du propriétaire' })
+    expect(reset).toBeDisabled()
+    expect(lift).toBeDisabled()
+    expect(tip(reset)).toBe("Cette organisation n'a pas de propriétaire")
+    expect(tip(lift)).toBe("Cette organisation n'a pas de propriétaire")
   })
 })
 
