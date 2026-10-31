@@ -23,5 +23,25 @@ export const fitTooltipHeight: FloatingMiddleware = {
   },
 }
 
+/** Marge de la zone éclairée autour de la cible, par défaut. */
+export const SPOTLIGHT_PADDING = 8
+
+interface SpotlightPaddingDef {
+  spotlightPadding?: { top?: number; right?: number; bottom?: number; left?: number }
+  floating?: string
+}
+
+/**
+ * Marges propres à une étape, ou `undefined` pour garder celle par défaut. Joyride remplace la marge par défaut par
+ * celle de l'étape et met à 0 chaque côté non précisé : on repart donc des quatre côtés par défaut, sans quoi une liste
+ * déroulante (qui n'agrandit que le bas) collerait les champs aux bords de la zone éclairée.
+ * `floatingExtra` : hauteur de l'élément flottant, actuellement affiché, que la zone doit englober.
+ */
+export function stepSpotlightPadding(def: SpotlightPaddingDef, floatingExtra: number) {
+  if (!def.spotlightPadding && !def.floating) return undefined
+  const padding = { top: SPOTLIGHT_PADDING, right: SPOTLIGHT_PADDING, bottom: SPOTLIGHT_PADDING, left: SPOTLIGHT_PADDING, ...def.spotlightPadding }
+  return def.floating ? { ...padding, bottom: padding.bottom + floatingExtra } : padding
+}
+
 /** Constante : Joyride recalcule la position à chaque nouvel objet d'options. */
 export const tooltipFloatingOptions: Partial<FloatingOptions> = { middleware: [fitTooltipHeight] }

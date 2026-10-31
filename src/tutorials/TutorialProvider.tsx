@@ -7,7 +7,7 @@ import { Joyride, EVENTS, ACTIONS } from 'react-joyride'
 import type { EventHandler, Step } from 'react-joyride'
 import { TutorialTooltip } from './TutorialTooltip'
 import type { TutorialStepData } from './TutorialTooltip'
-import { tooltipFloatingOptions } from './floating'
+import { SPOTLIGHT_PADDING, stepSpotlightPadding, tooltipFloatingOptions } from './floating'
 import { getSteps, getTutorial } from './definitions'
 import { findVisible } from './dom'
 import type { TutorialId, TutorialStepDef, TutorialVariant } from './definitions'
@@ -314,9 +314,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
           text(`tutorials.${activeId}.${s.id}_body`)
         ),
         data,
-        ...((s.spotlightPadding || s.floating) && {
-          spotlightPadding: { ...s.spotlightPadding, ...(s.floating && { bottom: (s.spotlightPadding?.bottom ?? 8) + floatingExtra }) },
-        }),
+        ...((s.spotlightPadding || s.floating) && { spotlightPadding: stepSpotlightPadding(s, floatingExtra) }),
         ...(s.blockInteraction && { blockTargetInteraction: true }),
         // Zone d'action : contour dans la couleur de l'entreprise pour la distinguer d'une simple explication
         ...(s.interactive && { styles: { spotlight: { stroke: primaryColor(), strokeWidth: 3 } } }),
@@ -374,7 +372,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
           overlayClickAction: false,
           dismissKeyAction: false,
           spotlightRadius: 12,
-          spotlightPadding: 8,
+          spotlightPadding: SPOTLIGHT_PADDING,
           scrollOffset: 96,
           targetWaitTimeout: 3000,
           zIndex: 1000,

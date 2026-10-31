@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { fitTooltipHeight } from './floating'
+import { fitTooltipHeight, stepSpotlightPadding } from './floating'
 
 const MAX_H = '--tutorial-max-h'
 const initialHeight = window.innerHeight
@@ -36,5 +36,21 @@ describe('fitTooltipHeight — la bulle ne dépasse pas la place restante', () =
 
   it('suit la hauteur de l\'écran (iPhone dans Safari : environ 664 px)', () => {
     expect(maxHeight('bottom', { top: 120, bottom: 300 }, 664)).toBe('322px')
+  })
+})
+
+describe('stepSpotlightPadding — la zone éclairée garde sa marge sur les quatre côtés', () => {
+  it('étape ordinaire : marge par défaut de Joyride, aucune marge propre à l\'étape', () => {
+    expect(stepSpotlightPadding({}, 0)).toBeUndefined()
+  })
+
+  it('liste déroulante : seul le bas s\'agrandit, les autres côtés gardent 8 px (et non 0)', () => {
+    expect(stepSpotlightPadding({ floating: 'ul' }, 0)).toEqual({ top: 8, right: 8, bottom: 8, left: 8 })
+    expect(stepSpotlightPadding({ floating: 'ul' }, 120)).toEqual({ top: 8, right: 8, bottom: 128, left: 8 })
+  })
+
+  it('marge propre à l\'étape : les côtés précisés l\'emportent, les autres gardent 8 px', () => {
+    expect(stepSpotlightPadding({ spotlightPadding: { bottom: 40 } }, 0)).toEqual({ top: 8, right: 8, bottom: 40, left: 8 })
+    expect(stepSpotlightPadding({ spotlightPadding: { bottom: 40 }, floating: 'ul' }, 100)).toEqual({ top: 8, right: 8, bottom: 140, left: 8 })
   })
 })
