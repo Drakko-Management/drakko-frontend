@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { act, render, screen, within } from '@testing-library/react'
 import type { TooltipRenderProps } from 'react-joyride'
 import { TutorialTooltip } from './TutorialTooltip'
@@ -20,6 +20,10 @@ function renderTooltip(data: Partial<TutorialStepData> = {}) {
   render(<TutorialTooltip {...props} />)
   return screen.getByRole('alertdialog')
 }
+
+afterEach(() => {
+  Object.defineProperty(window, 'visualViewport', { value: undefined, configurable: true })
+})
 
 describe('TutorialTooltip — bulle sur un écran court', () => {
   it('est bornée à la place restante (variable posée par fitTooltipHeight) et, sans elle, à l\'écran', () => {
@@ -66,5 +70,23 @@ describe('TutorialTooltip — bulle sur un écran court', () => {
 
     expect(within(tooltip).queryByRole('button', { name: 'tutorials.next' })).not.toBeInTheDocument()
     expect(within(tooltip).getByRole('button', { name: 'tutorials.quit' })).toBeInTheDocument()
+  })
+
+  it('clavier ouvert (peu de place visible) : marges réduites, numéro d\'étape et titre sur une seule ligne', () => {
+    Object.defineProperty(window, 'visualViewport', { value: { pageTop: 0, height: 290, addEventListener: () => undefined, removeEventListener: () => undefined }, configurable: true })
+    const tooltip = renderTooltip()
+
+    expect(tooltip).toHaveClass('p-3')
+    expect(tooltip).not.toHaveClass('p-4')
+    const header = within(tooltip).getByText('Identité').parentElement as HTMLElement
+    expect(header).toHaveClass('flex')
+    expect(within(header).getByText('tutorials.step_of')).toBeInTheDocument()
+  })
+
+  it('écran haut : présentation habituelle', () => {
+    const tooltip = renderTooltip()
+
+    expect(tooltip).toHaveClass('p-4')
+    expect(within(tooltip).getByText('Identité').parentElement).not.toHaveClass('flex')
   })
 })

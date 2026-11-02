@@ -8,6 +8,7 @@ import { useTutorial } from './TutorialProvider'
 import { findVisible, isZoneFilled } from './dom'
 import { TUTORIALS, isTutorialAvailable } from './definitions'
 import type { StepAdvance, TutorialId } from './definitions'
+import { useCompactScreen } from './use-compact-screen'
 import { usePermissions } from '@/hooks/use-permissions'
 import { usePwaInstall } from '@/hooks/use-pwa-install'
 
@@ -92,20 +93,27 @@ export function TutorialTooltip({
   const filled = useZoneFilled(data.targetName, Boolean(data.gate))
   const scrollRef = useRef<HTMLDivElement>(null)
   const moreBelow = useMoreBelow(scrollRef, index)
+  // Peu de place (clavier ouvert sur une tablette, téléphone en paysage) : marges réduites, numéro d'étape à côté du titre
+  const compact = useCompactScreen()
 
   // Hauteur : `--tutorial-max-h` est posée par `fitTooltipHeight` (place restante du côté de la cible) ; une étape
   // centrée n'en a pas et garde tout l'écran. Le texte défile dans la zone du haut, les boutons restent toujours visibles.
   return (
     <div
       {...tooltipProps}
-      className="flex max-h-[var(--tutorial-max-h,calc(100dvh_-_1.5rem))] w-[min(92vw,380px)] flex-col rounded-2xl border bg-card p-4 text-card-foreground shadow-2xl"
+      className={cn(
+        'flex max-h-[var(--tutorial-max-h,calc(100dvh_-_1.5rem))] w-[min(92vw,380px)] flex-col rounded-2xl border bg-card text-card-foreground shadow-2xl',
+        compact ? 'p-3' : 'p-4',
+      )}
     >
       <div ref={scrollRef} className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain', moreBelow && FADE_BOTTOM)}>
-        <p className="text-xs font-medium text-muted-foreground">
-          {t('tutorials.step_of', { current: index + 1, total: size })}
-        </p>
-        {step.title && <h2 className="mt-1 text-base font-bold">{step.title}</h2>}
-        <div className="mt-2 text-sm text-muted-foreground">{step.content}</div>
+        <div className={cn(compact && 'flex flex-wrap items-baseline gap-x-2')}>
+          <p className="text-xs font-medium text-muted-foreground">
+            {t('tutorials.step_of', { current: index + 1, total: size })}
+          </p>
+          {step.title && <h2 className={cn('text-base font-bold', !compact && 'mt-1')}>{step.title}</h2>}
+        </div>
+        <div className={cn('text-sm text-muted-foreground', compact ? 'mt-1' : 'mt-2')}>{step.content}</div>
 
         {linkedTutorial && (
           <button
@@ -118,20 +126,20 @@ export function TutorialTooltip({
         )}
 
         {data.interactive && (
-          <p className="mt-3 flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
+          <p className={cn('flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary', compact ? 'mt-2' : 'mt-3')}>
             <Hand className="h-4 w-4 shrink-0" />
             {t('tutorials.your_turn')}
           </p>
         )}
 
         {data.advance !== 'next' && (
-          <p className="mt-3 rounded-lg bg-primary/10 px-3 py-2 text-xs font-medium text-primary">
+          <p className={cn('rounded-lg bg-primary/10 px-3 py-2 text-xs font-medium text-primary', compact ? 'mt-2' : 'mt-3')}>
             {t('tutorials.action_hint')}
           </p>
         )}
 
         {!filled && (
-          <p className="mt-3 text-xs font-medium text-amber-600 dark:text-amber-400">
+          <p className={cn('text-xs font-medium text-amber-600 dark:text-amber-400', compact ? 'mt-2' : 'mt-3')}>
             {t('tutorials.fill_required')}
           </p>
         )}
@@ -139,7 +147,8 @@ export function TutorialTooltip({
 
       <div
         className={cn(
-          'mt-4 flex shrink-0 items-center justify-between gap-2',
+          'flex shrink-0 items-center justify-between gap-2',
+          compact ? 'mt-2' : 'mt-4',
           handedness === 'left' && 'flex-row-reverse',
         )}
       >
