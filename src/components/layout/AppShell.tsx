@@ -6,6 +6,7 @@ import { InstallBanner } from '@/components/common/InstallBanner'
 import { PwaAutoUpdate } from '@/components/common/PwaAutoUpdate'
 import { SupportBanner } from '@/components/common/SupportBanner'
 import { TutorialProvider } from '@/tutorials/TutorialProvider'
+import { useOverlayAnchor } from '@/tutorials/use-overlay-anchor'
 import { useProjectLiveRefresh, useProjectUpdateSync } from '@/hooks/use-project-sync'
 import { useSessionSync } from '@/hooks/use-session-sync'
 import { useOrganization } from '@/hooks/use-organization'
@@ -15,6 +16,8 @@ export function AppShell() {
   useProjectUpdateSync()
   useProjectLiveRefresh()
   useSessionSync()
+  // Le calque des tutoriels reste aligné sur les cibles fixes quand le clavier ouvert fait défiler la fenêtre
+  useOverlayAnchor()
   return (
     // La numérotation automatique des chantiers change ce que disent les tutoriels (référence à saisir ou non)
     <TutorialProvider textVariants={org?.autoProjectReference ? ['autoref'] : []}>

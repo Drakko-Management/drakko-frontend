@@ -104,3 +104,13 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* Calque sombre des tutoriels (Joyride). Il passe en « fixed » dès que la cible est dans la coque fixe, et sur iPad, en
+   appli installée, ce grand élément fixe collé au bord haut laisse un fondu flou sous la barre d'état à la fin du
+   tutoriel. On le garde en « absolute » ; `useOverlayAnchor` fournit le défilement de la page (le clavier ouvert fait
+   défiler la fenêtre) pour qu'il reste aligné sur les cibles, qui, elles, ne bougent pas. */
+.react-joyride__spotlight {
+  position: absolute !important;
+  top: var(--page-scroll-y, 0px) !important;
+  left: var(--page-scroll-x, 0px) !important;
+}
