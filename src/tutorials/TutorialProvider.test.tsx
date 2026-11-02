@@ -11,10 +11,11 @@ import type { TutorialId } from './definitions'
 vi.mock('@/lib/api-client', () => ({ apiRequest: vi.fn(() => Promise.resolve({ status: 'IN_PROGRESS' })) }))
 
 // Joyride (fond sombre, bulles) est testé dans le navigateur : ici on observe seulement ce que le moteur lui demande
-const joyrideProps = vi.hoisted(() => ({ onEvent: undefined as undefined | ((data: object) => void) }))
+const joyrideProps = vi.hoisted(() => ({ onEvent: undefined as undefined | ((data: object) => void), renders: 0 }))
 vi.mock('react-joyride', () => ({
   Joyride: ({ run, stepIndex, steps, onEvent }: { run: boolean; stepIndex: number; steps: unknown[]; onEvent: (data: object) => void }) => {
     joyrideProps.onEvent = onEvent
+    joyrideProps.renders += 1
     return <div data-testid="joyride" data-run={String(run)} data-index={stepIndex} data-steps={steps.length} />
   },
   EVENTS: { TARGET_NOT_FOUND: 'error:target_not_found', STEP_AFTER: 'step:after' },
@@ -79,6 +80,50 @@ describe('TutorialProvider — lancement', () => {
     await userEvent.click(screen.getByText('partir'))
 
     await waitFor(() => { expect(joyride()).toHaveAttribute('data-run', 'false') })
+  })
+})
+
+describe('TutorialProvider — rotation de l\'écran', () => {
+  const resize = async () => {
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'))
+      await new Promise((r) => setTimeout(r, 250))
+    })
+  }
+
+  it('en plein guide, un redimensionnement refait le rendu : Joyride relit la cible affichée (bouton ou bouton flottant)', async () => {
+    renderAt('/clients', 'create_client')
+    await userEvent.click(screen.getByText('lancer'))
+    await waitFor(() => { expect(joyride()).toHaveAttribute('data-run', 'true') })
+
+    const before = joyrideProps.renders
+    await resize()
+
+    expect(joyrideProps.renders).toBeGreaterThan(before)
+  })
+
+  it('une rafale de redimensionnements ne donne qu\'un rendu', async () => {
+    renderAt('/clients', 'create_client')
+    await userEvent.click(screen.getByText('lancer'))
+    await waitFor(() => { expect(joyride()).toHaveAttribute('data-run', 'true') })
+
+    const before = joyrideProps.renders
+    await act(async () => {
+      for (let i = 0; i < 10; i += 1) window.dispatchEvent(new Event('resize'))
+      await new Promise((r) => setTimeout(r, 250))
+    })
+
+    expect(joyrideProps.renders - before).toBe(1)
+  })
+
+  it('sans guide en cours, rien ne se passe', async () => {
+    renderAt('/clients', 'create_client')
+    expect(joyride()).toHaveAttribute('data-run', 'false')
+
+    const before = joyrideProps.renders
+    await resize()
+
+    expect(joyrideProps.renders).toBe(before)
   })
 })
 

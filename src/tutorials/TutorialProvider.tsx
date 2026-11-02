@@ -226,6 +226,25 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
     return () => { window.clearInterval(timer) }
   }, [activeId, activeSteps, index])
 
+  // Pivoter la tablette ou redimensionner la fenêtre peut remplacer la cible : « Nouveau » est un bouton sur grand
+  // écran et un bouton flottant sur petit (`findVisible` prend celui qui est affiché). Joyride ne relit la cible qu'à
+  // un nouveau rendu : sans lui, la zone éclairée suit le bon élément mais la bulle reste accrochée à l'ancien,
+  // masqué, dans un coin de l'écran. Un rendu après l'agitation suffit à la réaccrocher.
+  const [, setLayoutTick] = useState(0)
+  useEffect(() => {
+    if (!activeId) return
+    let timer: number | undefined
+    const onResize = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => { setLayoutTick((n) => n + 1) }, 150)
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [activeId])
+
   // Étape déjà « faite » une fois la page affichée (ex. on arrive sur /utilisateurs : l'onglet voulu est
   // ouvert par défaut) : on la retire de la liste, la numérotation reste juste.
   useEffect(() => {
