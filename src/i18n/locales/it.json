@@ -866,6 +866,9 @@
     "link_label": "Guida passo dopo passo: «{{title}}» (esce da questo modulo)",
     "your_turn": "È qui che interviene lei",
     "action_hint": "Tocca l'elemento evidenziato per continuare.",
+    "rotate_title": "Tieni il dispositivo in verticale",
+    "rotate_body": "In orizzontale la tastiera occupa quasi tutto lo schermo e le guide non ci stanno. Ruota il dispositivo: la guida parte da sola.",
+    "rotate_anyway": "Avvia comunque",
     "target_missing": "Impossibile mostrare questo passo. Il tutorial è stato interrotto.",
     "create_client": {
       "title": "Creare un cliente",

@@ -866,6 +866,9 @@
     "link_label": "Step-by-step guide: “{{title}}” (leaves this form)",
     "your_turn": "This is where you act",
     "action_hint": "Tap the highlighted element to continue.",
+    "rotate_title": "Hold your device upright",
+    "rotate_body": "In landscape, the keyboard takes up most of the screen and the guides no longer fit. Rotate your device: the guide starts by itself.",
+    "rotate_anyway": "Start anyway",
     "target_missing": "This step could not be displayed. The tutorial was stopped.",
     "create_client": {
       "title": "Create a client",

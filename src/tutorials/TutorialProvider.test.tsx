@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
@@ -199,5 +199,96 @@ describe('TutorialProvider — rapport d\'intervention', () => {
 
     expect(joyride()).toHaveAttribute('data-index', '1')
     expect(joyride()).toHaveAttribute('data-steps', String(total))
+  })
+})
+
+describe('TutorialProvider — écran tactile en paysage', () => {
+  const realMatchMedia = window.matchMedia
+
+  // Un `matchMedia` que le test fait pivoter : la fenêtre doit réagir au changement d'orientation
+  function mockTouchLandscape(landscape: boolean) {
+    let matches = landscape
+    const listeners = new Set<() => void>()
+    const query = {
+      get matches() { return matches },
+      addEventListener: (_type: string, listener: () => void) => { listeners.add(listener) },
+      removeEventListener: (_type: string, listener: () => void) => { listeners.delete(listener) },
+    }
+    window.matchMedia = vi.fn(() => query) as unknown as typeof window.matchMedia
+    return {
+      rotate: (next: boolean) => {
+        matches = next
+        act(() => { listeners.forEach((listener) => { listener() }) })
+      },
+    }
+  }
+
+  afterEach(() => { window.matchMedia = realMatchMedia })
+
+  it('en paysage, lancer un guide propose de tourner l\'appareil au lieu de démarrer', async () => {
+    mockTouchLandscape(true)
+    renderAt('/clients', 'create_client')
+
+    await userEvent.click(screen.getByText('lancer'))
+
+    expect(await screen.findByText('Tenez l\'appareil à la verticale')).toBeInTheDocument()
+    expect(joyride()).toHaveAttribute('data-run', 'false')
+  })
+
+  it('« Lancer quand même » démarre le guide et ferme la fenêtre', async () => {
+    mockTouchLandscape(true)
+    renderAt('/clients', 'create_client')
+    await userEvent.click(screen.getByText('lancer'))
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Lancer quand même' }))
+
+    await waitFor(() => { expect(joyride()).toHaveAttribute('data-run', 'true') })
+    await waitFor(() => { expect(screen.queryByText('Tenez l\'appareil à la verticale')).not.toBeInTheDocument() })
+  })
+
+  it('« Annuler » ferme la fenêtre sans démarrer', async () => {
+    mockTouchLandscape(true)
+    renderAt('/clients', 'create_client')
+    await userEvent.click(screen.getByText('lancer'))
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Annuler' }))
+
+    await waitFor(() => { expect(screen.queryByText('Tenez l\'appareil à la verticale')).not.toBeInTheDocument() })
+    expect(joyride()).toHaveAttribute('data-run', 'false')
+  })
+
+  it('l\'appareil repasse à la verticale fenêtre ouverte : le guide démarre tout seul', async () => {
+    const screenOrientation = mockTouchLandscape(true)
+    renderAt('/clients', 'create_client')
+    await userEvent.click(screen.getByText('lancer'))
+    await screen.findByText('Tenez l\'appareil à la verticale')
+
+    screenOrientation.rotate(false)
+
+    await waitFor(() => { expect(joyride()).toHaveAttribute('data-run', 'true') })
+    await waitFor(() => { expect(screen.queryByText('Tenez l\'appareil à la verticale')).not.toBeInTheDocument() })
+  })
+
+  it('à la verticale (ou sans écran tactile), le guide démarre tout de suite', async () => {
+    mockTouchLandscape(false)
+    renderAt('/clients', 'create_client')
+
+    await userEvent.click(screen.getByText('lancer'))
+
+    await waitFor(() => { expect(joyride()).toHaveAttribute('data-run', 'true') })
+    expect(screen.queryByText('Tenez l\'appareil à la verticale')).not.toBeInTheDocument()
+  })
+
+  it('un guide déjà en cours (lien vers un autre guide) ne repose pas la question', async () => {
+    const screenOrientation = mockTouchLandscape(false)
+    renderAt('/clients', 'create_client')
+    await userEvent.click(screen.getByText('lancer'))
+    await waitFor(() => { expect(joyride()).toHaveAttribute('data-run', 'true') })
+
+    screenOrientation.rotate(true)
+    await userEvent.click(screen.getByText('lancer'))
+
+    expect(screen.queryByText('Tenez l\'appareil à la verticale')).not.toBeInTheDocument()
+    expect(joyride()).toHaveAttribute('data-run', 'true')
   })
 })

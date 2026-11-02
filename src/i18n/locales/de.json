@@ -866,6 +866,9 @@
     "link_label": "Schritt-für-Schritt-Anleitung: „{{title}}“ (verlässt dieses Formular)",
     "your_turn": "Hier sind Sie gefragt",
     "action_hint": "Tippen Sie auf das hervorgehobene Element, um fortzufahren.",
+    "rotate_title": "Halten Sie das Gerät hochkant",
+    "rotate_body": "Im Querformat nimmt die Tastatur fast den ganzen Bildschirm ein, und die Anleitungen passen nicht mehr. Drehen Sie das Gerät: Die Anleitung startet von selbst.",
+    "rotate_anyway": "Trotzdem starten",
     "target_missing": "Dieser Schritt konnte nicht angezeigt werden. Die Anleitung wurde beendet.",
     "create_client": {
       "title": "Kunden anlegen",

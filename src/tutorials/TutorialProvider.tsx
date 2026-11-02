@@ -7,6 +7,8 @@ import { Joyride, EVENTS, ACTIONS } from 'react-joyride'
 import type { EventHandler, Step } from 'react-joyride'
 import { TutorialTooltip } from './TutorialTooltip'
 import type { TutorialStepData } from './TutorialTooltip'
+import { RotateInvitation } from './RotateInvitation'
+import { isTouchLandscape } from './landscape'
 import { SPOTLIGHT_PADDING, stepSpotlightPadding, tooltipFloatingOptions } from './floating'
 import { getSteps, getTutorial } from './definitions'
 import { findVisible } from './dom'
@@ -118,6 +120,8 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
   // Hauteur dont la zone éclairée dépasse la cible tant qu'une liste déroulante (`floating`) est ouverte
   const [floatingExtra, setFloatingExtra] = useState(0)
   const [completed, setCompleted] = useState<TutorialId[]>(() => readCompleted(userId))
+  // Guide demandé sur un écran tactile en paysage : la fenêtre « tournez l'appareil » attend la réponse
+  const [rotateFor, setRotateFor] = useState<TutorialId | null>(null)
 
   const stop = useCallback(() => {
     setActiveId(null)
@@ -186,6 +190,23 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
     },
     [navigate],
   )
+
+  // Sur un écran tactile en paysage le clavier laisse trop peu de place pour un guide (voir `landscape.ts`) : on propose
+  // de tourner l'appareil avant de commencer. Un guide déjà en cours (lien vers un autre guide) ne repose pas la question.
+  const requestStart = useCallback(
+    (id: TutorialId) => {
+      if (activeId === null && isTouchLandscape()) setRotateFor(id)
+      else start(id)
+    },
+    [activeId, start],
+  )
+
+  const launchAfterInvitation = useCallback(() => {
+    if (rotateFor === null) return
+    const id = rotateFor
+    setRotateFor(null)
+    start(id)
+  }, [rotateFor, start])
 
   const complete = useCallback(
     (id: TutorialId) => {
@@ -379,7 +400,7 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
     [activeId, complete, stop, t, activeSteps],
   )
 
-  const value = useMemo(() => ({ t, start, stop, activeId, completed }), [t, start, stop, activeId, completed])
+  const value = useMemo(() => ({ t, start: requestStart, stop, activeId, completed }), [t, requestStart, stop, activeId, completed])
 
   return (
     <TutorialContext.Provider value={value}>
@@ -411,6 +432,12 @@ export function TutorialProvider({ children, lang, textVariants }: TutorialProvi
           next: t('tutorials.next'),
           skip: t('tutorials.quit'),
         }}
+      />
+      <RotateInvitation
+        open={rotateFor !== null}
+        t={t}
+        onLaunch={launchAfterInvitation}
+        onCancel={() => { setRotateFor(null) }}
       />
     </TutorialContext.Provider>
   )

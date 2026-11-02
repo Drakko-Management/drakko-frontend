@@ -866,6 +866,9 @@
     "link_label": "Guía paso a paso: «{{title}}» (sale de este formulario)",
     "your_turn": "Aquí es donde usted interviene",
     "action_hint": "Toca el elemento resaltado para continuar.",
+    "rotate_title": "Sujeta el dispositivo en vertical",
+    "rotate_body": "En horizontal, el teclado ocupa casi toda la pantalla y las guías no caben. Gira el dispositivo: la guía empieza sola.",
+    "rotate_anyway": "Empezar de todos modos",
     "target_missing": "No se pudo mostrar este paso. El tutorial se ha detenido.",
     "create_client": {
       "title": "Crear un cliente",
