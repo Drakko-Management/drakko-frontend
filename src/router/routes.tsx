@@ -39,6 +39,7 @@ import { ServicesPage } from '@/pages/services/ServicesPage'
 import { EditServicePage } from '@/pages/services/EditServicePage'
 import { CreateServicePage } from '@/pages/services/CreateServicePage'
 import { SignPage } from '@/pages/public/SignPage'
+import { PublicQuotePage } from '@/pages/public/PublicQuotePage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { RouteErrorPage } from '@/pages/errors/RouteErrorPage'
 
@@ -62,6 +63,10 @@ const routeTree: RouteObject[] = [
   {
     path: '/sign/:token',
     element: <SignPage />,
+  },
+  {
+    path: '/quote/:token',
+    element: <PublicQuotePage />,
   },
   {
     path: '/plateforme/*',

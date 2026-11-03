@@ -76,6 +76,14 @@ export function useQuoteAction() {
   })
 }
 
+/** Envoie le devis au client par email, avec son PDF et le lien pour répondre en ligne (ADR-031). */
+export function useEmailQuote() {
+  return useMutation({
+    mutationFn: (id: string) => apiRequest<Quote>(`/quotes/${id}/email`, { method: 'POST' }),
+    onSuccess: refresh,
+  })
+}
+
 export function useDeleteQuote() {
   return useMutation({
     mutationFn: (id: string) => apiRequest<void>(`/quotes/${id}`, { method: 'DELETE' }),

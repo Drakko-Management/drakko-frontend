@@ -9,6 +9,8 @@ import {
   MODULES,
   ACTIONS,
   ACTIVABLE_MODULES,
+  requiredReads,
+  withRequiredReads,
 } from './permissions'
 import type { Permissions } from '@/types/api'
 
@@ -193,5 +195,49 @@ describe('isWithinPermissions', () => {
   it('ignore une action inconnue du serveur', () => {
     const odd = { chantiers: ['read', 'teleport'] } as unknown as Partial<typeof reader>
     expect(isWithinPermissions(odd, reader)).toBe(true)
+  })
+})
+
+describe('lectures exigées par les droits (devis)', () => {
+  it('écrire un devis suppose de lire les clients et les prestations', () => {
+    for (const action of ['create', 'update'] as const) {
+      const next = withRequiredReads(makePermissions({ devis: [action] }))
+      expect(next.clients).toContain('read')
+      expect(next.prestations).toContain('read')
+      expect([...requiredReads(makePermissions({ devis: [action] }))].sort()).toEqual(['clients', 'prestations'])
+    }
+  })
+
+  it('lire ou supprimer des devis n\'exige rien', () => {
+    const permissions = makePermissions({ devis: ['read', 'delete'] })
+
+    expect(requiredReads(permissions).size).toBe(0)
+    expect(withRequiredReads(permissions)).toEqual(permissions)
+  })
+
+  it('ne retire ni ne duplique ce que le rôle a déjà', () => {
+    const permissions = makePermissions({ devis: ['update'], clients: ['read', 'update'], prestations: ['read'] })
+
+    expect(withRequiredReads(permissions)).toEqual(permissions)
+  })
+
+  it('garde les autres droits du module et ne touche pas aux chantiers', () => {
+    const next = withRequiredReads(makePermissions({ devis: ['create'], clients: ['update'], chantiers: ['update'] }))
+
+    expect(next.clients).toEqual(['read', 'update'])
+    expect(next.chantiers).toEqual(['update'])
+    expect(next.equipe).toEqual([])
+  })
+
+  it('ne change pas l\'objet reçu', () => {
+    const permissions = makePermissions({ devis: ['create'] })
+    withRequiredReads(permissions)
+
+    expect(permissions.clients).toEqual([])
+  })
+
+  it('sans droits connus, rien n\'est exigé', () => {
+    expect(requiredReads(null).size).toBe(0)
+    expect(requiredReads(undefined).size).toBe(0)
   })
 })

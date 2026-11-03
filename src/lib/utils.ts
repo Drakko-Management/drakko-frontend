@@ -6,9 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDate(date: string | null | undefined): string {
+export function formatDate(date: string | null | undefined, locale?: string): string {
   if (!date) return '—'
-  return new Date(date).toLocaleDateString(i18n.language || 'fr', {
+  return new Date(date).toLocaleDateString(locale ?? (i18n.language || 'fr'), {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

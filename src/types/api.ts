@@ -337,6 +337,54 @@ export interface Quote {
   subtotal: string
   vatAmount: string
   total: string
+  /** Le dernier lien envoyé au client, ou null si le devis n'a jamais été envoyé par Drakko */
+  acceptance: QuoteAcceptance | null
+}
+
+/** Où en est le lien de réponse en ligne d'un devis (ADR-031) */
+export type QuoteLinkState = 'OPEN' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'WITHDRAWN'
+
+export interface QuoteAcceptance {
+  state: QuoteLinkState
+  sentTo: string | null
+  sentAt: string | null
+  expiresAt: string
+  /** Quand le client a répondu */
+  respondedAt: string | null
+  /** Le nom que le client a tapé en acceptant */
+  signerName: string | null
+  comment: string | null
+  /** L'adresse du lien à copier : seulement sur la fiche, et seulement tant qu'il est ouvert */
+  url: string | null
+}
+
+/** Ce que la page publique d'un devis reçoit : rien de plus que ce que le client doit voir (ADR-031) */
+export interface PublicQuote {
+  state: QuoteLinkState
+  /** Langue de l'entreprise, celle de l'email et du PDF */
+  language: string
+  organization: { name: string; phone: string | null; email: string | null }
+  /** Absent d'un lien périmé ou repris par l'équipe */
+  quote: {
+    reference: string
+    title: string | null
+    comment: string | null
+    validUntil: string | null
+    vatRate: string
+    clientName: string
+    lines: {
+      title: string
+      description: string | null
+      unit: string | null
+      quantity: string
+      unitPrice: string
+      total: string
+    }[]
+    subtotal: string
+    vatAmount: string
+    total: string
+  } | null
+  answer: { respondedAt: string; signerName: string | null; comment: string | null } | null
 }
 
 export interface ReportLine {

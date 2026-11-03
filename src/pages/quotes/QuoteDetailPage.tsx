@@ -2,17 +2,19 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Check, Download, Loader2, Pencil, RotateCcw, Send, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Check, Copy, Download, Loader2, Mail, Pencil, RotateCcw, Send, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EditPageTitle } from '@/components/common/EditPageTitle'
-import { useDeleteQuote, useQuote, useQuoteAction, openQuotePdf, type QuoteAction } from '@/hooks/use-quotes'
+import { useDeleteQuote, useEmailQuote, useQuote, useQuoteAction, openQuotePdf, type QuoteAction } from '@/hooks/use-quotes'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { formatDate, fullName } from '@/lib/utils'
 import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
+import type { Quote } from '@/types/api'
 
 export function QuoteDetailPage() {
   const { id = '' } = useParams()
@@ -22,7 +24,9 @@ export function QuoteDetailPage() {
   const { data: quote, isLoading, isError } = useQuote(id)
   const action = useQuoteAction()
   const deleteQuote = useDeleteQuote()
+  const emailQuote = useEmailQuote()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmEmail, setConfirmEmail] = useState(false)
   const [pdfPending, setPdfPending] = useState(false)
 
   if (isLoading) return <Skeleton className="h-72 rounded-xl" />
@@ -50,6 +54,26 @@ export function QuoteDetailPage() {
     }
   }
 
+  async function handleEmail() {
+    try {
+      await emailQuote.mutateAsync(id)
+      toast.success(t('quotes.email_done', { email: quote?.client.email ?? '' }))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'quotes.email_error'))
+    } finally {
+      setConfirmEmail(false)
+    }
+  }
+
+  async function handleCopyLink(url: string) {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success(t('quotes.link_copied'))
+    } catch {
+      toast.error(t('quotes.link_copy_error'))
+    }
+  }
+
   async function handlePdf() {
     setPdfPending(true)
     try {
@@ -72,7 +96,7 @@ export function QuoteDetailPage() {
     }
   }
 
-  const busy = action.isPending
+  const busy = action.isPending || emailQuote.isPending
   const buttonClass = 'min-h-[44px]'
   const { status } = quote
 
@@ -155,6 +179,8 @@ export function QuoteDetailPage() {
         </section>
       )}
 
+      <AcceptanceInfo quote={quote} />
+
       {status === 'DRAFT' && canUpdate && <p className="text-xs text-muted-foreground">{t('quotes.hint_draft')}</p>}
       {status === 'SENT' && canUpdate && <p className="text-xs text-muted-foreground">{t('quotes.hint_sent')}</p>}
 
@@ -170,7 +196,11 @@ export function QuoteDetailPage() {
               <Pencil className="h-4 w-4" />
               {t('quotes.action_edit')}
             </Button>
-            <Button type="button" className={buttonClass} disabled={busy} onClick={() => void run('send')}>
+            <Button type="button" className={buttonClass} disabled={busy} onClick={() => setConfirmEmail(true)}>
+              <Mail className="h-4 w-4" />
+              {t('quotes.action_email')}
+            </Button>
+            <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => void run('send')}>
               <Send className="h-4 w-4" />
               {t('quotes.action_send')}
             </Button>
@@ -179,6 +209,16 @@ export function QuoteDetailPage() {
 
         {status === 'SENT' && canUpdate && (
           <>
+            <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setConfirmEmail(true)}>
+              <Mail className="h-4 w-4" />
+              {t('quotes.action_email_again')}
+            </Button>
+            {quote.acceptance?.url && (
+              <Button type="button" variant="outline" className={buttonClass} onClick={() => void handleCopyLink(quote.acceptance?.url ?? '')}>
+                <Copy className="h-4 w-4" />
+                {t('quotes.action_copy_link')}
+              </Button>
+            )}
             <Button type="button" className={buttonClass} disabled={busy} onClick={() => void run('accept')}>
               <Check className="h-4 w-4" />
               {t('quotes.action_accept')}
@@ -207,6 +247,19 @@ export function QuoteDetailPage() {
         )}
       </div>
 
+      <ConfirmDialog
+        open={confirmEmail}
+        onOpenChange={setConfirmEmail}
+        title={t(status === 'DRAFT' ? 'quotes.email_title' : 'quotes.email_again_title')}
+        description={t(status === 'DRAFT' ? 'quotes.email_description' : 'quotes.email_again_description', {
+          reference: quote.reference,
+          email: quote.client.email,
+        })}
+        confirmLabel={t('quotes.email_confirm')}
+        pending={emailQuote.isPending}
+        onConfirm={() => void handleEmail()}
+      />
+
       <ConfirmDestructiveDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
@@ -217,5 +270,36 @@ export function QuoteDetailPage() {
         onConfirm={() => void handleDelete()}
       />
     </div>
+  )
+}
+
+// Où en est la réponse en ligne du client : envoyé, accepté, refusé, lien périmé ou retiré (ADR-031)
+function AcceptanceInfo({ quote }: { quote: Quote }) {
+  const { t } = useTranslation()
+  const a = quote.acceptance
+  if (!a) return null
+  // Le dernier jour de validité, pas le minuit qui le suit (la date du lien)
+  const until = quote.validUntil ?? a.expiresAt
+  const email = a.sentTo ?? ''
+
+  let text: string | null = null
+  if (a.state === 'OPEN') text = t('quotes.acceptance_open', { email, date: formatDate(a.sentAt), until: formatDate(until) })
+  else if (a.state === 'ACCEPTED') text = t('quotes.acceptance_accepted', { name: a.signerName ?? '', date: formatDate(a.respondedAt) })
+  else if (a.state === 'REJECTED') text = t('quotes.acceptance_rejected', { date: formatDate(a.respondedAt) })
+  else if (a.state === 'EXPIRED') text = t('quotes.acceptance_expired', { email, date: formatDate(until) })
+  // Un devis décidé à la main a déjà sa ligne de date : seul un brouillon rouvert doit dire que le lien est mort
+  else if (quote.status === 'DRAFT') text = t('quotes.acceptance_withdrawn')
+  if (!text) return null
+
+  return (
+    <section className="space-y-1 rounded-xl border bg-card p-4" aria-label={t('quotes.acceptance_title')} data-testid="quote-acceptance">
+      <h2 className="text-sm font-semibold">{t('quotes.acceptance_title')}</h2>
+      <p className="text-sm text-muted-foreground">{text}</p>
+      {a.comment && (
+        <p className="text-sm italic text-muted-foreground">
+          {t('quotes.acceptance_comment')} « {a.comment} »
+        </p>
+      )}
+    </section>
   )
 }

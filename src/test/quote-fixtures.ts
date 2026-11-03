@@ -1,4 +1,4 @@
-import type { Quote, QuoteLine } from '@/types/api'
+import type { PublicQuote, Quote, QuoteAcceptance, QuoteLine } from '@/types/api'
 
 export function quoteLine(over: Partial<QuoteLine> = {}): QuoteLine {
   return {
@@ -36,6 +36,52 @@ export function quote(over: Partial<Quote> = {}): Quote {
     subtotal: '125.00',
     vatAmount: '12.50',
     total: '137.50',
+    acceptance: null,
+    ...over,
+  }
+}
+
+export function acceptance(over: Partial<QuoteAcceptance> = {}): QuoteAcceptance {
+  return {
+    state: 'OPEN',
+    sentTo: 'lea@martin.test',
+    sentAt: '2026-11-03T11:00:00.000Z',
+    expiresAt: '2026-12-03T11:00:00.000Z',
+    respondedAt: null,
+    signerName: null,
+    comment: null,
+    url: 'https://devapp.drakko.fr/quote/tok-123',
+    ...over,
+  }
+}
+
+export function publicQuote(over: Partial<PublicQuote> = {}): PublicQuote {
+  return {
+    state: 'OPEN',
+    language: 'fr',
+    organization: { name: 'Paysages Pierre', phone: '01 02 03 04 05', email: 'contact@paysages.test' },
+    quote: {
+      reference: 'DEV-2026-0001',
+      title: 'Haie du fond',
+      comment: null,
+      validUntil: null,
+      vatRate: '10',
+      clientName: 'Léa Martin',
+      lines: [
+        {
+          title: 'Taille de haie',
+          description: 'Haie vive',
+          unit: 'ml',
+          quantity: '10',
+          unitPrice: '12.5',
+          total: '125.00',
+        },
+      ],
+      subtotal: '125.00',
+      vatAmount: '12.50',
+      total: '137.50',
+    },
+    answer: null,
     ...over,
   }
 }

@@ -178,6 +178,63 @@ describe('RolesTab — matrice de permissions', () => {
   })
 })
 
+// ── Lectures exigées par Devis ─────────────────────────────────────────────
+
+describe('RolesTab — écrire un devis suppose de lire clients et prestations', () => {
+  const box = (row: number, action: number) => screen.getAllByRole('checkbox')[row * 4 + action] as HTMLInputElement
+  const CLIENTS = 1
+  const PRESTATIONS = 3
+  const DEVIS = 4
+  const READ = 0
+  const CREATE = 1
+
+  beforeEach(async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useRoles).mockReturnValue({ data: [ROLE], isLoading: false } as any)
+    render(<RolesTab isAdmin={true} />)
+    await userEvent.click(screen.getByText('Chef de chantier'))
+  })
+
+  it('cocher « Créer » sur Devis coche la lecture des clients et des prestations, et la verrouille', async () => {
+    expect(box(PRESTATIONS, READ).checked).toBe(false)
+    expect(screen.queryByText(/Établir un devis suppose de pouvoir lire/)).not.toBeInTheDocument()
+
+    await userEvent.click(box(DEVIS, CREATE))
+
+    expect(box(DEVIS, CREATE).checked).toBe(true)
+    expect(box(PRESTATIONS, READ).checked).toBe(true)
+    expect(box(PRESTATIONS, READ)).toBeDisabled()
+    expect(box(CLIENTS, READ).checked).toBe(true)
+    expect(box(CLIENTS, READ)).toBeDisabled()
+    expect(screen.getByText(/Établir un devis suppose de pouvoir lire/)).toBeInTheDocument()
+  })
+
+  it('retirer ce qui les demande libère les lectures, sans les décocher', async () => {
+    await userEvent.click(box(DEVIS, CREATE))
+    await userEvent.click(box(DEVIS, CREATE))
+
+    expect(box(PRESTATIONS, READ)).toBeEnabled()
+    expect(box(PRESTATIONS, READ).checked).toBe(true)
+    expect(screen.queryByText(/Établir un devis suppose de pouvoir lire/)).not.toBeInTheDocument()
+  })
+
+  it('« tout cocher » sur Devis fait de même, et « tout décocher » sur Clients ne retire pas la lecture exigée', async () => {
+    await userEvent.click(box(DEVIS, READ).closest('tr')!.querySelector('button')!)
+
+    expect(box(PRESTATIONS, READ).checked).toBe(true)
+
+    await userEvent.click(box(CLIENTS, READ).closest('tr')!.querySelector('button')!)
+    expect(box(CLIENTS, READ).checked).toBe(true)
+  })
+
+  it('lire seulement les devis n\'exige rien', async () => {
+    await userEvent.click(box(DEVIS, READ))
+
+    expect(box(PRESTATIONS, READ).checked).toBe(false)
+    expect(box(PRESTATIONS, READ)).toBeEnabled()
+  })
+})
+
 // ── Bouton supprimer ───────────────────────────────────────────────────────
 
 describe('RolesTab — suppression', () => {

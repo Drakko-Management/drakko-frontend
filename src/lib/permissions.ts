@@ -48,6 +48,36 @@ export function makePermissions(partial: Partial<Permissions>): Permissions {
 }
 
 /**
+ * Ce qu'écrire dans un module suppose de pouvoir lire ailleurs : établir un devis, c'est choisir un client et des
+ * prestations parmi ceux de l'entreprise. Les droits restent explicites côté API ; l'éditeur de rôles coche ces
+ * lectures avec le droit qui les suppose, sans quoi un rôle « Devis » ne pourrait rien choisir.
+ */
+const REQUIRED_READS: Partial<Record<PermModule, { when: readonly PermAction[]; needs: readonly PermModule[] }>> = {
+  devis: { when: ['create', 'update'], needs: ['clients', 'prestations'] },
+}
+
+/** Les modules dont la lecture est exigée par les droits déjà accordés. */
+export function requiredReads(permissions: Permissions | null | undefined): Set<PermModule> {
+  const needed = new Set<PermModule>()
+  for (const [module, rule] of Object.entries(REQUIRED_READS) as [PermModule, NonNullable<(typeof REQUIRED_READS)[PermModule]>][]) {
+    if (rule.when.some((action) => (permissions?.[module] ?? []).includes(action))) {
+      rule.needs.forEach((other) => needed.add(other))
+    }
+  }
+  return needed
+}
+
+/** Les mêmes droits, avec en plus les lectures qu'ils supposent. */
+export function withRequiredReads(permissions: Permissions): Permissions {
+  const next = { ...permissions }
+  for (const module of requiredReads(permissions)) {
+    const current = next[module] ?? []
+    if (!current.includes('read')) next[module] = ['read', ...current]
+  }
+  return next
+}
+
+/**
  * Vrai quand tout ce que `candidate` accorde, `allowed` l'accorde aussi, module par module.
  * Même règle que l'API : un membre n'accorde pas plus de droits que les siens.
  */

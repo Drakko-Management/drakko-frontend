@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { useRoles, useUpdateRole, useDeleteRole } from '@/hooks/use-roles'
 import { usePermissions } from '@/hooks/use-permissions'
-import { MODULES, ACTIONS } from '@/lib/permissions'
+import { MODULES, ACTIONS, requiredReads, withRequiredReads } from '@/lib/permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import type { Role, Permissions, PermModule, PermAction } from '@/types/api'
 
@@ -31,12 +31,15 @@ export function PermissionMatrix({
     const next = current.includes(action)
       ? current.filter((a) => a !== action)
       : [...current, action]
-    onChange({ ...permissions, [module]: next })
+    onChange(withRequiredReads({ ...permissions, [module]: next }))
   }
 
   function toggleRow(module: PermModule, allChecked: boolean) {
-    onChange({ ...permissions, [module]: allChecked ? [] : [...ACTIONS] })
+    onChange(withRequiredReads({ ...permissions, [module]: allChecked ? [] : [...ACTIONS] }))
   }
+
+  // Une lecture que d'autres droits supposent ne se décoche pas : il faut d'abord retirer ce qui la demande
+  const required = requiredReads(permissions)
 
   return (
     <div className="overflow-x-auto">
@@ -65,7 +68,7 @@ export function PermissionMatrix({
                       type="checkbox"
                       checked={allowed.includes(action)}
                       onChange={() => toggle(module, action)}
-                      disabled={disabled}
+                      disabled={disabled || (action === 'read' && required.has(module))}
                       className="h-4 w-4 accent-primary cursor-pointer disabled:cursor-not-allowed"
                     />
                   </td>
@@ -86,6 +89,7 @@ export function PermissionMatrix({
           })}
         </tbody>
       </table>
+      {required.size > 0 && <p className="mt-2 text-xs text-muted-foreground">{t('users.reads_required_hint')}</p>}
     </div>
   )
 }
