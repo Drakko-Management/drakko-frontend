@@ -19,7 +19,7 @@ async function openHelp(scope: 'projects' | 'clients' | 'team' = 'projects') {
 
 describe('TutorialHelpButton', () => {
   it('ne s\'affiche pas quand la page n\'a aucun tutoriel disponible', () => {
-    useAuthStore.setState({ role: 'MEMBER', permissions: { chantiers: [], clients: [], equipe: [], prestations: [] } })
+    useAuthStore.setState({ role: 'MEMBER', permissions: { chantiers: [], clients: [], equipe: [], prestations: [], devis: [] } })
     render(<TutorialHelpButton scope="projects" />)
 
     expect(screen.queryByRole('button', { name: HELP_BTN })).not.toBeInTheDocument()

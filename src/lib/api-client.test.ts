@@ -37,3 +37,29 @@ describe('apiRequest — double authentification exigée', () => {
     expect(useAuthStore.getState().twoFactorRequired).toBe(false)
   })
 })
+
+describe('apiRequest — module coupé (ADR-029)', () => {
+  it('un 403 MODULE_NOT_ACTIVE relit la liste des modules : les menus suivent sans attendre', async () => {
+    useAuthStore.setState({ accessToken: 'tok', modules: ['chantiers', 'devis'] })
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: 'MODULE_NOT_ACTIVE' }), { status: 403 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ modules: ['chantiers'] }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const error = await apiRequest('/quotes').catch((e: unknown) => e)
+
+    expect((error as ApiError).code).toBe('MODULE_NOT_ACTIVE')
+    await vi.waitFor(() => expect(useAuthStore.getState().modules).toEqual(['chantiers']))
+    expect(String(fetchMock.mock.calls[1][0])).toContain('/users/me')
+  })
+
+  it('un autre 403 ne touche pas aux modules', async () => {
+    useAuthStore.setState({ accessToken: 'tok', modules: ['devis'] })
+    respond(403, { code: 'ADMIN_REQUIRED' })
+
+    await apiRequest('/users').catch(() => undefined)
+
+    expect(useAuthStore.getState().modules).toEqual(['devis'])
+  })
+})

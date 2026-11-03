@@ -13,6 +13,7 @@ beforeEach(() => {
     role: null,
     userId: null,
     permissions: null,
+    modules: null,
   })
 })
 
@@ -143,5 +144,56 @@ describe('usePermissions — non authentifié', () => {
     useAuthStore.setState({ role: null, permissions: null })
     const { result } = renderHook(() => usePermissions())
     expect(result.current.isAdmin).toBe(false)
+  })
+})
+
+// ── Modules activables (ADR-029) ──────────────────────────────────────────
+
+describe('usePermissions — modules de l\'organisation', () => {
+  it('un module que l\'organisation n\'a pas est fermé même à un ADMIN', () => {
+    useAuthStore.setState({ role: 'ADMIN', permissions: null, modules: ['devis'] })
+    const { result } = renderHook(() => usePermissions())
+
+    expect(result.current.can('chantiers', 'read')).toBe(false)
+    expect(result.current.can('chantiers', 'create')).toBe(false)
+    expect(result.current.can('devis', 'read')).toBe(true)
+    expect(result.current.isModuleActive('chantiers')).toBe(false)
+  })
+
+  it('Clients, Prestations et Équipe restent ouverts, quels que soient les modules', () => {
+    useAuthStore.setState({ role: 'ADMIN', permissions: null, modules: ['devis'] })
+    const { result } = renderHook(() => usePermissions())
+
+    expect(result.current.can('clients', 'read')).toBe(true)
+    expect(result.current.can('prestations', 'update')).toBe(true)
+    expect(result.current.can('equipe', 'create')).toBe(true)
+  })
+
+  it('un MEMBER dont le rôle donne le droit est refusé quand le module est inactif (droits dormants)', () => {
+    useAuthStore.setState({
+      role: 'MEMBER',
+      permissions: makePermissions({ chantiers: ['read', 'update'], clients: ['read'] }),
+      modules: ['devis'],
+    })
+    const { result } = renderHook(() => usePermissions())
+
+    expect(result.current.can('chantiers', 'read')).toBe(false)
+    expect(result.current.can('clients', 'read')).toBe(true)
+  })
+
+  it('le droit revient quand le module est réactivé', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read'] }), modules: ['chantiers'] })
+    expect(renderHook(() => usePermissions()).result.current.can('devis', 'read')).toBe(false)
+
+    useAuthStore.setState({ modules: ['chantiers', 'devis'] })
+    expect(renderHook(() => usePermissions()).result.current.can('devis', 'read')).toBe(true)
+  })
+
+  it('liste des modules pas encore connue : rien n\'est masqué (l\'API reste seule juge)', () => {
+    useAuthStore.setState({ role: 'ADMIN', permissions: null, modules: null })
+    const { result } = renderHook(() => usePermissions())
+
+    expect(result.current.can('chantiers', 'read')).toBe(true)
+    expect(result.current.can('devis', 'read')).toBe(true)
   })
 })

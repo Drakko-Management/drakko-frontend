@@ -43,6 +43,17 @@ export interface OrganizationUser {
   createdAt: string
 }
 
+/** Les modules activables d'une organisation (ADR-029) : même liste que `ACTIVABLE_MODULES` de l'application. */
+export type OrganizationModuleKey = 'chantiers' | 'devis'
+export const ORGANIZATION_MODULE_KEYS: OrganizationModuleKey[] = ['chantiers', 'devis']
+
+export interface OrganizationModuleState {
+  key: OrganizationModuleKey
+  active: boolean
+  /** Les autres modules qu'il exige */
+  requires: OrganizationModuleKey[]
+}
+
 export type AuditAction =
   | 'ORGANIZATION_CREATED'
   | 'ORGANIZATION_SUSPENDED'
@@ -53,6 +64,8 @@ export type AuditAction =
   | 'PLATFORM_LOGIN'
   | 'PLATFORM_ADMIN_CREATED'
   | 'PLATFORM_ADMIN_RESET'
+  | 'ORGANIZATION_MODULE_ENABLED'
+  | 'ORGANIZATION_MODULE_DISABLED'
 
 export const AUDIT_ACTIONS: AuditAction[] = [
   'ORGANIZATION_CREATED',
@@ -64,6 +77,8 @@ export const AUDIT_ACTIONS: AuditAction[] = [
   'PLATFORM_LOGIN',
   'PLATFORM_ADMIN_CREATED',
   'PLATFORM_ADMIN_RESET',
+  'ORGANIZATION_MODULE_ENABLED',
+  'ORGANIZATION_MODULE_DISABLED',
 ]
 
 export interface AuditEntry {
@@ -82,6 +97,7 @@ export interface OrganizationDetail extends Omit<OrganizationSummary, 'owner' | 
   usersCount: number
   clientsCount: number
   projectsCount: number
+  modules: OrganizationModuleState[]
   users: OrganizationUser[]
   recentActions: AuditEntry[]
 }
@@ -105,6 +121,8 @@ export interface CreateOrganizationInput {
   slug?: string
   trade?: Trade
   language?: string
+  /** Les modules de départ, au moins un ; absents : le suivi de chantier */
+  modules?: OrganizationModuleKey[]
   owner: { firstName: string; lastName: string; email: string; username?: string }
   reason?: string
   fromWaitlist?: string

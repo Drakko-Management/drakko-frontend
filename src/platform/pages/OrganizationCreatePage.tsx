@@ -7,7 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { apiErrorMessage } from '@/lib/api-error'
 import { useCreateOrganization, useWaitlistEntry } from '../hooks'
-import { LANGUAGES, TRADES, type CreatedOrganization, type Trade } from '../types'
+import {
+  LANGUAGES,
+  ORGANIZATION_MODULE_KEYS,
+  TRADES,
+  type CreatedOrganization,
+  type OrganizationModuleKey,
+  type Trade,
+} from '../types'
 
 const selectClass =
   'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
@@ -22,6 +29,7 @@ interface FormState {
   email: string
   username: string
   reason: string
+  modules: OrganizationModuleKey[]
 }
 
 const EMPTY: FormState = {
@@ -34,6 +42,8 @@ const EMPTY: FormState = {
   email: '',
   username: '',
   reason: '',
+  // Le suivi de chantier, comme avant les modules à la carte (ADR-029)
+  modules: ['chantiers'],
 }
 
 // Création d'une organisation et de son propriétaire (ADR-028). Le propriétaire reçoit par email le lien pour
@@ -71,6 +81,7 @@ export function OrganizationCreatePage() {
         slug: trimmed(form.slug),
         trade: form.trade,
         language: form.language,
+        modules: form.modules,
         owner: {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
@@ -99,7 +110,14 @@ export function OrganizationCreatePage() {
     )
   }
 
-  const valid = form.name.trim() && form.firstName.trim() && form.lastName.trim() && form.email.trim()
+  const valid =
+    form.name.trim() && form.firstName.trim() && form.lastName.trim() && form.email.trim() && form.modules.length > 0
+
+  const toggleModule = (key: OrganizationModuleKey) =>
+    setForm((current) => ({
+      ...current,
+      modules: current.modules.includes(key) ? current.modules.filter((m) => m !== key) : [...current.modules, key],
+    }))
 
   return (
     <form onSubmit={submit} className="max-w-xl space-y-6">
@@ -139,6 +157,23 @@ export function OrganizationCreatePage() {
             </select>
           </div>
         </div>
+      </fieldset>
+
+      <fieldset className="space-y-2">
+        <legend className="mb-2 font-medium">{t('platform.create_modules')}</legend>
+        <p className="text-xs text-muted-foreground">{t('platform.create_modules_hint')}</p>
+        {ORGANIZATION_MODULE_KEYS.map((key) => (
+          <label key={key} className="flex min-h-[44px] items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="h-5 w-5 accent-primary"
+              checked={form.modules.includes(key)}
+              onChange={() => toggleModule(key)}
+            />
+            {t(`platform.module_${key}`)}
+          </label>
+        ))}
+        {form.modules.length === 0 && <p className="text-xs text-destructive">{t('platform.create_modules_required')}</p>}
       </fieldset>
 
       <fieldset className="space-y-4">

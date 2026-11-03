@@ -3,6 +3,8 @@ import {
   DEFAULT_NAV_SLOTS,
   NAV_SLOT_REGISTRY,
   ALL_SLOT_KEYS,
+  activeNavSlots,
+  defaultNavSlots,
   type NavSlotKey,
 } from './nav-slots'
 
@@ -27,12 +29,12 @@ describe('DEFAULT_NAV_SLOTS', () => {
 // ── ALL_SLOT_KEYS ──────────────────────────────────────────────────────────
 
 describe('ALL_SLOT_KEYS', () => {
-  it('contient 5 clés', () => {
-    expect(ALL_SLOT_KEYS).toHaveLength(5)
+  it('contient 6 clés', () => {
+    expect(ALL_SLOT_KEYS).toHaveLength(6)
   })
 
-  it('contient les 5 emplacements', () => {
-    const expected: NavSlotKey[] = ['chantiers', 'clients', 'utilisateurs', 'prestations', 'parametres']
+  it('contient les 6 emplacements', () => {
+    const expected: NavSlotKey[] = ['chantiers', 'devis', 'clients', 'utilisateurs', 'prestations', 'parametres']
     expected.forEach((k) => expect(ALL_SLOT_KEYS).toContain(k))
   })
 
@@ -45,7 +47,7 @@ describe('ALL_SLOT_KEYS', () => {
 // ── NAV_SLOT_REGISTRY ─────────────────────────────────────────────────────
 
 describe('NAV_SLOT_REGISTRY — structure', () => {
-  const KEYS: NavSlotKey[] = ['chantiers', 'clients', 'utilisateurs', 'prestations', 'parametres']
+  const KEYS: NavSlotKey[] = ['chantiers', 'devis', 'clients', 'utilisateurs', 'prestations', 'parametres']
 
   it.each(KEYS)('%s a les champs requis (to, icon, labelKey, nameKey)', (key) => {
     const entry = NAV_SLOT_REGISTRY[key]
@@ -105,5 +107,39 @@ describe('NAV_SLOT_REGISTRY — clés i18n', () => {
 
   it('prestations a nameKey = nav.services', () => {
     expect(NAV_SLOT_REGISTRY.prestations.nameKey).toBe('nav.services')
+  })
+})
+
+// ── Modules activables (ADR-029) ──────────────────────────────────────────
+
+describe('defaultNavSlots', () => {
+  it('Chantiers seul : la barre habituelle', () => {
+    expect(defaultNavSlots(['chantiers'])).toEqual(['chantiers', 'clients', 'prestations'])
+  })
+
+  it('Devis seul : pas de Chantiers dans la barre du bas', () => {
+    expect(defaultNavSlots(['devis'])).toEqual(['devis', 'clients', 'prestations'])
+  })
+
+  it('les deux : quatre emplacements au plus', () => {
+    expect(defaultNavSlots(['chantiers', 'devis'])).toEqual(['chantiers', 'devis', 'clients', 'prestations'])
+  })
+
+  it('modules inconnus (pas encore lus) : la barre habituelle', () => {
+    expect(defaultNavSlots(null)).toEqual(DEFAULT_NAV_SLOTS)
+  })
+})
+
+describe('activeNavSlots', () => {
+  it('ignore un emplacement dont le module est inactif, même choisi par l\'organisation', () => {
+    expect(activeNavSlots(['chantiers', 'clients', 'prestations'], ['devis'])).toEqual(['clients', 'prestations'])
+  })
+
+  it('garde les réglages et les référentiels, jamais liés à un module activable', () => {
+    expect(activeNavSlots(['parametres', 'clients', 'utilisateurs'], ['devis'])).toEqual(['parametres', 'clients', 'utilisateurs'])
+  })
+
+  it('modules inconnus : rien n\'est masqué', () => {
+    expect(activeNavSlots(['chantiers', 'devis'], null)).toEqual(['chantiers', 'devis'])
   })
 })

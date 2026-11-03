@@ -24,6 +24,24 @@ export async function apiErrorFromResponse(res: Response): Promise<ApiError> {
   return new ApiError(res.status, message ?? res.statusText, body.code)
 }
 
+let refreshingModules = false
+
+// Un 403 MODULE_NOT_ACTIVE (ADR-029) veut dire que la liste des modules lue à l'ouverture est dépassée : le
+// propriétaire du produit a coupé un module depuis. On la relit tout de suite plutôt que d'attendre la prochaine
+// synchronisation, pour que les menus suivent.
+async function refreshModules(): Promise<void> {
+  if (refreshingModules) return
+  refreshingModules = true
+  try {
+    const me = await apiRequest<{ modules?: string[] }>('/users/me')
+    useAuthStore.getState().setModules(me.modules)
+  } catch {
+    // la session se relira à la prochaine synchronisation
+  } finally {
+    refreshingModules = false
+  }
+}
+
 let isRefreshing = false
 let refreshQueue: Array<(token: string | null) => void> = []
 
@@ -78,9 +96,13 @@ async function fetchWithAuth(
   })
 }
 
+/** Un fichier (le PDF d'un devis) : même session et même renouvellement que les appels JSON. */
+export const apiBlob = (path: string): Promise<Blob> => apiRequest<Blob>(path, {}, 'blob')
+
 export async function apiRequest<T = unknown>(
   path: string,
   options: RequestInit = {},
+  as: 'json' | 'blob' = 'json',
 ): Promise<T> {
   const token = useAuthStore.getState().accessToken
   let res = await fetchWithAuth(path, options, token)
@@ -108,6 +130,7 @@ export async function apiRequest<T = unknown>(
     const error = await apiErrorFromResponse(res)
     // Le serveur exige la double authentification de ce compte : l'interface le renvoie vers sa configuration
     if (error.code === 'TWO_FACTOR_REQUIRED') useAuthStore.getState().setTwoFactorRequired(true)
+    if (error.code === 'MODULE_NOT_ACTIVE') void refreshModules()
     // Mode dépannage (ADR-028) : quel que soit l'écran qui a tenté d'écrire, on dit clairement que c'est la lecture
     // seule, pas une panne (l'écran, lui, affiche son message générique)
     if (error.code === 'SUPPORT_READ_ONLY') toast.error(i18n.t('platform.err_read_only'), { id: 'support-read-only' })
@@ -115,5 +138,5 @@ export async function apiRequest<T = unknown>(
   }
 
   if (res.status === 204) return undefined as T
-  return res.json() as Promise<T>
+  return (as === 'blob' ? res.blob() : res.json()) as Promise<T>
 }

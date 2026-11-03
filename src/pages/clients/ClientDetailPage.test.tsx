@@ -17,6 +17,7 @@ vi.mock('@/hooks/use-clients', () => ({
   useDeleteClient: vi.fn(),
 }))
 vi.mock('@/hooks/use-projects', () => ({ useProjects: vi.fn() }))
+vi.mock('@/hooks/use-quotes', () => ({ useQuotes: vi.fn().mockReturnValue({ data: [], isLoading: false }) }))
 
 const CLIENT: Client = {
   id: 'c1',

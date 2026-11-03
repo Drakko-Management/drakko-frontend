@@ -38,6 +38,15 @@ const API_ERROR_KEYS: Record<string, string> = {
   SIGNATURE_IMAGE_INVALID: 'sign.error_image_invalid',
   SIGNATURE_REQUEST_OUTDATED: 'sign.error_outdated',
   SIGNATURE_REQUEST_WRONG_TYPE: 'sign.error_wrong_type',
+  // Modules activables (ADR-029) et devis (ADR-030)
+  MODULE_NOT_ACTIVE: 'common.module_not_active',
+  QUOTE_LOCKED: 'quotes.err_locked',
+  QUOTE_INVALID_STATUS: 'quotes.err_invalid_status',
+  QUOTE_EMPTY: 'quotes.err_empty',
+  QUOTE_NOT_FOUND: 'quotes.not_found',
+  QUOTE_LINE_TITLE_REQUIRED: 'quotes.err_line_title',
+  QUOTE_LINE_PRICE_REQUIRED: 'quotes.err_line_price',
+  SERVICE_NOT_FOUND: 'quotes.err_service_not_found',
   // Plateforme (ADR-028)
   ORGANIZATION_SUSPENDED: 'login.error_suspended',
   SUPPORT_READ_ONLY: 'platform.err_read_only',
@@ -54,6 +63,11 @@ const API_ERROR_KEYS: Record<string, string> = {
   ORGANIZATION_NOT_FOUND: 'platform.err_organization_not_found',
   USER_NOT_FOUND: 'platform.err_user_not_found',
   WAITLIST_ENTRY_NOT_FOUND: 'platform.err_waitlist_not_found',
+  LAST_MODULE: 'platform.err_last_module',
+  MODULE_REQUIRED_BY_OTHERS: 'platform.err_module_required_by',
+  MODULE_ALREADY_ACTIVE: 'platform.err_module_already_active',
+  MODULE_ALREADY_INACTIVE: 'platform.err_module_already_inactive',
+  MODULE_UNKNOWN: 'platform.err_module_unknown',
 }
 
 /** Message traduit pour une erreur API : celui du code connu, sinon le message générique de repli. */

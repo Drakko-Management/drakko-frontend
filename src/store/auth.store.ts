@@ -32,6 +32,8 @@ interface AuthState {
   navSlots: string[]
   defaultFilters: DefaultFilters
   permissions: Permissions | null
+  /** Les modules activables de l'organisation (ADR-029) ; null tant qu'on ne les a pas lus */
+  modules: string[] | null
   customRoleName: string | null
   /** La double authentification est exigée de ce compte (administrateur) et n'est pas encore configurée */
   twoFactorRequired: boolean
@@ -43,6 +45,7 @@ interface AuthState {
   setName: (firstName: string, lastName: string) => void
   setPreferences: (language: string, theme: string, accentColor: string) => void
   setPermissions: (permissions: Permissions | null) => void
+  setModules: (modules: string[] | null | undefined) => void
   setNavSlots: (navSlots: string[]) => void
   setDefaultFilters: (stored: Partial<Record<keyof DefaultFilters, unknown>> | null | undefined) => void
   setCustomRoleName: (name: string | null) => void
@@ -78,6 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   navSlots: [],
   defaultFilters: FILTER_FALLBACKS,
   permissions: null,
+  modules: null,
   customRoleName: null,
   twoFactorRequired: false,
   support: null,
@@ -118,6 +122,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ permissions })
   },
 
+  setModules: (modules) => {
+    set({ modules: modules ?? null })
+  },
+
   setNavSlots: (navSlots) => {
     set({ navSlots })
   },
@@ -141,7 +149,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem(REFRESH_TOKEN_KEY)
     // Ne jamais montrer à l'utilisateur suivant les données du précédent
     queryClient.clear()
-    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, navSlots: [], defaultFilters: FILTER_FALLBACKS, customRoleName: null, twoFactorRequired: false, support: null })
+    set({ accessToken: null, username: '', firstName: '', lastName: '', role: null, userId: null, organizationId: null, permissions: null, modules: null, navSlots: [], defaultFilters: FILTER_FALLBACKS, customRoleName: null, twoFactorRequired: false, support: null })
   },
 }))
 

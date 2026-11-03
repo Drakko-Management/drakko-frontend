@@ -4,7 +4,9 @@ import en from '@/i18n/locales/en.json'
 import es from '@/i18n/locales/es.json'
 import itLocale from '@/i18n/locales/it.json'
 import de from '@/i18n/locales/de.json'
-import { TUTORIALS, groupByKind } from './definitions'
+import { isModuleActive } from '@/lib/permissions'
+import type { PermModule } from '@/types/api'
+import { TUTORIALS, groupByKind, isTutorialAvailable } from './definitions'
 
 type Texts = Record<string, unknown>
 const LOCALES = { fr, en, es, it: itLocale, de } as unknown as Record<string, { tutorials: Record<string, Texts> }>
@@ -84,5 +86,27 @@ describe('tutoriels — textes et liens', () => {
     for (const tuto of TUTORIALS.filter((other) => other.kind === 'create')) {
       expect(tuto.permission?.action, tuto.id).toBe('create')
     }
+  })
+})
+
+describe('modules activables (ADR-029)', () => {
+  // Même règle que usePermissions().can : un module activable que l'organisation n'a pas est fermé à tous
+  const canWith = (modules: string[]) => (module: PermModule) => isModuleActive(modules, module)
+
+  it('« Devis seul » : aucun tutoriel de chantier n\'est proposé, ceux des clients, prestations et équipe le restent', () => {
+    const ids = TUTORIALS.filter((tuto) => isTutorialAvailable(tuto, canWith(['devis']), true)).map((tuto) => tuto.id)
+
+    for (const tuto of TUTORIALS) {
+      if (tuto.permission?.module === 'chantiers') expect(ids).not.toContain(tuto.id)
+    }
+    expect(ids).toContain('create_client')
+    expect(ids).toContain('create_service')
+    expect(ids).toContain('create_member')
+  })
+
+  it('avec Chantiers, ses tutoriels reviennent', () => {
+    const ids = TUTORIALS.filter((tuto) => isTutorialAvailable(tuto, canWith(['chantiers']), true)).map((tuto) => tuto.id)
+
+    expect(ids).toContain('create_project')
   })
 })

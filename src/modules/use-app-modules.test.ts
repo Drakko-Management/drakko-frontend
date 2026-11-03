@@ -21,10 +21,13 @@ function keys() {
 }
 
 describe('useAppModules', () => {
-  beforeEach(() => setUser('ADMIN', null))
+  beforeEach(() => {
+    useAuthStore.setState({ modules: null })
+    setUser('ADMIN', null)
+  })
 
   it("un administrateur voit tous les modules, dans l'ordre des menus", () => {
-    expect(keys()).toEqual(['chantiers', 'clients', 'equipe', 'prestations'])
+    expect(keys()).toEqual(['chantiers', 'devis', 'clients', 'equipe', 'prestations'])
   })
 
   it('un membre ne voit que les modules qu’il peut lire', () => {
@@ -40,5 +43,16 @@ describe('useAppModules', () => {
   it('un membre sans permissions ne voit aucun module', () => {
     setUser('MEMBER', null)
     expect(keys()).toEqual([])
+  })
+
+  it('un module que l\'organisation n\'a pas disparaît des menus, même pour un administrateur (ADR-029)', () => {
+    useAuthStore.setState({ modules: ['devis'] })
+    expect(keys()).toEqual(['devis', 'clients', 'equipe', 'prestations'])
+  })
+
+  it('« Devis seul » : Chantiers n\'est nulle part, Devis, Clients et Prestations y sont', () => {
+    useAuthStore.setState({ modules: ['devis'] })
+    setUser('MEMBER', makePermissions({ chantiers: ['read'], devis: ['read'], clients: ['read'], prestations: ['read'] }))
+    expect(keys()).toEqual(['devis', 'clients', 'prestations'])
   })
 })

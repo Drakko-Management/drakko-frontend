@@ -28,6 +28,7 @@ const ROLE: Role = {
     clients: ['read'],
     equipe: [],
     prestations: [],
+    devis: [],
   },
   isDefault: false,
   _count: { users: 2 },

@@ -85,11 +85,15 @@ describe('traductions — clés utilisées dans le code', () => {
     navigation: Object.values(NAV_SLOT_REGISTRY).flatMap((slot) => [slot.labelKey, slot.nameKey]),
     'actions du tableau de bord': APP_MODULES.flatMap((m) => (m.createAction ? [m.createAction.labelKey] : [])),
     'choix de réception': ['accepted', 'accepted_with_reserves', 'refused'].map((c) => `sign.choice_${c}`),
-    'plateforme : actions du journal': ['ORGANIZATION_CREATED', 'ORGANIZATION_SUSPENDED', 'ORGANIZATION_REACTIVATED', 'OWNER_RESET_LINK_SENT', 'OWNER_TWO_FACTOR_RESET', 'SUPPORT_SESSION_STARTED', 'PLATFORM_LOGIN', 'PLATFORM_ADMIN_CREATED', 'PLATFORM_ADMIN_RESET'].map((a) => `platform.audit_${a}`),
+    'plateforme : actions du journal': ['ORGANIZATION_CREATED', 'ORGANIZATION_SUSPENDED', 'ORGANIZATION_REACTIVATED', 'OWNER_RESET_LINK_SENT', 'OWNER_TWO_FACTOR_RESET', 'SUPPORT_SESSION_STARTED', 'PLATFORM_LOGIN', 'PLATFORM_ADMIN_CREATED', 'PLATFORM_ADMIN_RESET', 'ORGANIZATION_MODULE_ENABLED', 'ORGANIZATION_MODULE_DISABLED'].map((a) => `platform.audit_${a}`),
     'plateforme : portes de création': ['PLATFORM', 'CLI', 'SELF_SERVICE'].map((s) => `platform.source_${s}`),
     'plateforme : métiers': ['LANDSCAPER', 'PLUMBER', 'ELECTRICIAN', 'PAINTER', 'MASON', 'ROOFER', 'OTHER'].map((s) => `platform.trade_${s}`),
     'plateforme : tailles d’équipe': ['SOLO', 'SMALL', 'MEDIUM', 'LARGE'].map((s) => `platform.team_size_${s}`),
     'plateforme : rôles et langues': ['role_ADMIN', 'role_MEMBER', 'language_fr', 'language_en', 'language_es', 'language_it', 'language_de'].map((s) => `platform.${s}`),
+    'devis : états, actions et confirmations': [
+      ...['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED'].map((s) => `quotes.status_${s}`),
+      ...['send', 'reopen', 'accept', 'reject'].map((a) => `quotes.done_${a}`),
+    ],
     'sections des tutoriels': ['create', 'tour'].flatMap((kind) => [`tutorials.group_${kind}`, `tutorials.group_${kind}_hint`]),
   }
 

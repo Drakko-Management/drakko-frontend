@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { MODULES } from '@/lib/permissions'
+import { ACTIVABLE_MODULES, MODULES } from '@/lib/permissions'
 import { routes } from '@/router/routes'
 import { APP_MODULES } from './registry'
 import { DASHBOARD_WIDGETS } from './dashboard-widgets'
@@ -80,5 +80,21 @@ describe('emplacements de navigation dérivés du registre', () => {
   it('les réglages restent un emplacement hors registre, ouvert à tous', () => {
     expect(NAV_SLOT_REGISTRY.parametres.to).toBe('/parametres')
     expect(SLOT_TO_PERM_MODULE.parametres).toBeNull()
+  })
+})
+
+describe('modules activables (ADR-029)', () => {
+  it('chaque module activable a une entrée au registre, donc un menu, une route et un emplacement', () => {
+    const keys = new Set<PermModule>(APP_MODULES.map((m) => m.key))
+    for (const key of ACTIVABLE_MODULES) expect(keys).toContain(key)
+  })
+
+  it('Devis a son bloc de tableau de bord : une organisation « Devis seul » ne voit pas « Rien à afficher »', () => {
+    expect(DASHBOARD_WIDGETS.devis).toBeDefined()
+  })
+
+  it('l\'adresse de Devis et ses sous-pages existent dans les routes', () => {
+    const paths = routePaths()
+    for (const path of ['/devis', '/devis/:id', '/devis/nouveau', '/devis/:id/modifier']) expect(paths).toContain(path)
   })
 })

@@ -14,6 +14,8 @@ import {
   SLOT_TO_PERM_MODULE,
   DEFAULT_NAV_SLOTS,
   ALL_SLOT_KEYS,
+  activeNavSlots,
+  defaultNavSlots,
   type NavSlotKey,
 } from '@/lib/nav-slots'
 import { SettingsSubHeader } from './SettingsSubHeader'
@@ -23,23 +25,29 @@ export function SettingsNavigationPage() {
   const role = useAuthStore((s) => s.role)
   const storeNavSlots = useAuthStore((s) => s.navSlots)
   const setNavSlots = useAuthStore((s) => s.setNavSlots)
-  const { can, isAdmin } = usePermissions()
+  const { can, isAdmin, isModuleActive } = usePermissions()
+  const modules = useAuthStore((s) => s.modules)
+  // Un module que l'organisation n'a pas n'a pas d'emplacement à choisir (ADR-029)
+  const selectableSlots = ALL_SLOT_KEYS.filter((key) => {
+    const module = SLOT_TO_PERM_MODULE[key]
+    return module === null || isModuleActive(module)
+  })
   const { data: org, isLoading: orgLoading } = useOrganization()
   const updateOrg = useUpdateOrganization()
   const updateMe = useUpdateMe()
 
   // ── Admin : nav org ──────────────────────────────────────────────
-  const [navSlotsOrg, setNavSlotsOrg] = useState<NavSlotKey[]>(DEFAULT_NAV_SLOTS)
+  const [navSlotsOrg, setNavSlotsOrg] = useState<NavSlotKey[]>(() => defaultNavSlots(modules))
 
   useEffect(() => {
-    if (org) setNavSlotsOrg((org.navSlots as NavSlotKey[]) ?? DEFAULT_NAV_SLOTS)
-  }, [org])
+    if (org) setNavSlotsOrg(activeNavSlots((org.navSlots as NavSlotKey[]) ?? defaultNavSlots(modules), modules))
+  }, [org, modules])
 
   function handleOrgSlotChange(index: number, value: NavSlotKey) {
     setNavSlotsOrg((prev) => prev.map((s, i) => (i === index ? value : s)))
   }
   function handleAddOrgSlot() {
-    const available = ALL_SLOT_KEYS.filter((k) => !navSlotsOrg.includes(k))
+    const available = selectableSlots.filter((k) => !navSlotsOrg.includes(k))
     if (available.length > 0 && navSlotsOrg.length < 4)
       setNavSlotsOrg((prev) => [...prev, available[0]])
   }
@@ -53,7 +61,7 @@ export function SettingsNavigationPage() {
   }
 
   // ── Member : nav perso ───────────────────────────────────────────
-  const accessibleSlots = ALL_SLOT_KEYS.filter((key) => {
+  const accessibleSlots = selectableSlots.filter((key) => {
     const module = SLOT_TO_PERM_MODULE[key]
     return module === null || can(module, 'read')
   })
@@ -134,7 +142,7 @@ export function SettingsNavigationPage() {
                         onChange={(e) => handleOrgSlotChange(i, e.target.value as NavSlotKey)}
                         className="h-11 w-full rounded-xl border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                       >
-                        {ALL_SLOT_KEYS.filter(
+                        {selectableSlots.filter(
                           (key) => key === slot || !navSlotsOrg.includes(key),
                         ).map((key) => (
                           <option key={key} value={key}>
@@ -155,7 +163,7 @@ export function SettingsNavigationPage() {
                   </div>
                 ))}
                 {navSlotsOrg.length < 4 &&
-                  ALL_SLOT_KEYS.filter((k) => !navSlotsOrg.includes(k)).length > 0 && (
+                  selectableSlots.filter((k) => !navSlotsOrg.includes(k)).length > 0 && (
                     <button
                       type="button"
                       onClick={handleAddOrgSlot}
@@ -192,7 +200,7 @@ export function SettingsNavigationPage() {
                 >
                   <div className="flex items-center justify-center">
                     {navSlotsOrg.length < 4 &&
-                      ALL_SLOT_KEYS.filter((k) => !navSlotsOrg.includes(k)).length > 0 && (
+                      selectableSlots.filter((k) => !navSlotsOrg.includes(k)).length > 0 && (
                         <button
                           type="button"
                           onClick={handleAddOrgSlot}
@@ -209,7 +217,7 @@ export function SettingsNavigationPage() {
                         onChange={(e) => handleOrgSlotChange(i, e.target.value as NavSlotKey)}
                         className="h-7 w-auto min-w-[120px] max-w-full mx-auto block rounded-md border bg-background px-1 text-[10px] outline-none focus:ring-1 focus:ring-ring"
                       >
-                        {ALL_SLOT_KEYS.filter(
+                        {selectableSlots.filter(
                           (key) => key === slot || !navSlotsOrg.includes(key),
                         ).map((key) => (
                           <option key={key} value={key}>

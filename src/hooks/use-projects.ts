@@ -18,7 +18,7 @@ interface ProjectsParams {
   sort?: ProjectSort
 }
 
-export function useProjects(params: ProjectsParams = {}) {
+export function useProjects(params: ProjectsParams = {}, enabled = true) {
   const { status, clientId, page = 1, limit = 20, sort } = params
   const qs = new URLSearchParams()
   if (status) qs.set('status', status)
@@ -30,6 +30,7 @@ export function useProjects(params: ProjectsParams = {}) {
   return useQuery({
     queryKey: ['projects', params],
     queryFn: () => apiRequest<Paginated<Project>>(`/projects?${qs.toString()}`),
+    enabled,
   })
 }
 

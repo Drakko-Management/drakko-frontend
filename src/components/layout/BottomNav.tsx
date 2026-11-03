@@ -8,7 +8,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 import {
   NAV_SLOT_REGISTRY,
   SLOT_TO_PERM_MODULE,
-  DEFAULT_NAV_SLOTS,
+  activeNavSlots,
+  defaultNavSlots,
   type NavSlotKey,
 } from "@/lib/nav-slots";
 
@@ -53,7 +54,10 @@ function NavItems({ items }: { items: NavItem[] }) {
 function AdminBottomNav({ className }: { className?: string }) {
   const { data: org } = useOrganization();
 
-  const slots = (org?.navSlots ?? DEFAULT_NAV_SLOTS) as NavSlotKey[];
+  const modules = useAuthStore((s) => s.modules);
+
+  // Un emplacement dont le module n'est pas actif est ignoré (ADR-029), même si l'organisation l'avait choisi
+  const slots = activeNavSlots((org?.navSlots ?? defaultNavSlots(modules)) as NavSlotKey[], modules);
   const middleItems: NavItem[] = slots
     .map((key) => NAV_SLOT_REGISTRY[key])
     .filter(Boolean)

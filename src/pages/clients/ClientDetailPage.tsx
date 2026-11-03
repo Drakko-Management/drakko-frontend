@@ -16,6 +16,9 @@ import { RecordActions } from '@/components/common/RecordActions'
 import { useClient, useUpdateClient, useSetClientActive, useDeleteClient } from '@/hooks/use-clients'
 import type { Client } from '@/types/api'
 import { useProjects } from '@/hooks/use-projects'
+import { useQuotes } from '@/hooks/use-quotes'
+import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
+import { formatMoney } from '@/modules/devis/format'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { fullName, formatDate, buildAddress, parseAddress } from '@/lib/utils'
@@ -88,7 +91,10 @@ function ClientView({ client }: { client: Client }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { can } = usePermissions()
-  const { data: projects } = useProjects({ clientId: client.id })
+  // Les chantiers et les devis d'un client ne se lisent que si l'organisation a le module et que l'utilisateur y a droit
+  // (ADR-029) : sans Chantiers (« Devis seul »), on ne lance même pas la requête
+  const { data: projects } = useProjects({ clientId: client.id }, can('chantiers', 'read'))
+  const { data: quotes } = useQuotes({ clientId: client.id }, can('devis', 'read'))
   const updateClient = useUpdateClient(client.id)
   const setActive = useSetClientActive()
   const deleteClient = useDeleteClient()
@@ -262,6 +268,27 @@ function ClientView({ client }: { client: Client }) {
             </div>
           )}
         </Card>
+      )}
+
+      {quotes && quotes.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold">{t('client_detail.quotes', { count: quotes.length })}</h2>
+          <div className="space-y-2">
+            {quotes.map((quote) => (
+              <button
+                key={quote.id}
+                onClick={() => void navigate(`/devis/${quote.id}`)}
+                className="flex min-h-[64px] w-full items-center gap-3 rounded-xl border bg-card p-4 text-left transition-colors active:bg-muted"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{quote.title || quote.reference}</p>
+                  <p className="text-xs text-muted-foreground">{quote.reference} · {formatMoney(quote.total)}</p>
+                </div>
+                <QuoteStatusBadge status={quote.status} />
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {projects?.data && projects.data.length > 0 && (

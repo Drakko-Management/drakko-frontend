@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { can, makePermissions, isWithinPermissions, EMPTY_PERMISSIONS, FULL_PERMISSIONS, MODULES, ACTIONS } from './permissions'
+import {
+  can,
+  makePermissions,
+  isWithinPermissions,
+  isModuleActive,
+  EMPTY_PERMISSIONS,
+  FULL_PERMISSIONS,
+  MODULES,
+  ACTIONS,
+  ACTIVABLE_MODULES,
+} from './permissions'
 import type { Permissions } from '@/types/api'
 
 // ── can() ─────────────────────────────────────────────────────────────────
@@ -36,6 +46,7 @@ describe('can — permissions partielles', () => {
     clients: ['read'],
     equipe: [],
     prestations: ['read', 'create', 'update', 'delete'],
+    devis: [],
   }
 
   it('retourne true pour une action autorisée', () => {
@@ -66,7 +77,7 @@ describe('can — permissions partielles', () => {
 
 describe('can — immutabilité', () => {
   it('ne modifie pas l\'objet permissions passé en entrée', () => {
-    const perms: Permissions = { chantiers: ['read'], clients: [], equipe: [], prestations: [] }
+    const perms: Permissions = { chantiers: ['read'], clients: [], equipe: [], prestations: [], devis: [] }
     const before = JSON.stringify(perms)
     can(perms, 'chantiers', 'read')
     expect(JSON.stringify(perms)).toBe(before)
@@ -87,6 +98,7 @@ describe('makePermissions', () => {
       clients: [],
       equipe: [],
       prestations: [],
+      devis: [],
     })
   })
 
@@ -114,8 +126,26 @@ describe('makePermissions', () => {
 // ── Constantes ────────────────────────────────────────────────────────────
 
 describe('MODULES et ACTIONS', () => {
-  it('MODULES contient les 4 modules attendus', () => {
-    expect(MODULES).toEqual(['chantiers', 'clients', 'equipe', 'prestations'])
+  it('MODULES contient les 5 modules attendus', () => {
+    expect(MODULES).toEqual(['chantiers', 'clients', 'equipe', 'prestations', 'devis'])
+  })
+
+  it('les modules activables sont des modules de permission, et Clients, Prestations et Équipe n\'en font pas partie (ADR-029)', () => {
+    for (const key of ACTIVABLE_MODULES) expect(MODULES).toContain(key)
+    expect(ACTIVABLE_MODULES).toEqual(['chantiers', 'devis'])
+  })
+
+  it('isModuleActive : un module activable doit figurer dans la liste, les autres sont toujours actifs', () => {
+    expect(isModuleActive(['devis'], 'chantiers')).toBe(false)
+    expect(isModuleActive(['devis'], 'devis')).toBe(true)
+    expect(isModuleActive(['devis'], 'clients')).toBe(true)
+    expect(isModuleActive(['devis'], 'equipe')).toBe(true)
+    expect(isModuleActive(['devis'], 'prestations')).toBe(true)
+  })
+
+  it('isModuleActive : liste inconnue (null ou absente), rien n\'est masqué', () => {
+    expect(isModuleActive(null, 'chantiers')).toBe(true)
+    expect(isModuleActive(undefined, 'devis')).toBe(true)
   })
 
   it('ACTIONS contient les 4 actions attendues', () => {

@@ -13,6 +13,7 @@ import {
   useUploadLogo,
   useDeleteLogo,
 } from '@/hooks/use-organization'
+import { usePermissions } from '@/hooks/use-permissions'
 import { SettingsSubHeader } from './SettingsSubHeader'
 
 type OrgFormState = {
@@ -88,6 +89,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export function SettingsEnterprisePage() {
   const { t } = useTranslation()
+  // Les numéros de chantier et de rapport n'ont de sens qu'avec le module Chantiers, celui des devis qu'avec Devis
+  // (ADR-029)
+  const { isModuleActive } = usePermissions()
+  const hasProjects = isModuleActive('chantiers')
+  const hasQuotes = isModuleActive('devis')
   const { data: org, isLoading: orgLoading } = useOrganization()
   const updateOrg = useUpdateOrganization()
   const uploadLogo = useUploadLogo()
@@ -404,6 +410,7 @@ export function SettingsEnterprisePage() {
                   <option value="de">{t('settings.lang_de')}</option>
                 </select>
               </Field>
+              {hasProjects && (
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">{t('settings.org_auto_reference_label')}</p>
@@ -414,19 +421,26 @@ export function SettingsEnterprisePage() {
                   onCheckedChange={(v: boolean) => setForm((p) => ({ ...p, autoProjectReference: v }))}
                 />
               </div>
+              )}
               <div className="grid grid-cols-4 gap-3">
+                {hasProjects && (
                 <Field label={t('settings.org_project_prefix')}>
                   <Input className={inputCls} value={form.projectPrefix} onChange={f('projectPrefix')} maxLength={10} disabled={!form.autoProjectReference} />
                 </Field>
+                )}
+                {hasQuotes && (
                 <Field label={t('settings.org_quote_prefix')}>
                   <Input className={inputCls} value={form.quotePrefix} onChange={f('quotePrefix')} maxLength={10} />
                 </Field>
+                )}
                 <Field label={t('settings.org_invoice_prefix')}>
                   <Input className={inputCls} value={form.invoicePrefix} onChange={f('invoicePrefix')} maxLength={10} />
                 </Field>
+                {hasProjects && (
                 <Field label={t('settings.org_report_prefix')}>
                   <Input className={inputCls} value={form.reportPrefix} onChange={f('reportPrefix')} maxLength={10} />
                 </Field>
+                )}
               </div>
               <Field label={t('settings.org_default_vat')}>
                 <select value={form.defaultVatRate} onChange={f('defaultVatRate')} className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">

@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import type { PermModule } from '@/types/api'
 import { ProjectsDashboardWidget } from './chantiers/ProjectsDashboardWidget'
+import { QuotesDashboardWidget } from './devis/QuotesDashboardWidget'
 
 /**
  * Blocs du tableau de bord, un par module au plus. Un module absent d'ici n'apporte rien au tableau
@@ -9,4 +10,5 @@ import { ProjectsDashboardWidget } from './chantiers/ProjectsDashboardWidget'
  */
 export const DASHBOARD_WIDGETS: Partial<Record<PermModule, ComponentType>> = {
   chantiers: ProjectsDashboardWidget,
+  devis: QuotesDashboardWidget,
 }

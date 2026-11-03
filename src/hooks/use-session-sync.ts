@@ -9,6 +9,7 @@ interface Me {
   firstName?: string
   lastName?: string
   navSlots?: string[]
+  modules?: string[]
   customRole?: { name: string; permissions: Permissions } | null
 }
 
@@ -27,6 +28,7 @@ export function useSessionSync() {
         const me = await apiRequest<Me>('/users/me')
         const s = useAuthStore.getState()
         s.setPermissions(me.customRole?.permissions ?? null)
+        s.setModules(me.modules)
         s.setCustomRoleName(me.customRole?.name ?? null)
         s.setNavSlots(me.navSlots ?? [])
         if (me.firstName !== undefined || me.lastName !== undefined) {

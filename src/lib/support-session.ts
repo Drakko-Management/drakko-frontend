@@ -18,6 +18,7 @@ interface Me {
   lastName?: string
   navSlots?: string[]
   defaultFilters?: Record<string, unknown>
+  modules?: string[]
   customRole?: { name: string; permissions: Permissions } | null
 }
 
@@ -38,6 +39,7 @@ export async function enterSupportSession(grant: SupportGrant): Promise<void> {
     if (res.ok) {
       const me = (await res.json()) as Me
       store.setPermissions(me.customRole?.permissions ?? null)
+      store.setModules(me.modules)
       store.setCustomRoleName(me.customRole?.name ?? null)
       store.setNavSlots(me.navSlots ?? [])
       store.setDefaultFilters(me.defaultFilters)

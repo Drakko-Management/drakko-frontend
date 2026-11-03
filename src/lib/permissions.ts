@@ -1,13 +1,29 @@
 import type { PermModule, PermAction, Permissions } from '@/types/api'
 
-export const MODULES = ['chantiers', 'clients', 'equipe', 'prestations'] as const
+export const MODULES = ['chantiers', 'clients', 'equipe', 'prestations', 'devis'] as const
 export const ACTIONS = ['read', 'create', 'update', 'delete'] as const
+
+/**
+ * Les modules qu'une organisation peut avoir ou non (ADR-029), sous-ensemble de MODULES. Clients, Prestations et
+ * Équipe sont toujours là. Même liste que `ACTIVABLE_MODULES` du back (`organization-modules.ts`) : un test de chaque
+ * côté signale un oubli.
+ */
+export const ACTIVABLE_MODULES: readonly PermModule[] = ['chantiers', 'devis']
+
+/**
+ * Vrai quand l'organisation a ce module. `modules` null : la liste n'est pas (encore) connue, on ne masque rien ;
+ * l'API reste seule juge (`403 MODULE_NOT_ACTIVE`).
+ */
+export function isModuleActive(modules: readonly string[] | null | undefined, module: PermModule): boolean {
+  return !ACTIVABLE_MODULES.includes(module) || !modules || modules.includes(module)
+}
 
 export const EMPTY_PERMISSIONS: Permissions = {
   chantiers: [],
   clients: [],
   equipe: [],
   prestations: [],
+  devis: [],
 }
 
 export const FULL_PERMISSIONS: Permissions = {
@@ -15,6 +31,7 @@ export const FULL_PERMISSIONS: Permissions = {
   clients: ['read', 'create', 'update', 'delete'],
   equipe: ['read', 'create', 'update', 'delete'],
   prestations: ['read', 'create', 'update', 'delete'],
+  devis: ['read', 'create', 'update', 'delete'],
 }
 
 export function can(

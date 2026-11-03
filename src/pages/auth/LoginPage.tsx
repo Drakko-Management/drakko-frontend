@@ -51,6 +51,7 @@ export function LoginPage() {
           firstName: string; lastName: string
           language: string; theme: string; accentColor: string; navSlots: string[]
           customRole?: { name: string; permissions: Record<string, string[]> } | null
+          modules?: string[]
           twoFactorRequired?: boolean
         }
         setName(me.firstName ?? '', me.lastName ?? '')
@@ -60,6 +61,7 @@ export function LoginPage() {
         localStorage.setItem('drakko-lang', me.language)
         void i18n.changeLanguage(me.language)
         setPermissions(me.customRole?.permissions as never ?? null)
+        useAuthStore.getState().setModules(me.modules)
         setCustomRoleName(me.customRole?.name ?? null)
         setNavSlots(me.navSlots ?? [])
         setTwoFactorRequired(Boolean(me.twoFactorRequired))

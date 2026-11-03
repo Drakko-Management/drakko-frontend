@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { OrganizationDetailPage } from './OrganizationDetailPage'
+import { ApiError } from '@/lib/api-client'
 import * as api from '../api'
 import * as support from '@/lib/support-session'
 
@@ -40,6 +41,10 @@ const org = (over: object = {}) => ({
   usersCount: 2,
   clientsCount: 5,
   projectsCount: 9,
+  modules: [
+    { key: 'chantiers', active: true, requires: [] },
+    { key: 'devis', active: false, requires: [] },
+  ],
   users: [user(), user({ id: 'u-member', username: 'paul', firstName: 'Paul', lastName: 'Durand', role: 'MEMBER', isOwner: false, twoFactorEnabled: false })],
   recentActions: [],
   ...over,
@@ -236,5 +241,79 @@ describe('OrganizationDetailPage — dépannage', () => {
     await waitFor(() =>
       expect(posted()).toEqual([['/platform/organizations/org-1/owner/reset-link', { reason: 'Mot de passe perdu', email: 'lea@nouvelle-adresse.test' }]]),
     )
+  })
+})
+
+describe('OrganizationDetailPage — modules (ADR-029)', () => {
+  const MODULES_BOTH = [
+    { key: 'chantiers', active: true, requires: [] },
+    { key: 'devis', active: true, requires: [] },
+  ]
+
+  it('liste chaque module avec son état, et propose d\'activer celui que l\'organisation n\'a pas', async () => {
+    setup()
+
+    const section = (await screen.findByRole('heading', { name: 'Modules' })).closest('section')!
+    expect(within(section).getByText('Suivi de chantier')).toBeInTheDocument()
+    expect(within(section).getByText('Devis')).toBeInTheDocument()
+    expect(within(section).getAllByText('Actif')).toHaveLength(1)
+    expect(within(section).getAllByText('Inactif')).toHaveLength(1)
+    expect(within(section).getByRole('button', { name: 'Activer' })).toBeEnabled()
+  })
+
+  it('activer demande un motif, puis envoie le module et le motif', async () => {
+    setup()
+    await userEvent.click(await screen.findByRole('button', { name: 'Activer' }))
+    const dialog = await screen.findByRole('alertdialog')
+    const confirm = within(dialog).getByRole('button', { name: 'Activer' })
+    expect(confirm).toBeDisabled()
+
+    await userEvent.type(within(dialog).getByLabelText('Motif'), 'Souscription par téléphone')
+    await userEvent.click(confirm)
+
+    await waitFor(() =>
+      expect(posted()).toEqual([['/platform/organizations/org-1/modules/devis/enable', { reason: 'Souscription par téléphone' }]]),
+    )
+    expect(await screen.findByRole('status')).toHaveTextContent('Module activé')
+  })
+
+  it('couper un module demande un motif et passe par la route de désactivation', async () => {
+    setup(org({ modules: MODULES_BOTH }))
+    const section = (await screen.findByRole('heading', { name: 'Modules' })).closest('section')!
+    await userEvent.click(within(section).getAllByRole('button', { name: 'Couper' })[1])
+    const dialog = await screen.findByRole('alertdialog')
+
+    await userEvent.type(within(dialog).getByLabelText('Motif'), 'Résiliation du devis')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Couper' }))
+
+    await waitFor(() =>
+      expect(posted()).toEqual([['/platform/organizations/org-1/modules/devis/disable', { reason: 'Résiliation du devis' }]]),
+    )
+    expect(await screen.findByRole('status')).toHaveTextContent('Module coupé')
+  })
+
+  it('le dernier module ne se coupe pas : le bouton est grisé et dit pourquoi', async () => {
+    setup()
+    const section = (await screen.findByRole('heading', { name: 'Modules' })).closest('section')!
+
+    const cut = within(section).getByRole('button', { name: 'Couper' })
+
+    expect(cut).toBeDisabled()
+    expect(cut.closest('span')).toHaveAttribute('title', expect.stringContaining('au moins un module'))
+  })
+
+  it('un refus de l\'API est dit dans la fenêtre, sans la fermer', async () => {
+    setup(org({ modules: MODULES_BOTH }))
+    request.mockImplementation((_path: string, options?: RequestInit) =>
+      options?.method === 'POST' ? Promise.reject(new ApiError(409, 'x', 'LAST_MODULE')) : Promise.resolve(org({ modules: MODULES_BOTH })),
+    )
+    const section = (await screen.findByRole('heading', { name: 'Modules' })).closest('section')!
+    await userEvent.click(within(section).getAllByRole('button', { name: 'Couper' })[0])
+    const dialog = await screen.findByRole('alertdialog')
+    await userEvent.type(within(dialog).getByLabelText('Motif'), 'Test de refus')
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Couper' }))
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Une organisation garde au moins un module.')
   })
 })

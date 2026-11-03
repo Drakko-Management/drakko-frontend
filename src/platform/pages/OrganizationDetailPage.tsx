@@ -10,7 +10,7 @@ import { useOrganization, useOrganizationAction } from '../hooks'
 import { ReasonDialog } from '../ReasonDialog'
 import { ActiveBadge } from './OrganizationsPage'
 import { AuditLine } from './AuditPage'
-import type { OrganizationUser } from '../types'
+import type { OrganizationModuleState, OrganizationUser } from '../types'
 
 type Dialog = 'suspend' | 'reactivate' | 'resetLink' | 'resetTwoFactor' | 'support' | null
 
@@ -41,6 +41,8 @@ export function OrganizationDetailPage() {
   const [viewAs, setViewAs] = useState<OrganizationUser | null>(null)
   const [email, setEmail] = useState('')
   const [notice, setNotice] = useState<string | null>(null)
+  // Le module que la fenêtre de motif va activer ou couper
+  const [moduleChange, setModuleChange] = useState<{ module: OrganizationModuleState; enable: boolean } | null>(null)
 
   if (isLoading) return <p className="text-sm text-muted-foreground">{t('common.searching')}</p>
   if (error || !org) {
@@ -133,6 +135,40 @@ export function OrganizationDetailPage() {
       </section>
 
       <section className="space-y-2">
+        <h2 className="font-medium">{t('platform.modules_title')}</h2>
+        <p className="text-xs text-muted-foreground">{t('platform.modules_hint')}</p>
+        <ul className="divide-y rounded-lg border bg-card">
+          {org.modules.map((module) => {
+            const isLast = module.active && org.modules.filter((m) => m.active).length === 1
+            return (
+              <li key={module.key} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+                <div className="min-w-0">
+                  <p className="font-medium">{t(`platform.module_${module.key}`)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t(module.active ? 'platform.module_active' : 'platform.module_inactive')}
+                    {module.requires.length > 0 &&
+                      ` · ${t('platform.module_requires', { modules: module.requires.map((key) => t(`platform.module_${key}`)).join(', ') })}`}
+                  </p>
+                </div>
+                <ActionButton
+                  size="sm"
+                  variant="outline"
+                  disabled={isLast}
+                  title={t(isLast ? 'platform.module_last_hint' : module.active ? 'platform.module_disable_hint' : 'platform.module_enable_hint')}
+                  onClick={() => {
+                    setNotice(null)
+                    setModuleChange({ module, enable: !module.active })
+                  }}
+                >
+                  {t(module.active ? 'platform.module_disable' : 'platform.module_enable')}
+                </ActionButton>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      <section className="space-y-2">
         <h2 className="font-medium">{t('platform.team_title')}</h2>
         <ul className="divide-y rounded-lg border bg-card">
           {org.users.map((user) => (
@@ -171,6 +207,32 @@ export function OrganizationDetailPage() {
         )}
       </section>
 
+      <ReasonDialog
+        open={moduleChange !== null}
+        onOpenChange={(next) => !next && setModuleChange(null)}
+        title={t(moduleChange?.enable ? 'platform.module_enable_title' : 'platform.module_disable_title', {
+          module: moduleChange ? t(`platform.module_${moduleChange.module.key}`) : '',
+          name: org.name,
+        })}
+        description={t(moduleChange?.enable ? 'platform.module_enable_description' : 'platform.module_disable_description')}
+        confirmLabel={t(moduleChange?.enable ? 'platform.module_enable' : 'platform.module_disable')}
+        destructive={moduleChange?.enable === false}
+        pending={actions.enableModule.isPending || actions.disableModule.isPending}
+        error={pendingError(moduleChange?.enable ? actions.enableModule : actions.disableModule)}
+        onConfirm={(reason) => {
+          if (!moduleChange) return
+          const mutation = moduleChange.enable ? actions.enableModule : actions.disableModule
+          mutation.mutate(
+            { module: moduleChange.module.key, reason },
+            {
+              onSuccess: () => {
+                setModuleChange(null)
+                setNotice(t(moduleChange.enable ? 'platform.module_enabled_done' : 'platform.module_disabled_done'))
+              },
+            },
+          )
+        }}
+      />
       <ReasonDialog
         open={dialog === 'suspend'}
         onOpenChange={(next) => !next && close()}

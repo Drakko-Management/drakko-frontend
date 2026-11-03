@@ -132,7 +132,7 @@ describe('UsersPage — rendu', () => {
   })
 
   it('MEMBER : n\'affiche pas l\'onglet Rôles', () => {
-    useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: { chantiers: [], clients: [], equipe: ['read'], prestations: [] } })
+    useAuthStore.setState({ accessToken: 'tok', username: 'member', role: 'MEMBER', userId: 'u1', permissions: { chantiers: [], clients: [], equipe: ['read'], prestations: [], devis: [] } })
     renderUsers()
     expect(screen.queryByRole('button', { name: 'Rôles' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Membres' })).not.toBeInTheDocument()

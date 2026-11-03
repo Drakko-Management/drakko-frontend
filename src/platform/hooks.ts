@@ -80,6 +80,16 @@ export function useOrganizationAction(id: string) {
       mutationFn: (input: { reason: string; email?: string }) => post<{ sent: true; emailMasked: string }>('owner/reset-link', input),
       onSuccess: refresh,
     }),
+    enableModule: useMutation({
+      mutationFn: (input: { module: string; reason: string }) =>
+        post(`modules/${input.module}/enable`, { reason: input.reason }),
+      onSuccess: refresh,
+    }),
+    disableModule: useMutation({
+      mutationFn: (input: { module: string; reason: string }) =>
+        post(`modules/${input.module}/disable`, { reason: input.reason }),
+      onSuccess: refresh,
+    }),
     resetTwoFactor: useMutation({ mutationFn: (reason: string) => post('owner/reset-two-factor', { reason }), onSuccess: refresh }),
     startSupport: useMutation({
       mutationFn: (input: { reason: string; viewAs?: string }) => post<SupportGrant>('support-session', input),

@@ -47,6 +47,7 @@ describe('OrganizationCreatePage', () => {
         name: 'Paysages Pierre',
         trade: 'LANDSCAPER',
         language: 'fr',
+        modules: ['chantiers'],
         owner: { firstName: 'Pierre', lastName: 'Martin', email: 'pierre@paysages.test' },
       }),
     })
@@ -118,4 +119,36 @@ describe('OrganizationCreatePage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Cette adresse est déjà prise')
     expect(screen.getByLabelText("Nom de l'entreprise")).toHaveValue('X Jardins')
   })
+
+  it('« Devis seul » : le suivi de chantier se décoche, et les modules choisis partent avec la création (ADR-029)', async () => {
+    request.mockResolvedValueOnce(CREATED)
+    renderAt('/plateforme/organisations/nouvelle')
+
+    await userEvent.type(screen.getByLabelText("Nom de l'entreprise"), 'Paysages Pierre')
+    await userEvent.type(screen.getByLabelText('Prénom'), 'Pierre')
+    await userEvent.type(screen.getByLabelText('Nom'), 'Martin')
+    await userEvent.type(screen.getByLabelText('Email'), 'pierre@paysages.test')
+    await userEvent.click(screen.getByLabelText('Devis'))
+    await userEvent.click(screen.getByLabelText('Suivi de chantier'))
+    await userEvent.click(screen.getByRole('button', { name: "Créer l'organisation" }))
+
+    await screen.findByText('Paysages Pierre est créée')
+    expect(JSON.parse((request.mock.calls[0][1] as { body: string }).body).modules).toEqual(['devis'])
+  })
+
+  it('le suivi de chantier est coché par défaut, et sans aucun module la création est impossible', async () => {
+    renderAt('/plateforme/organisations/nouvelle')
+    await userEvent.type(screen.getByLabelText("Nom de l'entreprise"), 'Paysages Pierre')
+    await userEvent.type(screen.getByLabelText('Prénom'), 'Pierre')
+    await userEvent.type(screen.getByLabelText('Nom'), 'Martin')
+    await userEvent.type(screen.getByLabelText('Email'), 'pierre@paysages.test')
+    expect(screen.getByLabelText('Suivi de chantier')).toBeChecked()
+    expect(screen.getByLabelText('Devis')).not.toBeChecked()
+
+    await userEvent.click(screen.getByLabelText('Suivi de chantier'))
+
+    expect(screen.getByText('Choisissez au moins un module.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: "Créer l'organisation" })).toBeDisabled()
+  })
 })
+

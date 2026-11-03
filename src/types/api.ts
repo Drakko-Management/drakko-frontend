@@ -1,6 +1,6 @@
 export type UserRole = 'ADMIN' | 'MEMBER'
 
-export type PermModule = 'chantiers' | 'clients' | 'equipe' | 'prestations'
+export type PermModule = 'chantiers' | 'clients' | 'equipe' | 'prestations' | 'devis'
 export type PermAction = 'read' | 'create' | 'update' | 'delete'
 export type Permissions = Record<PermModule, PermAction[]>
 
@@ -100,6 +100,8 @@ export interface User {
   isOwner: boolean
   /** Date d'activation de la double authentification, null si elle n'est pas configurée */
   totpEnabledAt?: string | null
+  /** Seulement dans GET /users/me : les modules activables que l'organisation a (ADR-029) */
+  modules?: string[]
   /** Seulement dans GET /users/me */
   twoFactorAvailable?: boolean
   twoFactorRequired?: boolean
@@ -287,12 +289,54 @@ export interface Service {
   title: string
   description: string | null
   unit: string | null
-  defaultPrice: number | null
+  /** Chaîne décimale (« 12.5 ») : l'API sérialise les Decimal en chaînes */
+  defaultPrice: string | null
   active: boolean
   order: number
   organizationId: string
   createdAt: string
   updatedAt: string
+}
+
+export type QuoteStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED'
+
+/** Une ligne de devis : instantané de la prestation (titre, description, unité), prix et quantité en chaînes décimales. */
+export interface QuoteLine {
+  id: string
+  quoteId: string
+  serviceId: string | null
+  snapshotTitle: string
+  snapshotDescription: string | null
+  snapshotUnit: string | null
+  quantity: string
+  unitPrice: string
+  order: number
+  /** Total hors taxe de la ligne, calculé par l'API */
+  total: string
+}
+
+export interface Quote {
+  id: string
+  organizationId: string
+  clientId: string
+  /** « DEV-2026-0001 » */
+  reference: string
+  status: QuoteStatus
+  title: string | null
+  comment: string | null
+  /** Taux de TVA en pourcentage, chaîne décimale */
+  vatRate: string
+  validUntil: string | null
+  sentAt: string | null
+  decidedAt: string | null
+  createdAt: string
+  updatedAt: string
+  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address'>
+  lines: QuoteLine[]
+  /** Calculés par l'API depuis les lignes : jamais stockés */
+  subtotal: string
+  vatAmount: string
+  total: string
 }
 
 export interface ReportLine {

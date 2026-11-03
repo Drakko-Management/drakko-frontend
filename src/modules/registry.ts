@@ -1,11 +1,11 @@
-import { HardHat, Users, UserCog, BookOpen } from 'lucide-react'
+import { HardHat, FileText, Users, UserCog, BookOpen } from 'lucide-react'
 import type { PermModule } from '@/types/api'
 
 /** Emplacement de la barre du bas : clé stockée sur l'organisation et sur l'utilisateur (`navSlots`). */
-export type ModuleSlot = 'chantiers' | 'clients' | 'utilisateurs' | 'prestations'
+export type ModuleSlot = 'chantiers' | 'devis' | 'clients' | 'utilisateurs' | 'prestations'
 
 export interface AppModuleDefinition {
-  /** Module de permission : l'entrée n'apparaît que si `can(key, 'read')` */
+  /** Module de permission : l'entrée n'apparaît que si `can(key, 'read')`, donc si l'organisation a le module (ADR-029) */
   key: PermModule
   slot: ModuleSlot
   to: string
@@ -32,6 +32,15 @@ export const APP_MODULES: readonly AppModuleDefinition[] = [
     labelKey: 'nav.projects',
     nameKey: 'nav.projects',
     createAction: { to: '/chantiers/nouveau', labelKey: 'dashboard.new_project' },
+  },
+  {
+    key: 'devis',
+    slot: 'devis',
+    to: '/devis',
+    icon: FileText,
+    labelKey: 'nav.quotes',
+    nameKey: 'nav.quotes',
+    createAction: { to: '/devis/nouveau', labelKey: 'dashboard.new_quote' },
   },
   {
     key: 'clients',

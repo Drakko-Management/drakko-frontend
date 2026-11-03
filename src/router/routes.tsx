@@ -31,6 +31,10 @@ import { SettingsFiltersPage } from '@/pages/settings/SettingsFiltersPage'
 import { SettingsNavigationPage } from '@/pages/settings/SettingsNavigationPage'
 import { SettingsEnterprisePage } from '@/pages/settings/SettingsEnterprisePage'
 import { SettingsTutorialsPage } from '@/pages/settings/SettingsTutorialsPage'
+import { QuotesPage } from '@/pages/quotes/QuotesPage'
+import { QuoteDetailPage } from '@/pages/quotes/QuoteDetailPage'
+import { CreateQuotePage } from '@/pages/quotes/CreateQuotePage'
+import { EditQuotePage } from '@/pages/quotes/EditQuotePage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
 import { EditServicePage } from '@/pages/services/EditServicePage'
 import { CreateServicePage } from '@/pages/services/CreateServicePage'
@@ -85,7 +89,11 @@ const routeTree: RouteObject[] = [
             errorElement: <RouteErrorPage />,
             children: [
               // Pages with sticky header (manage their own scroll)
-              { path: 'chantiers', element: <ProjectsPage /> },
+              // Chantiers est un module activable (ADR-029) : CanRoute renvoie à l'accueil quand l'organisation ne l'a pas
+              {
+                element: <CanRoute module="chantiers" action="read" />,
+                children: [{ path: 'chantiers', element: <ProjectsPage /> }],
+              },
               {
                 element: <CanRoute module="clients" action="read" />,
                 children: [
@@ -103,9 +111,14 @@ const routeTree: RouteObject[] = [
                 element: <ScrollLayout />,
                 children: [
                   { index: true, element: <DashboardPage /> },
-                  { path: 'chantiers/:id', element: <ProjectDetailPage /> },
-                  { path: 'chantiers/:id/photos', element: <PhotosPage /> },
-                  { path: 'chantiers/:id/rapport', element: <ReportPage /> },
+                  {
+                    element: <CanRoute module="chantiers" action="read" />,
+                    children: [
+                      { path: 'chantiers/:id', element: <ProjectDetailPage /> },
+                      { path: 'chantiers/:id/photos', element: <PhotosPage /> },
+                      { path: 'chantiers/:id/rapport', element: <ReportPage /> },
+                    ],
+                  },
                   { path: 'parametres', element: <SettingsPage /> },
                   { path: 'parametres/profil', element: <SettingsProfilPage /> },
                   { path: 'parametres/apparence', element: <SettingsAppearancePage /> },
@@ -125,6 +138,22 @@ const routeTree: RouteObject[] = [
                     children: [
                       { path: 'chantiers/:id/modifier', element: <EditProjectPage /> },
                     ],
+                  },
+                  // Devis (ADR-030) : un module activable, CanRoute le ferme aux organisations qui ne l'ont pas (ADR-029)
+                  {
+                    element: <CanRoute module="devis" action="read" />,
+                    children: [
+                      { path: 'devis', element: <QuotesPage /> },
+                      { path: 'devis/:id', element: <QuoteDetailPage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="devis" action="create" />,
+                    children: [{ path: 'devis/nouveau', element: <CreateQuotePage /> }],
+                  },
+                  {
+                    element: <CanRoute module="devis" action="update" />,
+                    children: [{ path: 'devis/:id/modifier', element: <EditQuotePage /> }],
                   },
                   {
                     element: <CanRoute module="clients" action="read" />,

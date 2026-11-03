@@ -43,6 +43,7 @@ export function SessionProvider() {
               language: string; theme: string; accentColor: string; handedness: string; navSlots: string[]
               defaultFilters?: Record<string, unknown>
               customRole?: { name: string; permissions: Record<string, string[]> } | null
+              modules?: string[]
               twoFactorRequired?: boolean
             }
             setUsername(me.username ?? '')
@@ -54,6 +55,7 @@ export function SessionProvider() {
             localStorage.setItem('drakko-lang', me.language)
             void i18n.changeLanguage(me.language)
             setPermissions(me.customRole?.permissions as never ?? null)
+            useAuthStore.getState().setModules(me.modules)
             setCustomRoleName(me.customRole?.name ?? null)
             setNavSlots(me.navSlots ?? [])
             setDefaultFilters(me.defaultFilters)

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { useRoles, useUpdateRole, useDeleteRole } from '@/hooks/use-roles'
+import { usePermissions } from '@/hooks/use-permissions'
 import { MODULES, ACTIONS } from '@/lib/permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import type { Role, Permissions, PermModule, PermAction } from '@/types/api'
@@ -22,6 +23,8 @@ export function PermissionMatrix({
   disabled?: boolean
 }) {
   const { t } = useTranslation()
+  // Un module que l'organisation n'a pas n'a pas de ligne (ADR-029) : ses droits restent dans le rôle, dormants
+  const { isModuleActive } = usePermissions()
 
   function toggle(module: PermModule, action: PermAction) {
     const current = permissions[module] ?? []
@@ -50,7 +53,7 @@ export function PermissionMatrix({
           </tr>
         </thead>
         <tbody>
-          {MODULES.map((module) => {
+          {MODULES.filter((module) => isModuleActive(module)).map((module) => {
             const allowed = permissions[module] ?? []
             const allChecked = ACTIONS.every((a) => allowed.includes(a))
             return (

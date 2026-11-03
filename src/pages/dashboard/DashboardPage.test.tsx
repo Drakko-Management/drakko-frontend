@@ -21,6 +21,11 @@ vi.mock('@/hooks/use-projects', () => ({
   useProjects: vi.fn(),
 }))
 
+// Le bloc Devis fait ses propres requêtes : ces tests portent sur le bloc Chantiers
+vi.mock('@/hooks/use-quotes', () => ({
+  useQuotes: vi.fn().mockReturnValue({ data: [], isLoading: false }),
+}))
+
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
 const PROJECT: Project = {
@@ -98,7 +103,8 @@ describe('DashboardPage — rendu', () => {
 
   it('"Voir tout" ouvre la liste des chantiers', async () => {
     renderDashboard()
-    await userEvent.click(screen.getByRole('button', { name: 'Voir tout' }))
+    // Le bloc Devis a le sien : celui des chantiers est le premier, dans l'ordre du registre
+    await userEvent.click(screen.getAllByRole('button', { name: 'Voir tout' })[0])
     expect(mockNavigate).toHaveBeenCalledWith('/chantiers')
   })
 })
