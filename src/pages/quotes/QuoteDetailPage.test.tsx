@@ -203,7 +203,7 @@ describe('QuoteDetailPage — facture tirée du devis (ADR-033)', () => {
   const accepted = quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T09:00:00.000Z' })
   const invoiced = quote({
     status: 'ACCEPTED',
-    invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED' },
+    invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED', total: '137.50' },
   })
   const createLabel = 'Créer la facture'
 
@@ -231,7 +231,7 @@ describe('QuoteDetailPage — facture tirée du devis (ADR-033)', () => {
   })
 
   it('une facture encore brouillon n\'a pas de numéro : le lien dit « Brouillon »', () => {
-    show(quote({ status: 'ACCEPTED', invoice: { id: 'i1', reference: null, status: 'DRAFT' } }))
+    show(quote({ status: 'ACCEPTED', invoice: { id: 'i1', reference: null, status: 'DRAFT', total: '137.50' } }))
 
     expect(screen.getByTestId('quote-invoice')).toHaveTextContent('Facture : Brouillon')
   })
@@ -241,7 +241,7 @@ describe('QuoteDetailPage — facture tirée du devis (ADR-033)', () => {
       quote({
         status: 'ACCEPTED',
         project: { id: 'p1', reference: 'CH-2026-001', title: 'Terrasse bois', status: 'IN_PROGRESS' },
-        invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED' },
+        invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED', total: '137.50' },
       }),
     )
 
@@ -502,3 +502,118 @@ describe('QuoteDetailPage — actions', () => {
     expect(remove).not.toHaveBeenCalled()
   })
 })
+
+describe('QuoteDetailPage — acompte (ADR-033)', () => {
+  const accepted = quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T09:00:00.000Z' })
+  const withDeposits = quote({
+    status: 'ACCEPTED',
+    deposits: [
+      { id: 'd1', reference: 'FAC-2026-0001', status: 'PAID', total: '82.80' },
+      { id: 'd2', reference: null, status: 'DRAFT', total: '60.00' },
+    ],
+  })
+
+  it('accepté, sans facture : « Facture d\'acompte » ouvre le dialogue, 30 % proposé', async () => {
+    show(accepted)
+
+    await userEvent.click(button('Facture d\'acompte')!)
+
+    expect(screen.getByLabelText('Pourcentage (%)')).toHaveValue('30')
+    expect(makeInvoice).not.toHaveBeenCalled()
+  })
+
+  it('crée le brouillon d\'acompte depuis le devis et l\'ouvre', async () => {
+    show(accepted)
+    await userEvent.click(button('Facture d\'acompte')!)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer l\'acompte' }))
+
+    expect(makeInvoice).toHaveBeenCalledWith({ quoteId: 'q1', deposit: { percent: 30 } })
+    expect(toast.success).toHaveBeenCalledWith('Brouillon d\'acompte créé')
+    expect(mockNavigate).toHaveBeenCalledWith('/factures/i1')
+  })
+
+  it('un refus de l\'API (acomptes trop élevés) est dit avec sa traduction, sans quitter la page', async () => {
+    makeInvoice.mockRejectedValue(new ApiError(409, 'x', 'INVOICE_DEPOSIT_TOO_HIGH'))
+    show(accepted)
+    await userEvent.click(button('Facture d\'acompte')!)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer l\'acompte' }))
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'Les acomptes ne peuvent pas couvrir tout le devis : il doit rester un solde à facturer.',
+    )
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
+  it('liste les acomptes avec leur montant et leur état, un brouillon se lit « Brouillon »', () => {
+    show(withDeposits)
+
+    const items = screen.getAllByTestId('quote-deposit')
+    expect(items).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'FAC-2026-0001' })).toHaveAttribute('href', '/factures/d1')
+    expect(plain(items[0].textContent)).toContain('82,80 €')
+    expect(items[0]).toHaveTextContent('Payée')
+    expect(screen.getByRole('link', { name: 'Brouillon' })).toHaveAttribute('href', '/factures/d2')
+  })
+
+  it('avec des acomptes, la facture se crée comme « facture de solde »', async () => {
+    show(withDeposits)
+
+    await userEvent.click(button('Créer la facture de solde')!)
+
+    expect(makeInvoice).toHaveBeenCalledWith({ quoteId: 'q1' })
+    expect(button('Créer la facture')).not.toBeInTheDocument()
+  })
+
+  it('on peut encore demander un acompte quand il y en a déjà', () => {
+    show(withDeposits)
+
+    expect(button('Facture d\'acompte')).toBeInTheDocument()
+  })
+
+  it('une fois la facture de solde créée, plus d\'acompte ni de second solde', () => {
+    show(
+      quote({
+        status: 'ACCEPTED',
+        deposits: withDeposits.deposits,
+        invoice: { id: 'i9', reference: null, status: 'DRAFT', total: '193.20' },
+      }),
+    )
+
+    expect(button('Facture d\'acompte')).not.toBeInTheDocument()
+    expect(button('Créer la facture de solde')).not.toBeInTheDocument()
+    expect(screen.getByTestId('quote-invoice')).toBeInTheDocument()
+  })
+
+  it.each(['DRAFT', 'SENT', 'REJECTED'] as const)('un devis %s ne propose pas d\'acompte', (status) => {
+    show(quote({ status }))
+
+    expect(button('Facture d\'acompte')).not.toBeInTheDocument()
+  })
+
+  it('sans le droit de créer des factures : ni acompte ni facture, et les acomptes restent lisibles', () => {
+    useAuthStore.setState({
+      role: 'MEMBER',
+      permissions: makePermissions({ devis: ['read'], factures: ['read'] }),
+      modules: ['devis', 'factures'],
+    })
+    show(withDeposits)
+
+    expect(button('Facture d\'acompte')).not.toBeInTheDocument()
+    expect(button('Créer la facture de solde')).not.toBeInTheDocument()
+    expect(screen.getAllByTestId('quote-deposit')).toHaveLength(2)
+  })
+
+  it('sans le droit de lire les factures, les acomptes ne sont pas listés', () => {
+    useAuthStore.setState({
+      role: 'MEMBER',
+      permissions: makePermissions({ devis: ['read'] }),
+      modules: ['devis', 'factures'],
+    })
+    show(withDeposits)
+
+    expect(screen.queryByTestId('quote-deposits')).not.toBeInTheDocument()
+  })
+})
+

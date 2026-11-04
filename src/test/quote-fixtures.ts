@@ -40,6 +40,7 @@ export function quote(over: Partial<Quote> = {}): Quote {
     acceptance: null,
     project: null,
     invoice: null,
+    deposits: [],
     ...over,
   }
 }

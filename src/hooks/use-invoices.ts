@@ -15,12 +15,14 @@ export interface InvoiceFilters {
 }
 
 /**
- * Le corps d'une création (ADR-033) : à partir de rien (`clientId`) ou d'un devis accepté (`quoteId` seul : le client, les
- * lignes et le taux viennent du devis).
+ * Le corps d'une création (ADR-033) : à partir de rien (`clientId`), d'un devis accepté (`quoteId` seul : le client, les
+ * lignes et le taux viennent du devis, moins les acomptes déjà facturés) ou de l'acompte d'un devis (`quoteId` et `deposit`).
  */
 export interface InvoiceInput {
   clientId?: string
   quoteId?: string
+  /** Avec `quoteId` : l'acompte du devis, en pourcentage ou en somme hors taxe (l'un des deux) */
+  deposit?: { percent: number } | { amount: number }
   title?: string | null
   comment?: string | null
   vatRate?: number

@@ -1,5 +1,6 @@
 import type { InvoiceInput } from '@/hooks/use-invoices'
 import type { Invoice } from '@/types/api'
+import { centsOf } from '@/modules/devis/totals'
 import { decimal, formLinesFrom, toLineInputs, type QuoteFormValues } from '@/pages/quotes/quote-form'
 
 // Le formulaire d'une facture est celui d'un devis (`QuoteFormValues`) ; la date y est l'échéance.
@@ -11,7 +12,8 @@ export function formFromInvoice(invoice: Invoice): QuoteFormValues {
     date: invoice.dueDate ? invoice.dueDate.slice(0, 10) : '',
     vatRate: String(parseFloat(invoice.vatRate)),
     comment: invoice.comment ?? '',
-    lines: formLinesFrom(invoice.lines),
+    // Les lignes qui déduisent un acompte ne s'éditent pas : l'API les garde, le formulaire les montre à part
+    lines: formLinesFrom(invoice.lines.filter((line) => !line.depositInvoiceId)),
   }
 }
 
@@ -26,4 +28,11 @@ export function toInvoiceInput(values: QuoteFormValues): InvoiceInput {
     dueDate: values.date || null,
     lines: toLineInputs(values.lines),
   }
+}
+
+/** Les acomptes déduits d'une facture de solde : leur numéro et leur montant hors taxe (négatif), pour les totaux du formulaire. */
+export function deductionsOf(invoice: Invoice): { reference: string; cents: bigint }[] {
+  return invoice.lines
+    .filter((line) => line.depositInvoiceId)
+    .map((line) => ({ reference: line.snapshotTitle, cents: -centsOf(line.total) }))
 }

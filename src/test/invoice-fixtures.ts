@@ -11,6 +11,7 @@ export function invoiceLine(over: Partial<InvoiceLine> = {}): InvoiceLine {
     quantity: '10',
     unitPrice: '12.5',
     order: 0,
+    depositInvoiceId: null,
     total: '125.00',
     ...over,
   }
@@ -35,6 +36,8 @@ export function invoice(over: Partial<Invoice> = {}): Invoice {
     paymentMethod: null,
     quoteId: null,
     creditedInvoiceId: null,
+    deposit: false,
+    deductedBy: null,
     emailedAt: null,
     emailedTo: null,
     createdAt: '2026-11-04T10:00:00.000Z',

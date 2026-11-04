@@ -11,7 +11,7 @@ import { apiErrorMessage } from '@/lib/api-error'
 import { paymentDays } from '@/modules/factures/payment-terms'
 import { QuoteFormFields } from '@/pages/quotes/QuoteFormFields'
 import { EMPTY_QUOTE_FORM, type QuoteFormValues } from '@/pages/quotes/quote-form'
-import { formFromInvoice, toInvoiceInput } from './invoice-form'
+import { deductionsOf, formFromInvoice, toInvoiceInput } from './invoice-form'
 
 const FALLBACK_VAT_RATE = 10
 
@@ -91,6 +91,7 @@ export function EditInvoicePage() {
         kind="invoice"
         vatExempt={invoice.vatExempt}
         dueDays={paymentDays(org?.defaultPaymentTerms)}
+        deductions={deductionsOf(invoice)}
         values={values}
         onChange={setValues}
         onSubmit={() => void handleSubmit()}

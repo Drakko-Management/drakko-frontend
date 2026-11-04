@@ -50,3 +50,39 @@ export function computeDraftTotals(lines: DraftLineAmounts[], vatRate: string): 
 export function centsToNumber(cents: bigint): number {
   return Number(cents) / 100
 }
+
+/** Un montant renvoyé par l'API (« 1234.50 », « -69.00 » : toujours deux décimales) → centimes, signe compris. */
+export function centsOf(amount: string): bigint {
+  return BigInt(amount.replace('.', ''))
+}
+
+/** Le pourcentage d'un montant en centimes, arrondi au centime (demi vers le haut) ; null si ce n'est pas un nombre à deux décimales. */
+export function percentOfCents(cents: bigint, percent: string): bigint | null {
+  const hundredths = toCents(percent) // 12,5 % → 1250 centièmes de pour cent
+  if (hundredths === null) return null
+  return divRound(cents * hundredths, 10000n)
+}
+
+/** La TVA d'un montant hors taxe en centimes, comme le fait l'API (demi vers le haut, une seule fois sur le total). */
+export function vatOfCents(cents: bigint, vatRate: string): bigint {
+  const rate = toCents(vatRate) ?? 0n
+  return cents < 0n ? -divRound(-cents * rate, 10000n) : divRound(cents * rate, 10000n)
+}
+
+export interface BalanceTotals extends DraftTotals {
+  /** Le total hors taxe des lignes, avant de déduire les acomptes */
+  worksSubtotal: bigint
+}
+
+/**
+ * Les totaux d'une facture de solde en cours de saisie (ADR-033) : les lignes de la personne, moins les acomptes déjà
+ * facturés (hors taxe, en centimes), puis la TVA une seule fois sur ce qui reste. Peut être négatif : l'API refuse
+ * d'émettre un solde négatif.
+ */
+export function computeBalanceTotals(lines: DraftLineAmounts[], vatRate: string, deductions: bigint): BalanceTotals {
+  const base = computeDraftTotals(lines, vatRate)
+  const subtotal = base.subtotal - deductions
+  const vatAmount = vatOfCents(subtotal, vatRate)
+  return { ...base, worksSubtotal: base.subtotal, subtotal, vatAmount, total: subtotal + vatAmount }
+}
+

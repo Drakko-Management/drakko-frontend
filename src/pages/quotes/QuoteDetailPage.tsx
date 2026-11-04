@@ -2,19 +2,22 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, Receipt, RotateCcw, Send, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Banknote, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, Receipt, RotateCcw, Send, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EditPageTitle } from '@/components/common/EditPageTitle'
-import { useCreateInvoice } from '@/hooks/use-invoices'
+import { useCreateInvoice, type InvoiceInput } from '@/hooks/use-invoices'
 import { useDeleteQuote, useEmailQuote, useQuote, useQuoteAction, openQuotePdf, type QuoteAction } from '@/hooks/use-quotes'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { formatDate, fullName } from '@/lib/utils'
 import { formatMoney, formatQuantity } from '@/modules/devis/format'
+import { centsOf } from '@/modules/devis/totals'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
+import { DepositDialog } from '@/modules/factures/DepositDialog'
+import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 import type { Quote } from '@/types/api'
 
 export function QuoteDetailPage() {
@@ -29,6 +32,7 @@ export function QuoteDetailPage() {
   const createInvoice = useCreateInvoice()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState(false)
+  const [depositOpen, setDepositOpen] = useState(false)
   const [pdfPending, setPdfPending] = useState(false)
 
   if (isLoading) return <Skeleton className="h-72 rounded-xl" />
@@ -98,6 +102,19 @@ export function QuoteDetailPage() {
     }
   }
 
+  // Un acompte naît comme la facture : en brouillon, qui s'ouvre pour être relu et émis
+  async function handleCreateDeposit(deposit: NonNullable<InvoiceInput['deposit']>) {
+    try {
+      const invoice = await createInvoice.mutateAsync({ quoteId: id, deposit })
+      toast.success(t('quotes.deposit_created'))
+      void navigate(`/factures/${invoice.id}`)
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'quotes.deposit_error'))
+    } finally {
+      setDepositOpen(false)
+    }
+  }
+
   async function handleDelete() {
     try {
       await deleteQuote.mutateAsync(id)
@@ -155,6 +172,22 @@ export function QuoteDetailPage() {
               {quote.invoice.reference ?? t('invoices.draft_name')}
             </Link>
           </p>
+        )}
+        {quote.deposits.length > 0 && can('factures', 'read') && (
+          <div className="text-sm" data-testid="quote-deposits">
+            <span className="text-muted-foreground">{t('quotes.deposits_label')} :</span>
+            <ul className="mt-1 space-y-1">
+              {quote.deposits.map((deposit) => (
+                <li key={deposit.id} className="flex flex-wrap items-center gap-2" data-testid="quote-deposit">
+                  <Link to={`/factures/${deposit.id}`} className="text-primary">
+                    {deposit.reference ?? t('invoices.draft_name')}
+                  </Link>
+                  <span>{formatMoney(deposit.total)}</span>
+                  <InvoiceStatusBadge invoice={{ kind: 'INVOICE', status: deposit.status, overdue: false }} />
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
         <p className="text-xs text-muted-foreground">{t('quotes.created_on', { date: formatDate(quote.createdAt) })}</p>
         {quote.sentAt && <p className="text-xs text-muted-foreground">{t('quotes.sent_on', { date: formatDate(quote.sentAt) })}</p>}
@@ -279,10 +312,16 @@ export function QuoteDetailPage() {
         )}
 
         {status === 'ACCEPTED' && !quote.invoice && can('factures', 'create') && (
-          <Button type="button" className={buttonClass} disabled={createInvoice.isPending} onClick={() => void handleCreateInvoice()}>
-            {createInvoice.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Receipt className="h-4 w-4" />}
-            {t('quotes.action_create_invoice')}
-          </Button>
+          <>
+            <Button type="button" className={buttonClass} disabled={createInvoice.isPending} onClick={() => void handleCreateInvoice()}>
+              {createInvoice.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Receipt className="h-4 w-4" />}
+              {t(quote.deposits.length > 0 ? 'quotes.action_create_balance_invoice' : 'quotes.action_create_invoice')}
+            </Button>
+            <Button type="button" variant="outline" className={buttonClass} disabled={createInvoice.isPending} onClick={() => setDepositOpen(true)}>
+              <Banknote className="h-4 w-4" />
+              {t('quotes.action_create_deposit')}
+            </Button>
+          </>
         )}
 
         {status === 'DRAFT' && canDelete && (
@@ -309,6 +348,17 @@ export function QuoteDetailPage() {
         confirmLabel={t('quotes.email_confirm')}
         pending={emailQuote.isPending}
         onConfirm={() => void handleEmail()}
+      />
+
+      <DepositDialog
+        open={depositOpen}
+        onOpenChange={setDepositOpen}
+        quoteReference={quote.reference}
+        quoteSubtotal={centsOf(quote.subtotal)}
+        vatRate={quote.vatRate}
+        vatExempt={quote.vatExempt}
+        pending={createInvoice.isPending}
+        onConfirm={(deposit) => void handleCreateDeposit(deposit)}
       />
 
       <ConfirmDestructiveDialog

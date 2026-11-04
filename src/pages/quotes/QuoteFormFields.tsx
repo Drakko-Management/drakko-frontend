@@ -9,7 +9,7 @@ import { ClientCreateDialog } from '@/components/clients/ClientCreateDialog'
 import { ClientSearch } from '@/components/clients/ClientSearch'
 import { useServices } from '@/hooks/use-services'
 import { cn, DATE_INPUT_MAX, DATE_INPUT_MIN } from '@/lib/utils'
-import { centsToNumber, computeDraftTotals, toCents } from '@/modules/devis/totals'
+import { centsToNumber, computeBalanceTotals, toCents } from '@/modules/devis/totals'
 import { formatMoney } from '@/modules/devis/format'
 import type { Client } from '@/types/api'
 import { FREE_LINE, decimal, isLineValid, lineFromService, newKey, type FormLine, type QuoteFormValues } from './quote-form'
@@ -21,6 +21,8 @@ interface Props {
   vatExempt?: boolean
   /** Facture : le délai de paiement de l'organisation, dit sous le champ d'échéance laissé vide */
   dueDays?: number
+  /** Facture de solde : les acomptes déjà facturés (montants hors taxe en centimes, positifs), retranchés des totaux */
+  deductions?: { reference: string; cents: bigint }[]
   values: QuoteFormValues
   onChange: (values: QuoteFormValues) => void
   onSubmit: () => void
@@ -34,6 +36,7 @@ export function QuoteFormFields({
   kind = 'quote',
   vatExempt = false,
   dueDays,
+  deductions = [],
   values,
   onChange,
   onSubmit,
@@ -52,7 +55,8 @@ export function QuoteFormFields({
     set('lines', values.lines.map((line) => (line.key === key ? { ...line, ...patch } : line)))
 
   const rate = vatExempt ? '0' : values.vatRate.trim() === '' ? String(defaultVatRate) : values.vatRate
-  const totals = computeDraftTotals(values.lines, rate)
+  const deducted = deductions.reduce((sum, item) => sum + item.cents, 0n)
+  const totals = computeBalanceTotals(values.lines, rate, deducted)
   const invalidLines = values.lines.filter((line) => !isLineValid(line))
   const rateInvalid = !vatExempt && values.vatRate.trim() !== '' && (toCents(values.vatRate) === null || decimal(values.vatRate) > 100)
   const clientMissing = attempted && !values.client
@@ -260,6 +264,20 @@ export function QuoteFormFields({
       </div>
 
       <dl className="space-y-1 rounded-xl border bg-card p-4 text-sm" aria-label={t('quotes.form_totals')}>
+        {deductions.length > 0 && (
+          <>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">{t('invoices.works_total')}</dt>
+              <dd data-testid="quote-works-total">{formatMoney(centsToNumber(totals.worksSubtotal))}</dd>
+            </div>
+            {deductions.map((item) => (
+              <div key={item.reference} className="flex justify-between" data-testid="quote-deduction">
+                <dt className="text-muted-foreground">{t('invoices.deposit_deducted', { reference: item.reference })}</dt>
+                <dd>{formatMoney(centsToNumber(-item.cents))}</dd>
+              </div>
+            ))}
+          </>
+        )}
         <div className="flex justify-between">
           <dt className="text-muted-foreground">{t('quotes.subtotal')}</dt>
           <dd data-testid="quote-subtotal">{formatMoney(centsToNumber(totals.subtotal))}</dd>
@@ -271,10 +289,16 @@ export function QuoteFormFields({
           </div>
         )}
         <div className="flex justify-between border-t pt-1 text-base font-bold">
-          <dt>{t('quotes.total')}</dt>
+          <dt>{t(deductions.length > 0 ? 'invoices.balance_due' : 'quotes.total')}</dt>
           <dd data-testid="quote-total">{formatMoney(centsToNumber(totals.total))}</dd>
         </div>
       </dl>
+      {deductions.length > 0 && <p className="text-xs text-muted-foreground">{t('invoices.form_deductions_note')}</p>}
+      {totals.subtotal < 0n && (
+        <p className="text-sm text-destructive" role="alert" data-testid="quote-balance-negative">
+          {t('invoices.form_balance_negative')}
+        </p>
+      )}
 
       <Button type="submit" className="min-h-[48px] w-full" disabled={isPending}>
         {isPending && <Loader2 className="h-4 w-4 animate-spin" />}

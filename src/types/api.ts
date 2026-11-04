@@ -349,8 +349,19 @@ export interface Quote {
   acceptance: QuoteAcceptance | null
   /** Le chantier créé depuis ce devis, s'il existe (ADR-032) : un devis ne donne qu'un chantier */
   project: { id: string; reference: string; title: string; status: ProjectStatus } | null
-  /** La facture tirée de ce devis, hors celles qu'un avoir a annulées (ADR-033) ; la référence manque tant qu'elle est un brouillon */
-  invoice: { id: string; reference: string | null; status: InvoiceStatus } | null
+  /** La facture de solde tirée de ce devis, hors celles qu'un avoir a annulées (ADR-033) ; la référence manque tant qu'elle est un brouillon */
+  invoice: QuoteInvoice | null
+  /** Ses factures d'acompte non annulées, de la plus ancienne à la plus récente */
+  deposits: QuoteInvoice[]
+}
+
+/** Ce que la fiche d'un devis montre d'une de ses factures */
+export interface QuoteInvoice {
+  id: string
+  reference: string | null
+  status: InvoiceStatus
+  /** Total TTC, calculé par l'API */
+  total: string
 }
 
 /** Brouillon, émise (numérotée, figée), payée, annulée par un avoir (ADR-033) */
@@ -370,6 +381,8 @@ export interface InvoiceLine {
   quantity: string
   unitPrice: string
   order: number
+  /** Sur une facture de solde : la facture d'acompte que cette ligne déduit (quantité -1). Ces lignes ne se modifient pas. */
+  depositInvoiceId: string | null
   /** Total hors taxe de la ligne, calculé par l'API */
   total: string
 }
@@ -395,6 +408,10 @@ export interface Invoice {
   paymentMethod: PaymentMethod | null
   quoteId: string | null
   creditedInvoiceId: string | null
+  /** Facture d'acompte : une ligne, tirée d'un devis accepté ; ne se modifie pas, la facture de solde la déduit */
+  deposit: boolean
+  /** Pour un acompte : la facture de solde (non annulée) qui le déduit, s'il y en a une */
+  deductedBy: { id: string; reference: string | null } | null
   /** Le dernier envoi par email au client (adresse et heure) ; null tant qu'elle n'est jamais partie */
   emailedAt: string | null
   emailedTo: string | null

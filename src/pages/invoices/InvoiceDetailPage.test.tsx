@@ -19,7 +19,7 @@ import { makePermissions } from '@/lib/permissions'
 import { ApiError } from '@/lib/api-client'
 import { todayInput } from '@/modules/factures/format'
 import { InvoiceDetailPage } from './InvoiceDetailPage'
-import { creditNote, invoice, issuedInvoice } from '@/test/invoice-fixtures'
+import { creditNote, invoice, invoiceLine, issuedInvoice } from '@/test/invoice-fixtures'
 import { plain } from '@/test/quote-fixtures'
 import type { Invoice } from '@/types/api'
 
@@ -580,3 +580,123 @@ describe('InvoiceDetailPage — supprimer un brouillon', () => {
     expect(toast.error).toHaveBeenCalledWith('Une facture émise ne se modifie plus')
   })
 })
+
+describe('InvoiceDetailPage — acompte et facture de solde (ADR-033)', () => {
+  const depositLine = invoiceLine({ snapshotTitle: 'Acompte de 30 % sur le devis DEV-2026-0001', quantity: '1', unitPrice: '69', total: '69.00' })
+  const deposit = (over: Partial<Invoice> = {}) =>
+    invoice({
+      deposit: true,
+      quoteId: 'q1',
+      quote: { id: 'q1', reference: 'DEV-2026-0001' },
+      lines: [depositLine],
+      subtotal: '69.00',
+      vatAmount: '13.80',
+      total: '82.80',
+      vatRate: '20',
+      ...over,
+    })
+  const deduction = invoiceLine({
+    id: 'il9',
+    snapshotTitle: 'FAC-2026-0001',
+    quantity: '-1',
+    unitPrice: '69',
+    total: '-69.00',
+    depositInvoiceId: 'd1',
+    order: 5,
+  })
+  // 230,00 de travaux, 69,00 d'acompte : 161,00 HT, TVA 20 % 32,20, 193,20 à payer
+  const balance = (over: Partial<Invoice> = {}) =>
+    invoice({
+      vatRate: '20',
+      lines: [invoiceLine({ quantity: '10', unitPrice: '23', total: '230.00' }), deduction],
+      subtotal: '161.00',
+      vatAmount: '32.20',
+      total: '193.20',
+      ...over,
+    })
+
+  it('un acompte se présente comme tel : titre, pastille, ligne unique', () => {
+    show(deposit())
+
+    expect(screen.getByText(/Facture d'acompte/)).toBeInTheDocument()
+    expect(screen.getByTestId('deposit-chip')).toHaveTextContent('Acompte')
+    expect(screen.getAllByTestId('invoice-line')).toHaveLength(1)
+    expect(plain(screen.getByTestId('invoice-total').textContent)).toBe('82,80 €')
+  })
+
+  it('un brouillon d\'acompte ne se modifie pas : pas de « Modifier », la raison est dite, il s\'émet et se supprime', () => {
+    show(deposit())
+
+    expect(button('Modifier')).not.toBeInTheDocument()
+    expect(screen.getByText(/Un acompte ne se modifie pas/)).toBeInTheDocument()
+    expect(button('Émettre la facture')).toBeInTheDocument()
+    expect(button('Supprimer le brouillon')).toBeInTheDocument()
+  })
+
+  it('un acompte émis se paie, s\'envoie et s\'annule comme une facture', () => {
+    show(issuedInvoice({ deposit: true }))
+
+    expect(button('Marquer payée')).toBeInTheDocument()
+    expect(button('Envoyer par email')).toBeInTheDocument()
+    expect(button('Annuler par un avoir')).toBeInTheDocument()
+  })
+
+  it('un acompte déduit d\'une facture de solde ne s\'annule pas : le lien vers le solde et la raison remplacent le bouton', () => {
+    show(issuedInvoice({ deposit: true, deductedBy: { id: 'i2', reference: 'FAC-2026-0002' } }))
+
+    expect(button('Annuler par un avoir')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'FAC-2026-0002' })).toHaveAttribute('href', '/factures/i2')
+    expect(screen.getByTestId('invoice-hint-issued')).toHaveTextContent('Cet acompte est déduit d\'une facture de solde')
+    // les autres gestes restent
+    expect(button('Marquer payée')).toBeInTheDocument()
+  })
+
+  it('un acompte déduit d\'un brouillon de solde garde son lien vers ce brouillon', () => {
+    show(issuedInvoice({ deposit: true, deductedBy: { id: 'i2', reference: null } }))
+
+    expect(screen.getByTestId('invoice-deducted-by')).toHaveTextContent('Déduit de la facture : Brouillon')
+  })
+
+  it('la facture de solde liste les travaux, puis le total de la prestation, chaque acompte et le reste à payer', () => {
+    show(balance())
+
+    // les lignes ne sont que les travaux
+    expect(screen.getAllByTestId('invoice-line')).toHaveLength(1)
+    expect(plain(screen.getByTestId('invoice-works-total').textContent)).toBe('230,00 €')
+    const rows = screen.getAllByTestId('invoice-deduction')
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toHaveTextContent('Acompte FAC-2026-0001')
+    expect(plain(rows[0].textContent)).toContain('-69,00 €')
+    expect(within(rows[0]).getByRole('link', { name: /FAC-2026-0001/ })).toHaveAttribute('href', '/factures/d1')
+    expect(screen.getByText('Reste à payer')).toBeInTheDocument()
+    expect(plain(screen.getByTestId('invoice-total').textContent)).toBe('193,20 €')
+  })
+
+  it('sans acompte, les totaux gardent leur forme', () => {
+    show(invoice())
+
+    expect(screen.queryByTestId('invoice-works-total')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('invoice-deduction')).not.toBeInTheDocument()
+    expect(screen.queryByText('Reste à payer')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Total TTC').length).toBeGreaterThan(0)
+  })
+
+  it('un brouillon de solde se modifie, comme une facture', () => {
+    show(balance())
+
+    expect(button('Modifier')).toBeInTheDocument()
+  })
+
+  it('un refus d\'émettre un solde négatif est dit avec sa traduction', async () => {
+    issue.mockRejectedValue(new ApiError(409, 'x', 'INVOICE_TOTAL_NEGATIVE'))
+    show(balance())
+    await userEvent.click(button('Émettre la facture')!)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Émettre' }))
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'Les acomptes déduits dépassent le montant de la facture : ajustez les lignes avant de l\'émettre.',
+    )
+  })
+})
+

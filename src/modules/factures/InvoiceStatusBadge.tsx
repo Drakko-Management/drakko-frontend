@@ -20,24 +20,28 @@ function badgeKey(invoice: Pick<Invoice, 'kind' | 'status' | 'overdue'>): BadgeK
   return invoice.status
 }
 
+const CHIP = 'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium'
+
+/** L'état d'une facture ; une facture d'acompte porte en plus la pastille « Acompte ». */
 export function InvoiceStatusBadge({
   invoice,
   className,
 }: {
-  invoice: Pick<Invoice, 'kind' | 'status' | 'overdue'>
+  invoice: Pick<Invoice, 'kind' | 'status' | 'overdue'> & { deposit?: boolean }
   className?: string
 }) {
   const { t } = useTranslation()
   const key = badgeKey(invoice)
+  const status = (
+    <span className={cn(CHIP, CLASSES[key], invoice.deposit ? undefined : className)}>{t(`invoices.badge_${key}`)}</span>
+  )
+  if (!invoice.deposit) return status
   return (
-    <span
-      className={cn(
-        'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium',
-        CLASSES[key],
-        className,
-      )}
-    >
-      {t(`invoices.badge_${key}`)}
+    <span className={cn('inline-flex items-center gap-1.5', className)}>
+      <span className={cn(CHIP, 'bg-violet-50 text-violet-700 border border-violet-200')} data-testid="deposit-chip">
+        {t('invoices.badge_deposit')}
+      </span>
+      {status}
     </span>
   )
 }

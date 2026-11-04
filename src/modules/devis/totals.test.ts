@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { centsToNumber, computeDraftTotals, lineCents, toCents, toMilli } from './totals'
+import {
+  centsOf,
+  centsToNumber,
+  computeBalanceTotals,
+  computeDraftTotals,
+  lineCents,
+  percentOfCents,
+  toCents,
+  toMilli,
+  vatOfCents,
+} from './totals'
 
 describe('toMilli / toCents', () => {
   it('lit une virgule ou un point', () => {
@@ -81,3 +91,68 @@ describe('computeDraftTotals', () => {
     expect(centsToNumber(5n)).toBe(0.05)
   })
 })
+
+describe('centsOf', () => {
+  it('lit un montant de l’API, signe compris', () => {
+    expect(centsOf('1234.50')).toBe(123450n)
+    expect(centsOf('-69.00')).toBe(-6900n)
+    expect(centsOf('0.00')).toBe(0n)
+  })
+})
+
+describe('percentOfCents', () => {
+  it('prend un pourcentage d’un montant, arrondi au centime demi vers le haut', () => {
+    expect(percentOfCents(23000n, '30')).toBe(6900n)
+    // 45,03 × 12,5 % = 5,62875 → 5,63
+    expect(percentOfCents(4503n, '12,5')).toBe(563n)
+    // 10,00 × 0,01 % = 0,001 → 0,00
+    expect(percentOfCents(1000n, '0,01')).toBe(0n)
+  })
+
+  it('refuse ce qui n’est pas un pourcentage à deux décimales', () => {
+    expect(percentOfCents(23000n, '12,345')).toBeNull()
+    expect(percentOfCents(23000n, '-5')).toBeNull()
+    expect(percentOfCents(23000n, '')).toBeNull()
+  })
+})
+
+describe('vatOfCents', () => {
+  it('applique la TVA comme l’API, y compris sur un montant négatif (symétrique)', () => {
+    expect(vatOfCents(16100n, '20')).toBe(3220n)
+    expect(vatOfCents(-16100n, '20')).toBe(-3220n)
+    // 0,125 € → 0,13 ; l'arrondi demi vers le haut est le même de part et d'autre de zéro
+    expect(vatOfCents(125n, '10')).toBe(13n)
+    expect(vatOfCents(-125n, '10')).toBe(-13n)
+    expect(vatOfCents(1000n, '0')).toBe(0n)
+  })
+})
+
+describe('computeBalanceTotals', () => {
+  it('retranche les acomptes hors taxe, puis applique la TVA une fois sur le reste', () => {
+    // 10 × 23,00 = 230,00 de travaux ; 69,00 d'acompte ; 161,00 + 20 % = 193,20
+    const totals = computeBalanceTotals([{ quantity: '10', unitPrice: '23' }], '20', 6900n)
+
+    expect(totals.worksSubtotal).toBe(23000n)
+    expect(totals.subtotal).toBe(16100n)
+    expect(totals.vatAmount).toBe(3220n)
+    expect(totals.total).toBe(19320n)
+  })
+
+  it('sans acompte, c’est le total ordinaire', () => {
+    const lines = [{ quantity: '3', unitPrice: '15,01' }]
+
+    expect(computeBalanceTotals(lines, '10', 0n)).toMatchObject({
+      subtotal: computeDraftTotals(lines, '10').subtotal,
+      total: computeDraftTotals(lines, '10').total,
+    })
+  })
+
+  it('peut descendre sous zéro quand les acomptes dépassent les travaux', () => {
+    const totals = computeBalanceTotals([{ quantity: '1', unitPrice: '10' }], '20', 6900n)
+
+    expect(totals.subtotal).toBe(-5900n)
+    expect(totals.vatAmount).toBe(-1180n)
+    expect(totals.total).toBe(-7080n)
+  })
+})
+

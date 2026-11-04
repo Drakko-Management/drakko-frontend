@@ -122,3 +122,79 @@ describe('EditInvoicePage', () => {
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 })
+
+describe('EditInvoicePage — facture de solde (ADR-033)', () => {
+  const deduction = invoiceLine({
+    id: 'il9',
+    snapshotTitle: 'FAC-2026-0001',
+    quantity: '-1',
+    unitPrice: '69',
+    total: '-69.00',
+    depositInvoiceId: 'd1',
+    order: 5,
+  })
+  // 10 × 23,00 = 230,00 de travaux, moins 69,00 d'acompte
+  const balance = (over: Partial<Invoice> = {}) =>
+    invoice({
+      vatRate: '20',
+      lines: [invoiceLine({ quantity: '10', unitPrice: '23', total: '230.00' }), deduction],
+      ...over,
+    })
+
+  it('le formulaire ne montre que les travaux : la ligne d\'acompte n\'est pas modifiable', () => {
+    show(balance())
+
+    expect(screen.getAllByTestId('quote-line')).toHaveLength(1)
+    expect(screen.getByLabelText('Désignation')).toHaveValue('Taille de haie')
+  })
+
+  it('les totaux retranchent l\'acompte, puis appliquent la TVA une fois sur le reste', () => {
+    show(balance())
+
+    expect(plain(screen.getByTestId('quote-works-total').textContent)).toBe('230,00 €')
+    expect(screen.getByTestId('quote-deduction')).toHaveTextContent('Acompte FAC-2026-0001')
+    expect(plain(screen.getByTestId('quote-subtotal').textContent)).toBe('161,00 €')
+    expect(plain(screen.getByTestId('quote-vat-amount').textContent)).toBe('32,20 €')
+    expect(plain(screen.getByTestId('quote-total').textContent)).toBe('193,20 €')
+    expect(screen.getByText('Reste à payer')).toBeInTheDocument()
+    expect(screen.getByText(/se déduisent automatiquement/)).toBeInTheDocument()
+  })
+
+  it('suit la saisie : moins de travaux, moins de solde', async () => {
+    show(balance())
+
+    await userEvent.clear(screen.getByLabelText('Quantité'))
+    await userEvent.type(screen.getByLabelText('Quantité'), '5')
+
+    // 5 × 23 = 115 - 69 = 46 ; TVA 9,20 ; 55,20
+    expect(plain(screen.getByTestId('quote-total').textContent)).toBe('55,20 €')
+  })
+
+  it('prévient quand les acomptes dépassent les travaux', async () => {
+    show(balance())
+
+    await userEvent.clear(screen.getByLabelText('Quantité'))
+    await userEvent.type(screen.getByLabelText('Quantité'), '1')
+
+    expect(screen.getByTestId('quote-balance-negative')).toHaveTextContent('Les acomptes dépassent le montant de la facture')
+  })
+
+  it('n\'envoie que les travaux : l\'API garde les déductions', async () => {
+    show(balance())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    const body = update.mock.calls[0][0]
+    expect(body.lines).toHaveLength(1)
+    expect(body.lines[0]).toMatchObject({ title: 'Taille de haie', quantity: 10, unitPrice: 23 })
+  })
+
+  it('sans acompte, aucun rappel de déduction', () => {
+    show(invoice())
+
+    expect(screen.queryByTestId('quote-works-total')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('quote-deduction')).not.toBeInTheDocument()
+    expect(screen.queryByText(/se déduisent automatiquement/)).not.toBeInTheDocument()
+  })
+})
+

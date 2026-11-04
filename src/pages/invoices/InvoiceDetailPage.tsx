@@ -24,6 +24,7 @@ import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { formatDate, fullName } from '@/lib/utils'
 import { formatMoney, formatQuantity } from '@/modules/devis/format'
+import { centsOf, centsToNumber } from '@/modules/devis/totals'
 import { formatDay } from '@/modules/factures/format'
 import { missingIdentity } from '@/modules/factures/identity'
 import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
@@ -68,6 +69,11 @@ export function InvoiceDetailPage() {
   const canDelete = can('factures', 'delete')
   const missing = missingIdentity(org, invoice.vatExempt)
   const name = invoice.reference ?? t('invoices.draft_name')
+  // Sur une facture de solde, les lignes qui déduisent un acompte ne sont pas des prestations : elles se lisent dans les totaux
+  const works = invoice.lines.filter((line) => !line.depositInvoiceId)
+  const deductions = invoice.lines.filter((line) => line.depositInvoiceId)
+  const worksSubtotal = works.reduce((sum, line) => sum + centsOf(line.total), 0n)
+  const kindKey = isCreditNote ? 'invoices.kind_credit_note' : invoice.deposit ? 'invoices.kind_deposit' : 'invoices.kind'
   const buttonClass = 'min-h-[44px]'
   const busy = issue.isPending || emailInvoice.isPending || pay.isPending || unpay.isPending || creditNote.isPending
   // Seule une facture émise ou payée part (pas un brouillon sans numéro, pas une facture annulée : son avoir la remplace)
@@ -162,7 +168,7 @@ export function InvoiceDetailPage() {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <EditPageTitle kind={t(isCreditNote ? 'invoices.kind_credit_note' : 'invoices.kind')} name={name} />
+        <EditPageTitle kind={t(kindKey)} name={name} />
         <InvoiceStatusBadge invoice={invoice} className="ml-auto" />
       </div>
 
@@ -202,6 +208,14 @@ export function InvoiceDetailPage() {
             </Link>
           </p>
         )}
+        {invoice.deductedBy && (
+          <p className="text-sm" data-testid="invoice-deducted-by">
+            <span className="text-muted-foreground">{t('invoices.deducted_by_label')} : </span>
+            <Link to={`/factures/${invoice.deductedBy.id}`} className="text-primary">
+              {invoice.deductedBy.reference ?? t('invoices.draft_name')}
+            </Link>
+          </p>
+        )}
         {status === 'DRAFT' ? (
           <p className="text-xs text-muted-foreground">{t('invoices.created_on', { date: formatDate(invoice.createdAt) })}</p>
         ) : (
@@ -233,8 +247,8 @@ export function InvoiceDetailPage() {
 
       <section className="space-y-2" aria-label={t('quotes.form_lines')}>
         <h2 className="text-sm font-semibold">{t('quotes.form_lines')}</h2>
-        {invoice.lines.length === 0 && <p className="text-sm text-muted-foreground">{t('quotes.form_no_lines')}</p>}
-        {invoice.lines.map((line) => (
+        {works.length === 0 && <p className="text-sm text-muted-foreground">{t('quotes.form_no_lines')}</p>}
+        {works.map((line) => (
           <div key={line.id} className="flex items-start justify-between gap-3 rounded-xl border bg-card p-3" data-testid="invoice-line">
             <div className="min-w-0">
               <p className="text-sm font-medium">{line.snapshotTitle}</p>
@@ -250,6 +264,24 @@ export function InvoiceDetailPage() {
       </section>
 
       <dl className="space-y-1 rounded-xl border bg-card p-4 text-sm">
+        {deductions.length > 0 && (
+          <>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">{t('invoices.works_total')}</dt>
+              <dd data-testid="invoice-works-total">{formatMoney(centsToNumber(worksSubtotal))}</dd>
+            </div>
+            {deductions.map((line) => (
+              <div key={line.id} className="flex justify-between" data-testid="invoice-deduction">
+                <dt>
+                  <Link to={`/factures/${line.depositInvoiceId}`} className="text-primary">
+                    {t('invoices.deposit_deducted', { reference: line.snapshotTitle })}
+                  </Link>
+                </dt>
+                <dd>{formatMoney(line.total)}</dd>
+              </div>
+            ))}
+          </>
+        )}
         <div className="flex justify-between">
           <dt className="text-muted-foreground">{t('quotes.subtotal')}</dt>
           <dd>{formatMoney(invoice.subtotal)}</dd>
@@ -267,7 +299,7 @@ export function InvoiceDetailPage() {
           </div>
         )}
         <div className="flex justify-between border-t pt-1 text-base font-bold">
-          <dt>{t('quotes.total')}</dt>
+          <dt>{t(deductions.length > 0 ? 'invoices.balance_due' : 'quotes.total')}</dt>
           <dd data-testid="invoice-total">{formatMoney(invoice.total)}</dd>
         </div>
       </dl>
@@ -279,8 +311,14 @@ export function InvoiceDetailPage() {
         </section>
       )}
 
-      {status === 'DRAFT' && canUpdate && <p className="text-xs text-muted-foreground">{t('invoices.hint_draft')}</p>}
-      {status === 'ISSUED' && !isCreditNote && canCreate && <p className="text-xs text-muted-foreground">{t('invoices.hint_issued')}</p>}
+      {status === 'DRAFT' && canUpdate && (
+        <p className="text-xs text-muted-foreground">{t(invoice.deposit ? 'invoices.hint_deposit_draft' : 'invoices.hint_draft')}</p>
+      )}
+      {status === 'ISSUED' && !isCreditNote && canCreate && (
+        <p className="text-xs text-muted-foreground" data-testid="invoice-hint-issued">
+          {t(invoice.deductedBy ? 'invoices.hint_deposit_deducted' : 'invoices.hint_issued')}
+        </p>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" className={buttonClass} disabled={pdfPending} onClick={() => void handlePdf()}>
@@ -297,10 +335,12 @@ export function InvoiceDetailPage() {
 
         {status === 'DRAFT' && canUpdate && (
           <>
-            <Button type="button" variant="outline" className={buttonClass} onClick={() => void navigate(`/factures/${id}/modifier`)}>
-              <Pencil className="h-4 w-4" />
-              {t('invoices.action_edit')}
-            </Button>
+            {!invoice.deposit && (
+              <Button type="button" variant="outline" className={buttonClass} onClick={() => void navigate(`/factures/${id}/modifier`)}>
+                <Pencil className="h-4 w-4" />
+                {t('invoices.action_edit')}
+              </Button>
+            )}
             <Button
               type="button"
               className={buttonClass}
@@ -327,7 +367,7 @@ export function InvoiceDetailPage() {
           </Button>
         )}
 
-        {status === 'ISSUED' && !isCreditNote && canCreate && (
+        {status === 'ISSUED' && !isCreditNote && canCreate && !invoice.deductedBy && (
           <Button
             type="button"
             variant="outline"

@@ -79,6 +79,16 @@ describe('les gestes sur une facture', () => {
     expect(lastCall()).toEqual({ path: '/invoices', method: 'POST', body: { quoteId: 'q1' } })
   })
 
+  it('créer l\'acompte d\'un devis envoie le devis et la part demandée', async () => {
+    const { result } = renderHook(() => useCreateInvoice(), { wrapper })
+
+    await result.current.mutateAsync({ quoteId: 'q1', deposit: { percent: 30 } })
+    expect(lastCall()).toEqual({ path: '/invoices', method: 'POST', body: { quoteId: 'q1', deposit: { percent: 30 } } })
+
+    await result.current.mutateAsync({ quoteId: 'q1', deposit: { amount: 250 } })
+    expect(lastCall()).toEqual({ path: '/invoices', method: 'POST', body: { quoteId: 'q1', deposit: { amount: 250 } } })
+  })
+
   it('modifier, émettre, envoyer, payer, défaire, annuler par un avoir, supprimer : la bonne adresse et le bon verbe', async () => {
     const update = renderHook(() => useUpdateInvoice(), { wrapper })
     await update.result.current.mutateAsync({ id: 'i1', title: 'x', dueDate: null })
