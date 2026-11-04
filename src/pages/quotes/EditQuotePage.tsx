@@ -86,6 +86,7 @@ export function EditQuotePage() {
       </div>
 
       <QuoteFormFields
+        vatExempt={quote.vatExempt}
         values={values}
         onChange={setValues}
         onSubmit={() => void handleSubmit()}

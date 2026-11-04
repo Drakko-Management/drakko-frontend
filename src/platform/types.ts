@@ -44,8 +44,8 @@ export interface OrganizationUser {
 }
 
 /** Les modules activables d'une organisation (ADR-029) : même liste que `ACTIVABLE_MODULES` de l'application. */
-export type OrganizationModuleKey = 'chantiers' | 'devis'
-export const ORGANIZATION_MODULE_KEYS: OrganizationModuleKey[] = ['chantiers', 'devis']
+export type OrganizationModuleKey = 'chantiers' | 'devis' | 'factures'
+export const ORGANIZATION_MODULE_KEYS: OrganizationModuleKey[] = ['chantiers', 'devis', 'factures']
 
 export interface OrganizationModuleState {
   key: OrganizationModuleKey

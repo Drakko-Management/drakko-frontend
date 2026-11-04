@@ -15,6 +15,12 @@ import type { Client } from '@/types/api'
 import { FREE_LINE, decimal, isLineValid, lineFromService, newKey, type FormLine, type QuoteFormValues } from './quote-form'
 
 interface Props {
+  /** Le formulaire sert aux devis et aux factures (ADR-033) : seul le champ de date et le régime de TVA changent. */
+  kind?: 'quote' | 'invoice'
+  /** Franchise de TVA : le taux est 0 et ne se change pas, la mention légale remplace la ligne de TVA */
+  vatExempt?: boolean
+  /** Facture : le délai de paiement de l'organisation, dit sous le champ d'échéance laissé vide */
+  dueDays?: number
   values: QuoteFormValues
   onChange: (values: QuoteFormValues) => void
   onSubmit: () => void
@@ -24,7 +30,17 @@ interface Props {
   defaultVatRate: number
 }
 
-export function QuoteFormFields({ values, onChange, onSubmit, isPending, submitLabel, defaultVatRate }: Props) {
+export function QuoteFormFields({
+  kind = 'quote',
+  vatExempt = false,
+  dueDays,
+  values,
+  onChange,
+  onSubmit,
+  isPending,
+  submitLabel,
+  defaultVatRate,
+}: Props) {
   const { t } = useTranslation()
   const { data: services } = useServices(true)
   const [attempted, setAttempted] = useState(false)
@@ -35,10 +51,10 @@ export function QuoteFormFields({ values, onChange, onSubmit, isPending, submitL
   const setLine = (key: string, patch: Partial<FormLine>) =>
     set('lines', values.lines.map((line) => (line.key === key ? { ...line, ...patch } : line)))
 
-  const rate = values.vatRate.trim() === '' ? String(defaultVatRate) : values.vatRate
+  const rate = vatExempt ? '0' : values.vatRate.trim() === '' ? String(defaultVatRate) : values.vatRate
   const totals = computeDraftTotals(values.lines, rate)
   const invalidLines = values.lines.filter((line) => !isLineValid(line))
-  const rateInvalid = values.vatRate.trim() !== '' && (toCents(values.vatRate) === null || decimal(values.vatRate) > 100)
+  const rateInvalid = !vatExempt && values.vatRate.trim() !== '' && (toCents(values.vatRate) === null || decimal(values.vatRate) > 100)
   const clientMissing = attempted && !values.client
   const linesInvalid = attempted && invalidLines.length > 0
 
@@ -80,15 +96,16 @@ export function QuoteFormFields({ values, onChange, onSubmit, isPending, submitL
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="quote-valid-until">{t('quotes.form_valid_until')}</Label>
+          <Label htmlFor="quote-valid-until">{t(kind === 'invoice' ? 'invoices.form_due_date' : 'quotes.form_valid_until')}</Label>
           <Input
             id="quote-valid-until"
             type="date"
             className="min-h-[44px]"
-            value={values.validUntil}
+            value={values.date}
             min={DATE_INPUT_MIN}
             max={DATE_INPUT_MAX}
-            onChange={(e) => set('validUntil', e.target.value)}
+            onChange={(e) => set('date', e.target.value)}
+            aria-describedby={kind === 'invoice' ? 'quote-date-hint' : undefined}
           />
         </div>
         <div className="space-y-1.5">
@@ -98,12 +115,19 @@ export function QuoteFormFields({ values, onChange, onSubmit, isPending, submitL
             inputMode="decimal"
             className={cn('min-h-[44px]', rateInvalid && 'border-destructive')}
             placeholder={String(defaultVatRate)}
-            value={values.vatRate}
+            value={vatExempt ? '0' : values.vatRate}
+            disabled={vatExempt}
             onChange={(e) => set('vatRate', e.target.value)}
             aria-invalid={rateInvalid}
           />
         </div>
       </div>
+      {kind === 'invoice' && values.date === '' && dueDays !== undefined && (
+        <p id="quote-date-hint" className="-mt-3 text-xs text-muted-foreground">
+          {t('invoices.form_due_date_hint', { days: dueDays })}
+        </p>
+      )}
+      {vatExempt && <p className="-mt-3 text-xs text-muted-foreground">{t('quotes.vat_exempt_note')}</p>}
 
       <section className="space-y-3" aria-label={t('quotes.form_lines')}>
         <h2 className="text-sm font-semibold">{t('quotes.form_lines')}</h2>
@@ -240,10 +264,12 @@ export function QuoteFormFields({ values, onChange, onSubmit, isPending, submitL
           <dt className="text-muted-foreground">{t('quotes.subtotal')}</dt>
           <dd data-testid="quote-subtotal">{formatMoney(centsToNumber(totals.subtotal))}</dd>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-muted-foreground">{t('quotes.vat', { rate: rateInvalid ? '?' : rate })}</dt>
-          <dd data-testid="quote-vat-amount">{formatMoney(centsToNumber(totals.vatAmount))}</dd>
-        </div>
+        {!vatExempt && (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">{t('quotes.vat', { rate: rateInvalid ? '?' : rate })}</dt>
+            <dd data-testid="quote-vat-amount">{formatMoney(centsToNumber(totals.vatAmount))}</dd>
+          </div>
+        )}
         <div className="flex justify-between border-t pt-1 text-base font-bold">
           <dt>{t('quotes.total')}</dt>
           <dd data-testid="quote-total">{formatMoney(centsToNumber(totals.total))}</dd>

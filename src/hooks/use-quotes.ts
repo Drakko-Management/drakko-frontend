@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { apiBlob, apiRequest } from '@/lib/api-client'
+import { apiRequest } from '@/lib/api-client'
+import { openPdf } from '@/lib/open-pdf'
 import { queryClient } from '@/lib/query-client'
 import type { Quote, QuoteStatus } from '@/types/api'
 
@@ -94,21 +95,5 @@ export function useDeleteQuote() {
   })
 }
 
-/**
- * Ouvre le PDF d'un devis dans un nouvel onglet. L'onglet est ouvert avant la requête, pendant le geste de
- * l'utilisateur : après une attente, un navigateur de téléphone bloquerait l'ouverture.
- */
-export async function openQuotePdf(id: string): Promise<void> {
-  const tab = window.open('', '_blank')
-  try {
-    const blob = await apiBlob(`/quotes/${id}/pdf`)
-    const url = URL.createObjectURL(blob)
-    if (tab) tab.location.href = url
-    else window.location.assign(url)
-    // Le navigateur a eu le temps de charger le fichier ; on libère la mémoire
-    setTimeout(() => URL.revokeObjectURL(url), 60_000)
-  } catch (error) {
-    tab?.close()
-    throw error
-  }
-}
+/** Ouvre le PDF d'un devis dans un nouvel onglet. */
+export const openQuotePdf = (id: string): Promise<void> => openPdf(`/quotes/${id}/pdf`)

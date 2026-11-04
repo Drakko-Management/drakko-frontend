@@ -226,10 +226,18 @@ function QuoteBody({ quote, lang, t }: { quote: Quote; lang: string; t: Translat
           <dt className="text-muted-foreground">{t('quote_public.subtotal')}</dt>
           <dd>{formatMoney(quote.subtotal, lang)}</dd>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-muted-foreground">{t('quote_public.vat', { rate: parseFloat(quote.vatRate) })}</dt>
-          <dd>{formatMoney(quote.vatAmount, lang)}</dd>
-        </div>
+        {quote.vatExempt ? (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground" data-testid="public-quote-vat-exempt">
+              {t('quote_public.vat_exempt_note')}
+            </dt>
+          </div>
+        ) : (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">{t('quote_public.vat', { rate: parseFloat(quote.vatRate) })}</dt>
+            <dd>{formatMoney(quote.vatAmount, lang)}</dd>
+          </div>
+        )}
         <div className="flex justify-between border-t pt-1 text-base font-bold">
           <dt>{t('quote_public.total')}</dt>
           <dd data-testid="public-quote-total">{formatMoney(quote.total, lang)}</dd>

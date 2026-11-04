@@ -557,6 +557,7 @@ describe('CreateProjectPage — depuis un devis accepté', () => {
           equipe: [],
           prestations: [],
           devis: [],
+          factures: [],
         },
       })
     })

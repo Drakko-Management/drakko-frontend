@@ -49,6 +49,7 @@ describe('can — permissions partielles', () => {
     equipe: [],
     prestations: ['read', 'create', 'update', 'delete'],
     devis: [],
+    factures: [],
   }
 
   it('retourne true pour une action autorisée', () => {
@@ -79,7 +80,7 @@ describe('can — permissions partielles', () => {
 
 describe('can — immutabilité', () => {
   it('ne modifie pas l\'objet permissions passé en entrée', () => {
-    const perms: Permissions = { chantiers: ['read'], clients: [], equipe: [], prestations: [], devis: [] }
+    const perms: Permissions = { chantiers: ['read'], clients: [], equipe: [], prestations: [], devis: [], factures: [] }
     const before = JSON.stringify(perms)
     can(perms, 'chantiers', 'read')
     expect(JSON.stringify(perms)).toBe(before)
@@ -101,6 +102,7 @@ describe('makePermissions', () => {
       equipe: [],
       prestations: [],
       devis: [],
+      factures: [],
     })
   })
 
@@ -128,13 +130,13 @@ describe('makePermissions', () => {
 // ── Constantes ────────────────────────────────────────────────────────────
 
 describe('MODULES et ACTIONS', () => {
-  it('MODULES contient les 5 modules attendus', () => {
-    expect(MODULES).toEqual(['chantiers', 'clients', 'equipe', 'prestations', 'devis'])
+  it('MODULES contient les 6 modules attendus', () => {
+    expect(MODULES).toEqual(['chantiers', 'clients', 'equipe', 'prestations', 'devis', 'factures'])
   })
 
   it('les modules activables sont des modules de permission, et Clients, Prestations et Équipe n\'en font pas partie (ADR-029)', () => {
     for (const key of ACTIVABLE_MODULES) expect(MODULES).toContain(key)
-    expect(ACTIVABLE_MODULES).toEqual(['chantiers', 'devis'])
+    expect(ACTIVABLE_MODULES).toEqual(['chantiers', 'devis', 'factures'])
   })
 
   it('isModuleActive : un module activable doit figurer dans la liste, les autres sont toujours actifs', () => {

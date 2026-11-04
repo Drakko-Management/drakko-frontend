@@ -29,12 +29,12 @@ describe('DEFAULT_NAV_SLOTS', () => {
 // ── ALL_SLOT_KEYS ──────────────────────────────────────────────────────────
 
 describe('ALL_SLOT_KEYS', () => {
-  it('contient 6 clés', () => {
-    expect(ALL_SLOT_KEYS).toHaveLength(6)
+  it('contient 7 clés', () => {
+    expect(ALL_SLOT_KEYS).toHaveLength(7)
   })
 
-  it('contient les 6 emplacements', () => {
-    const expected: NavSlotKey[] = ['chantiers', 'devis', 'clients', 'utilisateurs', 'prestations', 'parametres']
+  it('contient les 7 emplacements', () => {
+    const expected: NavSlotKey[] = ['chantiers', 'devis', 'factures', 'clients', 'utilisateurs', 'prestations', 'parametres']
     expected.forEach((k) => expect(ALL_SLOT_KEYS).toContain(k))
   })
 
@@ -121,8 +121,16 @@ describe('defaultNavSlots', () => {
     expect(defaultNavSlots(['devis'])).toEqual(['devis', 'clients', 'prestations'])
   })
 
+  it('Facturation seule : ses emplacements passent avant les référentiels', () => {
+    expect(defaultNavSlots(['factures'])).toEqual(['factures', 'clients', 'prestations'])
+  })
+
   it('les deux : quatre emplacements au plus', () => {
     expect(defaultNavSlots(['chantiers', 'devis'])).toEqual(['chantiers', 'devis', 'clients', 'prestations'])
+  })
+
+  it('les trois : quatre emplacements au plus, les modules d\'abord', () => {
+    expect(defaultNavSlots(['chantiers', 'devis', 'factures'])).toEqual(['chantiers', 'devis', 'factures', 'clients'])
   })
 
   it('modules inconnus (pas encore lus) : la barre habituelle', () => {

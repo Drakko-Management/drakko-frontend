@@ -35,7 +35,7 @@ export const DEFAULT_NAV_SLOTS: NavSlotKey[] = ['chantiers', 'clients', 'prestat
  */
 export function defaultNavSlots(modules: readonly string[] | null | undefined): NavSlotKey[] {
   if (!modules) return DEFAULT_NAV_SLOTS
-  return [...(['chantiers', 'devis'] as const).filter((slot) => modules.includes(slot)), 'clients', 'prestations'].slice(
+  return [...(['chantiers', 'devis', 'factures'] as const).filter((slot) => modules.includes(slot)), 'clients', 'prestations'].slice(
     0,
     4,
   ) as NavSlotKey[]

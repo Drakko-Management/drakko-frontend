@@ -150,6 +150,38 @@ describe('CreateQuotePage', () => {
     expect(create.mock.calls[0][0].lines).toEqual([])
   })
 
+  describe('franchise de TVA (ADR-033)', () => {
+    beforeEach(() => {
+      vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 20, vatExempt: true } } as never)
+    })
+
+    it('le taux est 0 et ne se change pas ; la mention légale remplace la ligne de TVA', async () => {
+      renderPage()
+      await userEvent.selectOptions(screen.getByLabelText('Ajouter une prestation'), 's1')
+
+      expect(screen.getByLabelText('TVA (%)')).toBeDisabled()
+      expect(screen.getByLabelText('TVA (%)')).toHaveValue('0')
+      expect(screen.queryByTestId('quote-vat-amount')).not.toBeInTheDocument()
+      expect(plain(screen.getByTestId('quote-total').textContent)).toBe('12,50 €')
+    })
+
+    it('n\'envoie aucun taux : l\'API met 0', async () => {
+      renderPage()
+      await pickClient()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+      expect(create.mock.calls[0][0]).not.toHaveProperty('vatRate')
+    })
+  })
+
+  it('hors franchise, le taux se saisit comme avant', () => {
+    renderPage()
+
+    expect(screen.getByLabelText('TVA (%)')).toBeEnabled()
+    expect(screen.getByLabelText('Valable jusqu\'au')).toBeInTheDocument()
+  })
+
   it('une erreur de l\'API est dite avec sa traduction, sans quitter la page', async () => {
     create.mockRejectedValue(new ApiError(404, 'x', 'SERVICE_NOT_FOUND'))
     renderPage()

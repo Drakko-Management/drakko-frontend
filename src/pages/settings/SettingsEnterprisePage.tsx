@@ -53,6 +53,7 @@ type OrgFormState = {
   invoicePrefix: string
   reportPrefix: string
   defaultVatRate: string
+  vatExempt: boolean
   defaultPaymentTerms: string
   latePaymentPenalties: string
 }
@@ -67,7 +68,7 @@ const EMPTY: OrgFormState = {
   primaryColor: '#1a7a33',
   projectPrefix: 'CH', autoProjectReference: false,
   quotePrefix: 'DEV', invoicePrefix: 'FAC', reportPrefix: 'RAP',
-  defaultVatRate: '10', defaultPaymentTerms: '', latePaymentPenalties: '',
+  defaultVatRate: '10', vatExempt: false, defaultPaymentTerms: '', latePaymentPenalties: '',
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -94,6 +95,7 @@ export function SettingsEnterprisePage() {
   const { isModuleActive } = usePermissions()
   const hasProjects = isModuleActive('chantiers')
   const hasQuotes = isModuleActive('devis')
+  const hasInvoices = isModuleActive('factures')
   const { data: org, isLoading: orgLoading } = useOrganization()
   const updateOrg = useUpdateOrganization()
   const uploadLogo = useUploadLogo()
@@ -135,6 +137,7 @@ export function SettingsEnterprisePage() {
       invoicePrefix:       org.invoicePrefix ?? 'FAC',
       reportPrefix:        org.reportPrefix ?? 'RAP',
       defaultVatRate:      String(org.defaultVatRate ?? 10),
+      vatExempt:           org.vatExempt ?? false,
       defaultPaymentTerms: org.defaultPaymentTerms ?? '',
       latePaymentPenalties:org.latePaymentPenalties ?? '',
     })
@@ -190,6 +193,7 @@ export function SettingsEnterprisePage() {
       invoicePrefix:       form.invoicePrefix || undefined,
       reportPrefix:        form.reportPrefix || undefined,
       defaultVatRate:      form.defaultVatRate ? parseFloat(form.defaultVatRate) : undefined,
+      vatExempt:           form.vatExempt,
       defaultPaymentTerms: form.defaultPaymentTerms || undefined,
       latePaymentPenalties:form.latePaymentPenalties || undefined,
       primaryColor:        form.primaryColor || undefined,
@@ -433,17 +437,32 @@ export function SettingsEnterprisePage() {
                   <Input className={inputCls} value={form.quotePrefix} onChange={f('quotePrefix')} maxLength={10} />
                 </Field>
                 )}
+                {hasInvoices && (
                 <Field label={t('settings.org_invoice_prefix')}>
                   <Input className={inputCls} value={form.invoicePrefix} onChange={f('invoicePrefix')} maxLength={10} />
                 </Field>
+                )}
                 {hasProjects && (
                 <Field label={t('settings.org_report_prefix')}>
                   <Input className={inputCls} value={form.reportPrefix} onChange={f('reportPrefix')} maxLength={10} />
                 </Field>
                 )}
               </div>
+              {(hasQuotes || hasInvoices) && (
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{t('settings.org_vat_exempt_label')}</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.org_vat_exempt_hint')}</p>
+                </div>
+                <Switch
+                  checked={form.vatExempt}
+                  onCheckedChange={(v: boolean) => setForm((p) => ({ ...p, vatExempt: v }))}
+                  aria-label={t('settings.org_vat_exempt_label')}
+                />
+              </div>
+              )}
               <Field label={t('settings.org_default_vat')}>
-                <select value={form.defaultVatRate} onChange={f('defaultVatRate')} className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <select value={form.vatExempt ? '0' : form.defaultVatRate} onChange={f('defaultVatRate')} disabled={form.vatExempt} className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <option value="0">0 %</option>
                   <option value="5.5">5,5 %</option>
                   <option value="10">10 %</option>
@@ -459,6 +478,7 @@ export function SettingsEnterprisePage() {
                   <option value="45">{t('settings.payment_days', { days: 45 })}</option>
                   <option value="60">{t('settings.payment_days', { days: 60 })}</option>
                 </select>
+                {hasInvoices && <p className="mt-1 text-xs text-muted-foreground">{t('settings.org_payment_terms_hint')}</p>}
               </Field>
               <Field label={t('settings.org_late_penalties')}>
                 <Input className={inputCls} value={form.latePaymentPenalties} onChange={f('latePaymentPenalties')} maxLength={200} placeholder={t('settings.org_late_penalties_placeholder')} />

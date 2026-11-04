@@ -29,6 +29,7 @@ const ROLE: Role = {
     equipe: [],
     prestations: [],
     devis: [],
+    factures: [],
   },
   isDefault: false,
   _count: { users: 2 },

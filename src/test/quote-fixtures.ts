@@ -26,6 +26,7 @@ export function quote(over: Partial<Quote> = {}): Quote {
     title: 'Haie du fond',
     comment: null,
     vatRate: '10',
+    vatExempt: false,
     validUntil: null,
     sentAt: null,
     decidedAt: null,
@@ -38,6 +39,7 @@ export function quote(over: Partial<Quote> = {}): Quote {
     total: '137.50',
     acceptance: null,
     project: null,
+    invoice: null,
     ...over,
   }
 }
@@ -67,6 +69,7 @@ export function publicQuote(over: Partial<PublicQuote> = {}): PublicQuote {
       comment: null,
       validUntil: null,
       vatRate: '10',
+      vatExempt: false,
       clientName: 'Léa Martin',
       lines: [
         {

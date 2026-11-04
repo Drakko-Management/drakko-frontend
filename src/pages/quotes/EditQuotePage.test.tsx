@@ -60,6 +60,13 @@ describe('EditQuotePage', () => {
     expect(plain(screen.getByTestId('quote-total').textContent)).toBe('137,50 €')
   })
 
+  it('un devis établi sous franchise garde son taux à 0, verrouillé', () => {
+    show(quote({ vatExempt: true, vatRate: '0' }))
+
+    expect(screen.getByLabelText('TVA (%)')).toBeDisabled()
+    expect(screen.getByLabelText('TVA (%)')).toHaveValue('0')
+  })
+
   it('enregistre les lignes modifiées en conservant l\'origine de la prestation, puis revient à la fiche', async () => {
     show(quote({ lines: [quoteLine({ serviceId: 's1' })] }))
 

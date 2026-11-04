@@ -67,6 +67,23 @@ describe('PublicQuotePage — un lien ouvert', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Devis DEV-2026-0001' })).toBeInTheDocument()
   })
 
+  it('sous franchise de TVA, le client lit la mention légale à la place de la ligne de TVA, dans la langue de l\'entreprise', () => {
+    const data = publicQuote({ language: 'en' })
+    show({ ...data, quote: { ...data.quote!, vatExempt: true, vatRate: '0', vatAmount: '0.00' } })
+
+    expect(screen.getByTestId('public-quote-vat-exempt')).toHaveTextContent(
+      'VAT not applicable, art. 293 B of the French tax code',
+    )
+    expect(screen.queryByText(/^VAT \(/)).not.toBeInTheDocument()
+  })
+
+  it('hors franchise, la ligne de TVA comme avant', () => {
+    show(publicQuote())
+
+    expect(screen.getByText('TVA (10 %)')).toBeInTheDocument()
+    expect(screen.queryByTestId('public-quote-vat-exempt')).not.toBeInTheDocument()
+  })
+
   it('la date de validité est montrée quand il y en a une', () => {
     const data = publicQuote()
     show({ ...data, quote: { ...data.quote!, validUntil: '2026-12-15T00:00:00.000Z' } })

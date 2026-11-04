@@ -1,6 +1,6 @@
 export type UserRole = 'ADMIN' | 'MEMBER'
 
-export type PermModule = 'chantiers' | 'clients' | 'equipe' | 'prestations' | 'devis'
+export type PermModule = 'chantiers' | 'clients' | 'equipe' | 'prestations' | 'devis' | 'factures'
 export type PermAction = 'read' | 'create' | 'update' | 'delete'
 export type Permissions = Record<PermModule, PermAction[]>
 
@@ -66,6 +66,8 @@ export interface Organization {
   invoicePrefix?: string
   reportPrefix?: string
   defaultVatRate?: number
+  /** Franchise en base de TVA : devis et factures à 0 % avec la mention légale (ADR-033) */
+  vatExempt?: boolean
   defaultPaymentTerms?: string
   latePaymentPenalties?: string
   documentFooter?: string
@@ -330,6 +332,8 @@ export interface Quote {
   comment: string | null
   /** Taux de TVA en pourcentage, chaîne décimale */
   vatRate: string
+  /** Devis établi sous franchise de TVA : taux 0 et mention légale (ADR-033) */
+  vatExempt: boolean
   validUntil: string | null
   sentAt: string | null
   decidedAt: string | null
@@ -345,6 +349,68 @@ export interface Quote {
   acceptance: QuoteAcceptance | null
   /** Le chantier créé depuis ce devis, s'il existe (ADR-032) : un devis ne donne qu'un chantier */
   project: { id: string; reference: string; title: string; status: ProjectStatus } | null
+  /** La facture tirée de ce devis, hors celles qu'un avoir a annulées (ADR-033) ; la référence manque tant qu'elle est un brouillon */
+  invoice: { id: string; reference: string | null; status: InvoiceStatus } | null
+}
+
+/** Brouillon, émise (numérotée, figée), payée, annulée par un avoir (ADR-033) */
+export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED'
+/** Une facture ou son avoir (une facture de montants négatifs) */
+export type InvoiceKind = 'INVOICE' | 'CREDIT_NOTE'
+export type PaymentMethod = 'TRANSFER' | 'CHECK' | 'CASH' | 'CARD' | 'OTHER'
+
+/** Une ligne de facture : instantané, comme une ligne de devis. Sur un avoir, la quantité est négative. */
+export interface InvoiceLine {
+  id: string
+  invoiceId: string
+  serviceId: string | null
+  snapshotTitle: string
+  snapshotDescription: string | null
+  snapshotUnit: string | null
+  quantity: string
+  unitPrice: string
+  order: number
+  /** Total hors taxe de la ligne, calculé par l'API */
+  total: string
+}
+
+export interface Invoice {
+  id: string
+  organizationId: string
+  clientId: string
+  kind: InvoiceKind
+  status: InvoiceStatus
+  /** « FAC-2026-0001 », attribué à l'émission : null pour un brouillon */
+  reference: string | null
+  title: string | null
+  comment: string | null
+  /** Taux de TVA en pourcentage, chaîne décimale */
+  vatRate: string
+  /** Facture sous franchise de TVA : taux 0 et mention légale */
+  vatExempt: boolean
+  /** Jours sans heure, à minuit UTC ; posés à l'émission (l'échéance peut être choisie avant) */
+  issueDate: string | null
+  dueDate: string | null
+  paidAt: string | null
+  paymentMethod: PaymentMethod | null
+  quoteId: string | null
+  creditedInvoiceId: string | null
+  createdAt: string
+  updatedAt: string
+  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address'>
+  lines: InvoiceLine[]
+  /** Calculés par l'API depuis les lignes : jamais stockés */
+  subtotal: string
+  vatAmount: string
+  total: string
+  /** Facture émise dont l'échéance est passée */
+  overdue: boolean
+  /** Le devis dont la facture est tirée */
+  quote: { id: string; reference: string } | null
+  /** Pour un avoir : la facture qu'il annule */
+  creditedInvoice: { id: string; reference: string | null } | null
+  /** Pour une facture annulée : son avoir */
+  creditNote: { id: string; reference: string | null } | null
 }
 
 /** Où en est le lien de réponse en ligne d'un devis (ADR-031) */
@@ -377,6 +443,8 @@ export interface PublicQuote {
     comment: string | null
     validUntil: string | null
     vatRate: string
+    /** Devis sous franchise de TVA : la mention légale remplace la ligne de TVA (ADR-033) */
+    vatExempt: boolean
     clientName: string
     lines: {
       title: string

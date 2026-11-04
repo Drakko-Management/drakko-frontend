@@ -35,6 +35,10 @@ import { QuotesPage } from '@/pages/quotes/QuotesPage'
 import { QuoteDetailPage } from '@/pages/quotes/QuoteDetailPage'
 import { CreateQuotePage } from '@/pages/quotes/CreateQuotePage'
 import { EditQuotePage } from '@/pages/quotes/EditQuotePage'
+import { InvoicesPage } from '@/pages/invoices/InvoicesPage'
+import { InvoiceDetailPage } from '@/pages/invoices/InvoiceDetailPage'
+import { CreateInvoicePage } from '@/pages/invoices/CreateInvoicePage'
+import { EditInvoicePage } from '@/pages/invoices/EditInvoicePage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
 import { EditServicePage } from '@/pages/services/EditServicePage'
 import { CreateServicePage } from '@/pages/services/CreateServicePage'
@@ -159,6 +163,22 @@ const routeTree: RouteObject[] = [
                   {
                     element: <CanRoute module="devis" action="update" />,
                     children: [{ path: 'devis/:id/modifier', element: <EditQuotePage /> }],
+                  },
+                  // Factures (ADR-033) : un module activable, comme Devis
+                  {
+                    element: <CanRoute module="factures" action="read" />,
+                    children: [
+                      { path: 'factures', element: <InvoicesPage /> },
+                      { path: 'factures/:id', element: <InvoiceDetailPage /> },
+                    ],
+                  },
+                  {
+                    element: <CanRoute module="factures" action="create" />,
+                    children: [{ path: 'factures/nouveau', element: <CreateInvoicePage /> }],
+                  },
+                  {
+                    element: <CanRoute module="factures" action="update" />,
+                    children: [{ path: 'factures/:id/modifier', element: <EditInvoicePage /> }],
                   },
                   {
                     element: <CanRoute module="clients" action="read" />,

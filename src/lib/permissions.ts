@@ -1,6 +1,6 @@
 import type { PermModule, PermAction, Permissions } from '@/types/api'
 
-export const MODULES = ['chantiers', 'clients', 'equipe', 'prestations', 'devis'] as const
+export const MODULES = ['chantiers', 'clients', 'equipe', 'prestations', 'devis', 'factures'] as const
 export const ACTIONS = ['read', 'create', 'update', 'delete'] as const
 
 /**
@@ -8,7 +8,7 @@ export const ACTIONS = ['read', 'create', 'update', 'delete'] as const
  * Équipe sont toujours là. Même liste que `ACTIVABLE_MODULES` du back (`organization-modules.ts`) : un test de chaque
  * côté signale un oubli.
  */
-export const ACTIVABLE_MODULES: readonly PermModule[] = ['chantiers', 'devis']
+export const ACTIVABLE_MODULES: readonly PermModule[] = ['chantiers', 'devis', 'factures']
 
 /**
  * Vrai quand l'organisation a ce module. `modules` null : la liste n'est pas (encore) connue, on ne masque rien ;
@@ -24,6 +24,7 @@ export const EMPTY_PERMISSIONS: Permissions = {
   equipe: [],
   prestations: [],
   devis: [],
+  factures: [],
 }
 
 export const FULL_PERMISSIONS: Permissions = {
@@ -32,6 +33,7 @@ export const FULL_PERMISSIONS: Permissions = {
   equipe: ['read', 'create', 'update', 'delete'],
   prestations: ['read', 'create', 'update', 'delete'],
   devis: ['read', 'create', 'update', 'delete'],
+  factures: ['read', 'create', 'update', 'delete'],
 }
 
 export function can(
@@ -54,6 +56,7 @@ export function makePermissions(partial: Partial<Permissions>): Permissions {
  */
 const REQUIRED_READS: Partial<Record<PermModule, { when: readonly PermAction[]; needs: readonly PermModule[] }>> = {
   devis: { when: ['create', 'update'], needs: ['clients', 'prestations'] },
+  factures: { when: ['create', 'update'], needs: ['clients', 'prestations'] },
 }
 
 /** Les modules dont la lecture est exigée par les droits déjà accordés. */

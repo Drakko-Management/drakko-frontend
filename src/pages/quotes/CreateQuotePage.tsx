@@ -44,6 +44,7 @@ export function CreateQuotePage() {
       </div>
 
       <QuoteFormFields
+        vatExempt={org?.vatExempt ?? false}
         values={values}
         onChange={setValues}
         onSubmit={() => void handleSubmit()}

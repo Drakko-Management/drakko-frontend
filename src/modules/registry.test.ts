@@ -93,6 +93,15 @@ describe('modules activables (ADR-029)', () => {
     expect(DASHBOARD_WIDGETS.devis).toBeDefined()
   })
 
+  it('Factures a son bloc de tableau de bord, comme Devis (ADR-033)', () => {
+    expect(DASHBOARD_WIDGETS.factures).toBeDefined()
+  })
+
+  it('l\'adresse de Factures et ses sous-pages existent dans les routes', () => {
+    const paths = routePaths()
+    for (const path of ['/factures', '/factures/:id', '/factures/nouveau', '/factures/:id/modifier']) expect(paths).toContain(path)
+  })
+
   it('l\'adresse de Devis et ses sous-pages existent dans les routes', () => {
     const paths = routePaths()
     for (const path of ['/devis', '/devis/:id', '/devis/nouveau', '/devis/:id/modifier']) expect(paths).toContain(path)

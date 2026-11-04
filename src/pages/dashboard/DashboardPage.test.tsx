@@ -26,6 +26,11 @@ vi.mock('@/hooks/use-quotes', () => ({
   useQuotes: vi.fn().mockReturnValue({ data: [], isLoading: false }),
 }))
 
+// Le bloc Factures aussi
+vi.mock('@/hooks/use-invoices', () => ({
+  useInvoices: vi.fn().mockReturnValue({ data: [], isLoading: false }),
+}))
+
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
 const PROJECT: Project = {

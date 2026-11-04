@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, RotateCcw, Send, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, Receipt, RotateCcw, Send, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EditPageTitle } from '@/components/common/EditPageTitle'
+import { useCreateInvoice } from '@/hooks/use-invoices'
 import { useDeleteQuote, useEmailQuote, useQuote, useQuoteAction, openQuotePdf, type QuoteAction } from '@/hooks/use-quotes'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
@@ -25,6 +26,7 @@ export function QuoteDetailPage() {
   const action = useQuoteAction()
   const deleteQuote = useDeleteQuote()
   const emailQuote = useEmailQuote()
+  const createInvoice = useCreateInvoice()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState(false)
   const [pdfPending, setPdfPending] = useState(false)
@@ -85,6 +87,17 @@ export function QuoteDetailPage() {
     }
   }
 
+  // Un clic : le brouillon de facture naît du devis (client, lignes, objet, TVA) et s'ouvre, prêt à relire et à émettre
+  async function handleCreateInvoice() {
+    try {
+      const invoice = await createInvoice.mutateAsync({ quoteId: id })
+      toast.success(t('quotes.invoice_created'))
+      void navigate(`/factures/${invoice.id}`)
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'quotes.invoice_error'))
+    }
+  }
+
   async function handleDelete() {
     try {
       await deleteQuote.mutateAsync(id)
@@ -135,6 +148,14 @@ export function QuoteDetailPage() {
             </Link>
           </p>
         )}
+        {quote.invoice && can('factures', 'read') && (
+          <p className="text-sm" data-testid="quote-invoice">
+            <span className="text-muted-foreground">{t('quotes.invoice_label')} : </span>
+            <Link to={`/factures/${quote.invoice.id}`} className="text-primary">
+              {quote.invoice.reference ?? t('invoices.draft_name')}
+            </Link>
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">{t('quotes.created_on', { date: formatDate(quote.createdAt) })}</p>
         {quote.sentAt && <p className="text-xs text-muted-foreground">{t('quotes.sent_on', { date: formatDate(quote.sentAt) })}</p>}
         {quote.decidedAt && (
@@ -170,10 +191,18 @@ export function QuoteDetailPage() {
           <dt className="text-muted-foreground">{t('quotes.subtotal')}</dt>
           <dd>{formatMoney(quote.subtotal)}</dd>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-muted-foreground">{t('quotes.vat', { rate: parseFloat(quote.vatRate) })}</dt>
-          <dd>{formatMoney(quote.vatAmount)}</dd>
-        </div>
+        {quote.vatExempt ? (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground" data-testid="quote-vat-exempt">
+              {t('quotes.vat_exempt_note')}
+            </dt>
+          </div>
+        ) : (
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">{t('quotes.vat', { rate: parseFloat(quote.vatRate) })}</dt>
+            <dd>{formatMoney(quote.vatAmount)}</dd>
+          </div>
+        )}
         <div className="flex justify-between border-t pt-1 text-base font-bold">
           <dt>{t('quotes.total')}</dt>
           <dd data-testid="quote-total">{formatMoney(quote.total)}</dd>
@@ -246,6 +275,13 @@ export function QuoteDetailPage() {
           <Button type="button" className={buttonClass} onClick={() => void navigate(`/chantiers/nouveau?devis=${id}`)}>
             <Hammer className="h-4 w-4" />
             {t('quotes.action_create_project')}
+          </Button>
+        )}
+
+        {status === 'ACCEPTED' && !quote.invoice && can('factures', 'create') && (
+          <Button type="button" className={buttonClass} disabled={createInvoice.isPending} onClick={() => void handleCreateInvoice()}>
+            {createInvoice.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Receipt className="h-4 w-4" />}
+            {t('quotes.action_create_invoice')}
           </Button>
         )}
 

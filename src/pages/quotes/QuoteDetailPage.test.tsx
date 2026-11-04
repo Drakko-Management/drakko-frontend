@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { toast } from 'sonner'
 import { useDeleteQuote, useEmailQuote, useQuote, useQuoteAction, openQuotePdf } from '@/hooks/use-quotes'
+import { useCreateInvoice } from '@/hooks/use-invoices'
 import { useAuthStore } from '@/store/auth.store'
 import { makePermissions } from '@/lib/permissions'
 import { ApiError } from '@/lib/api-client'
@@ -25,7 +26,10 @@ vi.mock('@/hooks/use-quotes', () => ({
   openQuotePdf: vi.fn(),
 }))
 
+vi.mock('@/hooks/use-invoices', () => ({ useCreateInvoice: vi.fn() }))
+
 const act = vi.fn()
+const makeInvoice = vi.fn()
 const remove = vi.fn()
 const email = vi.fn()
 
@@ -51,6 +55,8 @@ beforeEach(() => {
   vi.mocked(useQuoteAction).mockReturnValue({ mutateAsync: act, isPending: false } as never)
   vi.mocked(useDeleteQuote).mockReturnValue({ mutateAsync: remove, isPending: false } as never)
   vi.mocked(openQuotePdf).mockResolvedValue(undefined)
+  makeInvoice.mockResolvedValue({ id: 'i1' })
+  vi.mocked(useCreateInvoice).mockReturnValue({ mutateAsync: makeInvoice, isPending: false } as never)
   useAuthStore.setState({ role: 'ADMIN', permissions: null, modules: null })
 })
 
@@ -190,6 +196,113 @@ describe('QuoteDetailPage — chantier issu du devis (ADR-032)', () => {
     show(withProject)
 
     expect(screen.queryByTestId('quote-project')).not.toBeInTheDocument()
+  })
+})
+
+describe('QuoteDetailPage — facture tirée du devis (ADR-033)', () => {
+  const accepted = quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T09:00:00.000Z' })
+  const invoiced = quote({
+    status: 'ACCEPTED',
+    invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED' },
+  })
+  const createLabel = 'Créer la facture'
+
+  it('accepté, sans facture : « Créer la facture » en crée le brouillon depuis le devis et l\'ouvre', async () => {
+    show(accepted)
+
+    await userEvent.click(button(createLabel)!)
+
+    expect(makeInvoice).toHaveBeenCalledWith({ quoteId: 'q1' })
+    expect(toast.success).toHaveBeenCalledWith('Brouillon de facture créé')
+    expect(mockNavigate).toHaveBeenCalledWith('/factures/i1')
+  })
+
+  it.each(['DRAFT', 'SENT', 'REJECTED'] as const)('un devis %s ne propose pas de créer une facture', (status) => {
+    show(quote({ status }))
+
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('accepté, avec une facture : un lien vers elle, plus de bouton', () => {
+    show(invoiced)
+
+    expect(screen.getByRole('link', { name: 'FAC-2026-0001' })).toHaveAttribute('href', '/factures/i1')
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('une facture encore brouillon n\'a pas de numéro : le lien dit « Brouillon »', () => {
+    show(quote({ status: 'ACCEPTED', invoice: { id: 'i1', reference: null, status: 'DRAFT' } }))
+
+    expect(screen.getByTestId('quote-invoice')).toHaveTextContent('Facture : Brouillon')
+  })
+
+  it('le devis a un chantier ET une facture : les deux liens, aucun des deux boutons', () => {
+    show(
+      quote({
+        status: 'ACCEPTED',
+        project: { id: 'p1', reference: 'CH-2026-001', title: 'Terrasse bois', status: 'IN_PROGRESS' },
+        invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED' },
+      }),
+    )
+
+    expect(screen.getByTestId('quote-project')).toBeInTheDocument()
+    expect(screen.getByTestId('quote-invoice')).toBeInTheDocument()
+    expect(button('Créer le chantier')).not.toBeInTheDocument()
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('sans le droit de créer des factures, pas de bouton', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read'], factures: ['read'] }) })
+    show(accepted)
+
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('sans le droit de lire les factures, la facture liée n\'est pas un lien', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read'] }) })
+    show(invoiced)
+
+    expect(screen.queryByTestId('quote-invoice')).not.toBeInTheDocument()
+  })
+
+  it('« Devis seul » (module Facturation absent) : ni bouton ni facture liée, même pour l\'administrateur', () => {
+    useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+    show(invoiced)
+    expect(screen.queryByTestId('quote-invoice')).not.toBeInTheDocument()
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('« Devis seul » : un devis accepté sans facture ne propose pas d\'en créer une', () => {
+    useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+    show(accepted)
+
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('un refus de l\'API est dit avec sa traduction, sans quitter la page', async () => {
+    makeInvoice.mockRejectedValue(new ApiError(409, 'x', 'QUOTE_ALREADY_INVOICED'))
+    show(accepted)
+
+    await userEvent.click(button(createLabel)!)
+
+    expect(toast.error).toHaveBeenCalledWith('Ce devis a déjà une facture')
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+})
+
+describe('QuoteDetailPage — franchise de TVA (ADR-033)', () => {
+  it('sous franchise : la mention légale remplace la ligne de TVA', () => {
+    show(quote({ vatExempt: true, vatRate: '0', vatAmount: '0.00', total: '125.00' }))
+
+    expect(screen.getByTestId('quote-vat-exempt')).toHaveTextContent('TVA non applicable, art. 293 B du CGI')
+    expect(screen.queryByText(/^TVA \(/)).not.toBeInTheDocument()
+  })
+
+  it('hors franchise : la ligne de TVA, comme avant', () => {
+    show(quote())
+
+    expect(screen.getByText('TVA (10 %)')).toBeInTheDocument()
+    expect(screen.queryByTestId('quote-vat-exempt')).not.toBeInTheDocument()
   })
 })
 

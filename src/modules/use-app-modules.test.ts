@@ -27,7 +27,7 @@ describe('useAppModules', () => {
   })
 
   it("un administrateur voit tous les modules, dans l'ordre des menus", () => {
-    expect(keys()).toEqual(['chantiers', 'devis', 'clients', 'equipe', 'prestations'])
+    expect(keys()).toEqual(['chantiers', 'devis', 'factures', 'clients', 'equipe', 'prestations'])
   })
 
   it('un membre ne voit que les modules qu’il peut lire', () => {

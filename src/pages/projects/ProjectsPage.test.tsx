@@ -104,7 +104,7 @@ describe('ProjectsPage — bouton Nouveau', () => {
   })
 
   it('absent pour MEMBER sans permission create', () => {
-    useAuthStore.setState({ accessToken: 'tok', username: 'f', role: 'MEMBER', userId: 'u2', permissions: { chantiers: [], clients: [], equipe: [], prestations: [], devis: [] } })
+    useAuthStore.setState({ accessToken: 'tok', username: 'f', role: 'MEMBER', userId: 'u2', permissions: { chantiers: [], clients: [], equipe: [], prestations: [], devis: [], factures: [] } })
     renderProjects()
     expect(screen.queryByRole('button', { name: /nouveau/i })).not.toBeInTheDocument()
   })
@@ -249,7 +249,7 @@ describe('ProjectsPage — intervention rapide', () => {
   })
 
   it('absent sans permission de création', () => {
-    useAuthStore.setState({ accessToken: 'tok', username: 'f', role: 'MEMBER', userId: 'u2', permissions: { chantiers: ['read'], clients: [], equipe: [], prestations: [], devis: [] } })
+    useAuthStore.setState({ accessToken: 'tok', username: 'f', role: 'MEMBER', userId: 'u2', permissions: { chantiers: ['read'], clients: [], equipe: [], prestations: [], devis: [], factures: [] } })
     renderProjects()
     expect(screen.queryByRole('button', { name: 'Intervention rapide' })).not.toBeInTheDocument()
   })
