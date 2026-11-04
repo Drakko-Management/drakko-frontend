@@ -7,6 +7,8 @@ export interface QuoteFilters {
   status?: QuoteStatus
   clientId?: string
   q?: string
+  /** Seulement les devis dont aucun chantier n'est issu (ADR-032) */
+  withoutProject?: boolean
 }
 
 /** Une ligne telle que l'API la reçoit : avec `serviceId` la prestation est recopiée, ce qui est envoyé la remplace. */
@@ -37,6 +39,7 @@ export function useQuotes(filters: QuoteFilters = {}, enabled = true) {
   if (filters.status) qs.set('status', filters.status)
   if (filters.clientId) qs.set('clientId', filters.clientId)
   if (filters.q) qs.set('q', filters.q)
+  if (filters.withoutProject) qs.set('withoutProject', 'true')
   const text = qs.toString()
   return useQuery({
     queryKey: ['quotes', 'list', filters],

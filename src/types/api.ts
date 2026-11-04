@@ -153,6 +153,8 @@ export interface Project {
   createdById: string
   closedById: string | null
   closedAt: string | null
+  /** Le devis accepté dont le chantier est issu (ADR-032) */
+  quoteId?: string | null
   client?: {
     id: string
     firstName: string
@@ -165,6 +167,8 @@ export interface Project {
 
 export interface ProjectDetail extends Omit<Project, 'client' | 'assignments'> {
   client: Client
+  /** Le devis dont le chantier est issu, s'il y en a un (ADR-032) */
+  quote?: { id: string; reference: string } | null
   assignments: Required<ProjectAssignment>[]
   signatureRequests?: Array<{
     id: string
@@ -339,6 +343,8 @@ export interface Quote {
   total: string
   /** Le dernier lien envoyé au client, ou null si le devis n'a jamais été envoyé par Drakko */
   acceptance: QuoteAcceptance | null
+  /** Le chantier créé depuis ce devis, s'il existe (ADR-032) : un devis ne donne qu'un chantier */
+  project: { id: string; reference: string; title: string; status: ProjectStatus } | null
 }
 
 /** Où en est le lien de réponse en ligne d'un devis (ADR-031) */

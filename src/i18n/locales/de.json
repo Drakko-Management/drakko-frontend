@@ -490,7 +490,8 @@
     "delete_error": "Baustelle konnte nicht gelöscht werden",
     "locked_error": "Diese Baustelle ist gesperrt: Sie wurde zur Unterschrift gesendet oder ist unterschrieben und kann nicht mehr geändert oder gelöscht werden",
     "send_reserve_lift": "Mängelbeseitigung senden",
-    "reserve_notes_label": "Gemeldete Mängel"
+    "reserve_notes_label": "Gemeldete Mängel",
+    "info_from_quote": "Ursprüngliches Angebot"
   },
   "create_project": {
     "title": "Neues Projekt",
@@ -513,7 +514,16 @@
     "title_placeholder": "Bsp.: Terrassengestaltung",
     "create_client": "„{{name}}“ anlegen",
     "client_required": "Wählen Sie einen Kunden aus der Liste oder legen Sie ihn neu an",
-    "client_not_found": "Kunde nicht gefunden. Wählen Sie einen anderen oder legen Sie ihn neu an."
+    "client_not_found": "Kunde nicht gefunden. Wählen Sie einen anderen oder legen Sie ihn neu an.",
+    "from_quote_label": "Von einem angenommenen Angebot ausgehen",
+    "from_quote_placeholder": "Angebot auswählen…",
+    "from_quote_hint": "Kunde, Titel, Adresse und Betrag werden aus dem Angebot übernommen und können geändert werden. Aus einem Angebot entsteht nur ein Projekt.",
+    "from_quote_linked": "Projekt aus Angebot {{reference}}",
+    "from_quote_remove": "Nicht verknüpfen",
+    "from_quote_unavailable": "Aus diesem Angebot kann kein Projekt entstehen: Es ist nicht angenommen, oder es gibt bereits ein Projekt dazu.",
+    "err_quote_not_accepted": "Nur aus einem angenommenen Angebot kann ein Projekt entstehen.",
+    "err_quote_client": "Der Kunde des Projekts muss der Kunde des Angebots sein.",
+    "err_quote_taken": "Aus diesem Angebot gibt es bereits ein Projekt."
   },
   "edit_project": {
     "title": "Projekt bearbeiten",
@@ -874,7 +884,9 @@
     "acceptance_rejected": "Online abgelehnt am {{date}}.",
     "acceptance_expired": "Der an {{email}} gesendete Link ist abgelaufen (gültig bis {{date}}).",
     "acceptance_withdrawn": "Der an den Kunden gesendete Link funktioniert nicht mehr: Das Angebot wurde erneut geöffnet.",
-    "acceptance_comment": "Nachricht des Kunden:"
+    "acceptance_comment": "Nachricht des Kunden:",
+    "action_create_project": "Projekt erstellen",
+    "project_label": "Projekt"
   },
   "quote_public": {
     "title": "Angebot {{reference}}",

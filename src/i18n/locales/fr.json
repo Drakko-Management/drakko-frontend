@@ -490,7 +490,8 @@
     "delete_error": "Impossible de supprimer le chantier",
     "locked_error": "Ce chantier est verrouillé : il a été envoyé à la signature ou signé, il ne peut plus être modifié ni supprimé",
     "send_reserve_lift": "Envoyer levée des réserves",
-    "reserve_notes_label": "Réserves signalées"
+    "reserve_notes_label": "Réserves signalées",
+    "info_from_quote": "Devis d'origine"
   },
   "create_project": {
     "title": "Nouveau chantier",
@@ -513,7 +514,16 @@
     "title_placeholder": "Ex : Aménagement terrasse",
     "create_client": "Créer « {{name}} »",
     "client_required": "Choisissez un client dans la liste, ou créez-le",
-    "client_not_found": "Client introuvable. Choisissez-en un autre ou créez-le."
+    "client_not_found": "Client introuvable. Choisissez-en un autre ou créez-le.",
+    "from_quote_label": "Partir d'un devis accepté",
+    "from_quote_placeholder": "Choisir un devis…",
+    "from_quote_hint": "Le client, le titre, l'adresse et le montant sont repris du devis, vous pouvez les corriger. Un devis ne donne qu'un chantier.",
+    "from_quote_linked": "Chantier issu du devis {{reference}}",
+    "from_quote_remove": "Ne pas lier",
+    "from_quote_unavailable": "Ce devis ne peut pas donner de chantier : il n'est pas accepté, ou un chantier en est déjà issu.",
+    "err_quote_not_accepted": "Seul un devis accepté peut donner un chantier.",
+    "err_quote_client": "Le client du chantier doit être celui du devis.",
+    "err_quote_taken": "Un chantier est déjà issu de ce devis."
   },
   "edit_project": {
     "title": "Modifier le chantier",
@@ -874,7 +884,9 @@
     "acceptance_rejected": "Refusé en ligne le {{date}}.",
     "acceptance_expired": "Le lien envoyé à {{email}} a expiré (valable jusqu'au {{date}}).",
     "acceptance_withdrawn": "Le lien envoyé au client ne fonctionne plus : le devis a été rouvert.",
-    "acceptance_comment": "Message du client :"
+    "acceptance_comment": "Message du client :",
+    "action_create_project": "Créer le chantier",
+    "project_label": "Chantier"
   },
   "quote_public": {
     "title": "Devis {{reference}}",

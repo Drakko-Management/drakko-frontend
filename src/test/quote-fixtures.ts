@@ -37,6 +37,7 @@ export function quote(over: Partial<Quote> = {}): Quote {
     vatAmount: '12.50',
     total: '137.50',
     acceptance: null,
+    project: null,
     ...over,
   }
 }

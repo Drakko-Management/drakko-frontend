@@ -490,7 +490,8 @@
     "delete_error": "No se pudo eliminar la obra",
     "locked_error": "Esta obra está bloqueada: se ha enviado a firma o ya está firmada, y ya no se puede modificar ni eliminar",
     "send_reserve_lift": "Enviar levantamiento de reservas",
-    "reserve_notes_label": "Reservas indicadas"
+    "reserve_notes_label": "Reservas indicadas",
+    "info_from_quote": "Presupuesto de origen"
   },
   "create_project": {
     "title": "Nuevo proyecto",
@@ -513,7 +514,16 @@
     "title_placeholder": "Ej.: Acondicionamiento de terraza",
     "create_client": "Crear «{{name}}»",
     "client_required": "Elige un cliente de la lista o créalo",
-    "client_not_found": "Cliente no encontrado. Elige otro o créalo."
+    "client_not_found": "Cliente no encontrado. Elige otro o créalo.",
+    "from_quote_label": "Partir de un presupuesto aceptado",
+    "from_quote_placeholder": "Elige un presupuesto…",
+    "from_quote_hint": "El cliente, el título, la dirección y el importe se toman del presupuesto y puedes cambiarlos. Un presupuesto da un solo proyecto.",
+    "from_quote_linked": "Proyecto del presupuesto {{reference}}",
+    "from_quote_remove": "No vincular",
+    "from_quote_unavailable": "Este presupuesto no puede dar un proyecto: no está aceptado, o ya hay un proyecto creado a partir de él.",
+    "err_quote_not_accepted": "Solo un presupuesto aceptado puede dar un proyecto.",
+    "err_quote_client": "El cliente del proyecto debe ser el del presupuesto.",
+    "err_quote_taken": "Ya hay un proyecto creado a partir de este presupuesto."
   },
   "edit_project": {
     "title": "Modificar proyecto",
@@ -874,7 +884,9 @@
     "acceptance_rejected": "Rechazado en línea el {{date}}.",
     "acceptance_expired": "El enlace enviado a {{email}} ha caducado (válido hasta el {{date}}).",
     "acceptance_withdrawn": "El enlace enviado al cliente ya no funciona: el presupuesto se reabrió.",
-    "acceptance_comment": "Mensaje del cliente:"
+    "acceptance_comment": "Mensaje del cliente:",
+    "action_create_project": "Crear el proyecto",
+    "project_label": "Proyecto"
   },
   "quote_public": {
     "title": "Presupuesto {{reference}}",

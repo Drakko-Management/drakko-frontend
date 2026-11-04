@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Loader2 } from 'lucide-react'
@@ -13,10 +13,18 @@ import { ClientCreateDialog } from '@/components/clients/ClientCreateDialog'
 import { ClientSearch } from '@/components/clients/ClientSearch'
 import { useCreateProject, useNextProjectReference } from '@/hooks/use-projects'
 import { useOrganization } from '@/hooks/use-organization'
+import { usePermissions } from '@/hooks/use-permissions'
+import { useQuote, useQuotes } from '@/hooks/use-quotes'
 import { apiErrorMessage } from '@/lib/api-error'
-import { buildAddress, parseAddress, dateRangeBounds } from '@/lib/utils'
-import type { Client } from '@/types/api'
+import { buildAddress, parseAddress, dateRangeBounds, fullName } from '@/lib/utils'
+import { formatMoney } from '@/modules/devis/format'
+import type { Client, Quote } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
+
+// Le devis ne porte que les coordonnées du client : de quoi remplir le champ client, pas sa fiche complète
+function clientOfQuote(quote: Quote): Client {
+  return { ...quote.client, notes: null, active: true, createdAt: quote.createdAt, updatedAt: quote.updatedAt }
+}
 
 export function CreateProjectPage() {
   const navigate = useNavigate()
@@ -44,6 +52,25 @@ export function CreateProjectPage() {
     expectedEndDate: '',
   })
   const [sameAsBilling, setSameAsBilling] = useState(false)
+
+  // Chantier issu d'un devis accepté (ADR-032), par deux chemins : le bouton de la fiche du devis (`?devis=`) ou le choix
+  // d'un devis en haut du formulaire. Les deux remplissent le formulaire de la même façon.
+  const [searchParams] = useSearchParams()
+  const urlQuoteId = searchParams.get('devis') ?? ''
+  const { can } = usePermissions()
+  const canUseQuotes = can('devis', 'read')
+  const [linkedQuote, setLinkedQuote] = useState<Quote | null>(null)
+  const [quoteUnavailable, setQuoteUnavailable] = useState(false)
+  const urlQuote = useQuote(canUseQuotes ? urlQuoteId : '')
+  const appliedUrlQuote = useRef('')
+  // Une fois un client choisi, seuls ses devis sont proposés
+  const { data: quoteChoices } = useQuotes(
+    { status: 'ACCEPTED', withoutProject: true, clientId: selectedClient?.id },
+    canUseQuotes,
+  )
+  const quoteProblem = quoteUnavailable || (canUseQuotes && Boolean(urlQuoteId) && urlQuote.isError)
+  const showQuotePicker = canUseQuotes && (Boolean(linkedQuote) || quoteProblem || (quoteChoices?.length ?? 0) > 0)
+
   const clientError = clientAttempts > 0 && !selectedClient
   const dates = dateRangeBounds(form.startDate, form.expectedEndDate)
 
@@ -59,9 +86,34 @@ export function CreateProjectPage() {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
+  function applyQuote(quote: Quote) {
+    handleClientChange(clientOfQuote(quote))
+    setForm((f) => ({ ...f, title: quote.title?.trim() || quote.reference, quoteAmount: quote.total }))
+    // Après le changement de client, qui retire un lien précédent : le dernier appel l'emporte
+    setLinkedQuote(quote)
+    setQuoteUnavailable(false)
+  }
+
+  function handleQuoteChoice(id: string) {
+    const quote = quoteChoices?.find((q) => q.id === id)
+    if (quote) applyQuote(quote)
+  }
+
+  // Le devis du bouton arrive par l'API : on le reprend une fois, s'il peut encore donner un chantier
+  useEffect(() => {
+    const quote = urlQuote.data
+    if (!quote || appliedUrlQuote.current === quote.id) return
+    appliedUrlQuote.current = quote.id
+    if (quote.status !== 'ACCEPTED' || quote.project) setQuoteUnavailable(true)
+    else applyQuote(quote)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlQuote.data])
+
   function handleClientChange(client: Client | null) {
     setSelectedClient(client)
     setClientAttempts(0)
+    // Le chantier d'un devis a le client du devis : en choisir un autre retire le lien
+    if (linkedQuote && client?.id !== linkedQuote.clientId) setLinkedQuote(null)
     if (client?.address) {
       const { street, postalCode, city } = parseAddress(client.address)
       setForm((f) => ({ ...f, street, postalCode, city }))
@@ -102,6 +154,7 @@ export function CreateProjectPage() {
         title: form.title.trim(),
         address,
         clientId: selectedClient.id,
+        quoteId: linkedQuote?.id,
         projectManager: form.projectManager.trim() || undefined,
         description: form.description.trim() || undefined,
         quoteAmount: form.quoteAmount ? parseFloat(form.quoteAmount) : undefined,
@@ -129,6 +182,42 @@ export function CreateProjectPage() {
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
+        {showQuotePicker && (
+          <section className="space-y-2 rounded-xl border bg-card p-3" data-testid="project-from-quote">
+            {linkedQuote ? (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium">{t('create_project.from_quote_linked', { reference: linkedQuote.reference })}</p>
+                <Button type="button" variant="outline" size="sm" className="min-h-[44px] shrink-0" onClick={() => setLinkedQuote(null)}>
+                  {t('create_project.from_quote_remove')}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Label htmlFor="from-quote">{t('create_project.from_quote_label')}</Label>
+                <select
+                  id="from-quote"
+                  value=""
+                  onChange={(e) => handleQuoteChoice(e.target.value)}
+                  className="h-11 w-full cursor-pointer rounded-xl border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">{t('create_project.from_quote_placeholder')}</option>
+                  {quoteChoices?.map((q) => (
+                    <option key={q.id} value={q.id}>
+                      {`${q.reference} · ${fullName(q.client)}${q.title ? ` · ${q.title}` : ''} · ${formatMoney(q.total)}`}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+            {quoteProblem && !linkedQuote && (
+              <p role="alert" className="text-xs text-destructive">
+                {t('create_project.from_quote_unavailable')}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">{t('create_project.from_quote_hint')}</p>
+          </section>
+        )}
+
         <div className="space-y-4" data-tutorial="project-title">
         <div className="space-y-2">
           <Label htmlFor="reference">

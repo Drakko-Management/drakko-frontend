@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { ApiError } from '@/lib/api-client'
 import { useAuthStore } from '@/store/auth.store'
 import { CreateProjectPage } from './CreateProjectPage'
+import { quote } from '@/test/quote-fixtures'
 import type { Client } from '@/types/api'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -14,6 +15,8 @@ const mockNavigate = vi.fn()
 const mockCreateProject = vi.fn()
 const mockCreateClient = vi.fn()
 const mockUseClients = vi.fn()
+const mockUseQuote = vi.fn()
+const mockUseQuotes = vi.fn()
 
 vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router')>()
@@ -23,6 +26,11 @@ vi.mock('react-router', async (importOriginal) => {
 vi.mock('@/hooks/use-clients', () => ({
   useClients: (params: { search?: string }) => mockUseClients(params),
   useCreateClient: () => ({ mutateAsync: mockCreateClient, isPending: false }),
+}))
+
+vi.mock('@/hooks/use-quotes', () => ({
+  useQuote: (id: string) => mockUseQuote(id),
+  useQuotes: (filters: object, enabled: boolean) => mockUseQuotes(filters, enabled),
 }))
 
 vi.mock('@/hooks/use-projects', () => ({
@@ -69,6 +77,9 @@ function clientsFor({ search }: { search?: string }) {
 beforeEach(() => {
   vi.clearAllMocks()
   mockUseClients.mockImplementation(clientsFor)
+  // Aucun devis à relier par défaut : les tests du chantier « classique » n'en voient pas la trace
+  mockUseQuote.mockReturnValue({ data: undefined, isError: false })
+  mockUseQuotes.mockReturnValue({ data: [] })
   mockCreateProject.mockResolvedValue({ id: 'project-new' })
   mockCreateClient.mockResolvedValue(NEW_CLIENT)
   useAuthStore.setState({ accessToken: 'tok', username: 'admin', role: 'ADMIN', userId: 'u1', permissions: null })
@@ -76,8 +87,8 @@ beforeEach(() => {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function renderPage() {
-  render(<MemoryRouter><CreateProjectPage /></MemoryRouter>)
+function renderPage(entry = '/chantiers/nouveau') {
+  render(<MemoryRouter initialEntries={[entry]}><CreateProjectPage /></MemoryRouter>)
 }
 
 const searchField = () => screen.getByPlaceholderText('Rechercher un client…')
@@ -329,6 +340,240 @@ describe('CreateProjectPage — erreur du serveur', () => {
     await submitWithDupont()
 
     expect(toast.error).toHaveBeenCalledWith('Erreur lors de la création')
+  })
+})
+
+// ── Depuis un devis accepté (ADR-032) ──────────────────────────────────────
+
+describe('CreateProjectPage — depuis un devis accepté', () => {
+  const dupontQuote = quote({
+    id: 'q-ok',
+    reference: 'DEV-2026-0007',
+    status: 'ACCEPTED',
+    title: 'Terrasse bois',
+    total: '1650.00',
+    clientId: 'client-dupont',
+    client: { id: 'client-dupont', firstName: 'Paul', lastName: 'Dupont', email: 'paul@dupont.fr', phone: null, address: '3 rue Neuve, 69000 Lyon' },
+  })
+  const quoteChoice = () => screen.getByRole('combobox', { name: "Partir d'un devis accepté" })
+  const pickQuote = () => userEvent.selectOptions(quoteChoice(), 'q-ok')
+  const linkedMessage = 'Chantier issu du devis DEV-2026-0007'
+  // happy-dom juge invalide tout montant d'un champ `step="0.01"` et bloque le bouton : on envoie le formulaire lui-même
+  const submitForm = () => fireEvent.submit(document.querySelector('form')!)
+
+  beforeEach(() => {
+    mockUseQuotes.mockReturnValue({ data: [dupontQuote] })
+  })
+
+  it('ne montre rien quand aucun devis accepté n\'attend de chantier', () => {
+    mockUseQuotes.mockReturnValue({ data: [] })
+
+    renderPage()
+
+    expect(screen.queryByTestId('project-from-quote')).not.toBeInTheDocument()
+  })
+
+  it('demande à l\'API les devis acceptés qui n\'ont pas encore de chantier', () => {
+    renderPage()
+
+    expect(mockUseQuotes).toHaveBeenCalledWith({ status: 'ACCEPTED', withoutProject: true, clientId: undefined }, true)
+  })
+
+  it('propose chaque devis avec son numéro, son client et son titre', () => {
+    renderPage()
+
+    expect(within(quoteChoice()).getByRole('option', { name: /DEV-2026-0007 · Paul Dupont · Terrasse bois/ })).toBeInTheDocument()
+  })
+
+  it('une fois un client choisi, ne demande que ses devis', async () => {
+    renderPage()
+
+    await userEvent.click(searchField())
+    await userEvent.click(await screen.findByRole('button', { name: /Dupont/ }))
+
+    expect(mockUseQuotes).toHaveBeenLastCalledWith({ status: 'ACCEPTED', withoutProject: true, clientId: 'client-dupont' }, true)
+  })
+
+  it('choisir un devis reprend le client, le titre, l\'adresse et le montant', async () => {
+    renderPage()
+
+    await pickQuote()
+
+    expect(screen.getByText(linkedMessage)).toBeInTheDocument()
+    expect(screen.getByText('Paul Dupont')).toBeInTheDocument()
+    expect(document.getElementById('title')).toHaveValue('Terrasse bois')
+    expect(document.getElementById('quoteAmount')).toHaveValue(1650)
+    expect(screen.getByPlaceholderText('Numéro et rue')).toHaveValue('3 rue Neuve')
+  })
+
+  it('un devis sans objet donne son numéro pour titre', async () => {
+    mockUseQuotes.mockReturnValue({ data: [{ ...dupontQuote, title: null }] })
+    renderPage()
+
+    await pickQuote()
+
+    expect(document.getElementById('title')).toHaveValue('DEV-2026-0007')
+  })
+
+  it('crée le chantier lié au devis', async () => {
+    renderPage()
+    await pickQuote()
+    await userEvent.type(document.getElementById('reference')!, 'CH-001')
+
+    submitForm()
+
+    await waitFor(() => expect(mockCreateProject).toHaveBeenCalledWith(
+      expect.objectContaining({ quoteId: 'q-ok', clientId: 'client-dupont', title: 'Terrasse bois', quoteAmount: 1650 }),
+    ))
+    expect(mockNavigate).toHaveBeenCalledWith('/chantiers/project-new')
+  })
+
+  it('un chantier sans devis n\'envoie aucun lien', async () => {
+    renderPage()
+    await fillRequiredProjectFields()
+    await userEvent.click(searchField())
+    await userEvent.click(await screen.findByRole('button', { name: /Dupont/ }))
+
+    await submit()
+
+    expect(mockCreateProject).toHaveBeenCalledTimes(1)
+    expect(mockCreateProject.mock.calls[0][0].quoteId).toBeUndefined()
+  })
+
+  it('« Ne pas lier » retire le lien et garde ce qui est rempli', async () => {
+    renderPage()
+    await pickQuote()
+    await userEvent.type(document.getElementById('reference')!, 'CH-001')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ne pas lier' }))
+
+    expect(screen.queryByText(linkedMessage)).not.toBeInTheDocument()
+    expect(document.getElementById('title')).toHaveValue('Terrasse bois')
+    submitForm()
+    await waitFor(() => expect(mockCreateProject).toHaveBeenCalledTimes(1))
+    expect(mockCreateProject.mock.calls[0][0].quoteId).toBeUndefined()
+    expect(mockCreateProject.mock.calls[0][0].clientId).toBe('client-dupont')
+  })
+
+  it('retirer le client retire le lien : le chantier d\'un devis a le client du devis', async () => {
+    renderPage()
+    await pickQuote()
+
+    const chosen = screen.getByText('Paul Dupont').parentElement!
+    await userEvent.click(within(chosen).getByRole('button'))
+
+    expect(screen.queryByText(linkedMessage)).not.toBeInTheDocument()
+  })
+
+  it('choisir un autre devis remplace le précédent', async () => {
+    const other = quote({
+      id: 'q-autre',
+      reference: 'DEV-2026-0008',
+      status: 'ACCEPTED',
+      title: 'Haie',
+      total: '300.00',
+      clientId: 'client-new',
+      client: { id: 'client-new', firstName: 'Zzz', lastName: 'inconnu', email: 'zzz@test.fr', phone: null, address: '8 allée des Tilleuls, 38000 Grenoble' },
+    })
+    mockUseQuotes.mockReturnValue({ data: [dupontQuote, other] })
+    renderPage()
+    await pickQuote()
+    await userEvent.click(screen.getByRole('button', { name: 'Ne pas lier' }))
+
+    await userEvent.selectOptions(quoteChoice(), 'q-autre')
+
+    expect(screen.getByText('Chantier issu du devis DEV-2026-0008')).toBeInTheDocument()
+    expect(document.getElementById('title')).toHaveValue('Haie')
+    expect(document.getElementById('quoteAmount')).toHaveValue(300)
+  })
+
+  it('traduit le code QUOTE_ALREADY_HAS_PROJECT', async () => {
+    mockCreateProject.mockRejectedValue(new ApiError(409, 'This quote already has a project', 'QUOTE_ALREADY_HAS_PROJECT'))
+    renderPage()
+    await pickQuote()
+    await userEvent.type(document.getElementById('reference')!, 'CH-001')
+
+    submitForm()
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Un chantier est déjà issu de ce devis.'))
+  })
+
+  describe('par le bouton de la fiche du devis (?devis=)', () => {
+    const entry = '/chantiers/nouveau?devis=q-ok'
+
+    it('reprend le devis demandé dès son arrivée', async () => {
+      mockUseQuote.mockReturnValue({ data: dupontQuote, isError: false })
+
+      renderPage(entry)
+
+      expect(await screen.findByText(linkedMessage)).toBeInTheDocument()
+      expect(mockUseQuote).toHaveBeenCalledWith('q-ok')
+      expect(document.getElementById('title')).toHaveValue('Terrasse bois')
+      expect(document.getElementById('quoteAmount')).toHaveValue(1650)
+    })
+
+    it('crée ensuite le chantier lié au devis', async () => {
+      mockUseQuote.mockReturnValue({ data: dupontQuote, isError: false })
+      renderPage(entry)
+      await screen.findByText(linkedMessage)
+      await userEvent.type(document.getElementById('reference')!, 'CH-001')
+
+      fireEvent.submit(document.querySelector('form')!)
+
+      await waitFor(() => expect(mockCreateProject).toHaveBeenCalledWith(expect.objectContaining({ quoteId: 'q-ok', clientId: 'client-dupont' })))
+    })
+
+    it.each([
+      ['pas encore accepté', { status: 'SENT' as const }],
+      ['déjà lié à un chantier', { project: { id: 'p0', reference: 'CH-000', title: 'Déjà', status: 'DRAFT' as const } }],
+    ])('un devis %s n\'est pas repris et le dit', async (_label, over) => {
+      mockUseQuote.mockReturnValue({ data: { ...dupontQuote, ...over }, isError: false })
+      mockUseQuotes.mockReturnValue({ data: [] })
+
+      renderPage(entry)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Ce devis ne peut pas donner de chantier')
+      expect(screen.queryByText(linkedMessage)).not.toBeInTheDocument()
+      expect(document.getElementById('title')).toHaveValue('')
+    })
+
+    it('un devis introuvable le dit aussi', () => {
+      mockUseQuote.mockReturnValue({ data: undefined, isError: true })
+      mockUseQuotes.mockReturnValue({ data: [] })
+
+      renderPage(entry)
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Ce devis ne peut pas donner de chantier')
+    })
+  })
+
+  describe('sans le droit de lire les devis', () => {
+    beforeEach(() => {
+      useAuthStore.setState({
+        role: 'MEMBER',
+        permissions: {
+          chantiers: ['read', 'create'],
+          clients: ['read', 'create'],
+          equipe: [],
+          prestations: [],
+          devis: [],
+        },
+      })
+    })
+
+    it('ne propose aucun devis et ne les interroge pas', () => {
+      renderPage()
+
+      expect(screen.queryByTestId('project-from-quote')).not.toBeInTheDocument()
+      expect(mockUseQuotes).toHaveBeenCalledWith(expect.anything(), false)
+    })
+
+    it('ignore ?devis= : le devis n\'est pas demandé', () => {
+      renderPage('/chantiers/nouveau?devis=q-ok')
+
+      expect(mockUseQuote).toHaveBeenCalledWith('')
+      expect(screen.queryByTestId('project-from-quote')).not.toBeInTheDocument()
+    })
   })
 })
 

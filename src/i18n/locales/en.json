@@ -490,7 +490,8 @@
     "delete_error": "Failed to delete project",
     "locked_error": "This project is locked: it has been sent for signature or signed, so it can no longer be changed or deleted",
     "send_reserve_lift": "Send snagging list clearance",
-    "reserve_notes_label": "Reported snagging items"
+    "reserve_notes_label": "Reported snagging items",
+    "info_from_quote": "Original quote"
   },
   "create_project": {
     "title": "New project",
@@ -513,7 +514,16 @@
     "title_placeholder": "E.g.: Terrace development",
     "create_client": "Create “{{name}}”",
     "client_required": "Pick a client from the list, or create one",
-    "client_not_found": "Client not found. Pick another one or create it."
+    "client_not_found": "Client not found. Pick another one or create it.",
+    "from_quote_label": "Start from an accepted quote",
+    "from_quote_placeholder": "Choose a quote…",
+    "from_quote_hint": "The client, title, address and amount are taken from the quote and can be changed. A quote gives one project only.",
+    "from_quote_linked": "Project from quote {{reference}}",
+    "from_quote_remove": "Do not link",
+    "from_quote_unavailable": "This quote cannot give a project: it is not accepted, or a project already comes from it.",
+    "err_quote_not_accepted": "Only an accepted quote can give a project.",
+    "err_quote_client": "The project's client must be the quote's client.",
+    "err_quote_taken": "A project already comes from this quote."
   },
   "edit_project": {
     "title": "Edit project",
@@ -874,7 +884,9 @@
     "acceptance_rejected": "Declined online on {{date}}.",
     "acceptance_expired": "The link sent to {{email}} has expired (valid until {{date}}).",
     "acceptance_withdrawn": "The link sent to the client no longer works: the quote was reopened.",
-    "acceptance_comment": "Client's message:"
+    "acceptance_comment": "Client's message:",
+    "action_create_project": "Create the project",
+    "project_label": "Project"
   },
   "quote_public": {
     "title": "Quote {{reference}}",

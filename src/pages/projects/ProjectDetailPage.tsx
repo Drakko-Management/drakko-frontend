@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
@@ -605,6 +605,17 @@ export function ProjectDetailPage() {
                 {formatDate(project.startDate)} →{" "}
                 {formatDate(project.expectedEndDate)}
               </p>
+            </div>
+          </div>
+        )}
+        {project.quote && can('devis', 'read') && (
+          <div className="flex items-start gap-3 p-4" data-testid="project-from-quote">
+            <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">{t('project.info_from_quote')}</p>
+              <Link to={`/devis/${project.quote.id}`} className="text-sm font-semibold text-primary">
+                {project.quote.reference}
+              </Link>
             </div>
           </div>
         )}

@@ -51,6 +51,9 @@ const API_ERROR_KEYS: Record<string, string> = {
   QUOTE_LINE_TITLE_REQUIRED: 'quotes.err_line_title',
   QUOTE_LINE_PRICE_REQUIRED: 'quotes.err_line_price',
   SERVICE_NOT_FOUND: 'quotes.err_service_not_found',
+  QUOTE_NOT_ACCEPTED: 'create_project.err_quote_not_accepted',
+  QUOTE_CLIENT_MISMATCH: 'create_project.err_quote_client',
+  QUOTE_ALREADY_HAS_PROJECT: 'create_project.err_quote_taken',
   // Plateforme (ADR-028)
   ORGANIZATION_SUSPENDED: 'login.error_suspended',
   SUPPORT_READ_ONLY: 'platform.err_read_only',

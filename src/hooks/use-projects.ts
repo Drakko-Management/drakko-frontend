@@ -47,6 +47,8 @@ interface CreateProjectInput {
   title: string
   address: string
   clientId: string
+  /** Le devis accepté dont le chantier est issu (ADR-032) */
+  quoteId?: string
   description?: string
   notes?: string
   projectManager?: string
@@ -62,7 +64,12 @@ export function useCreateProject() {
         method: 'POST',
         body: JSON.stringify(dto),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+    // Un chantier issu d'un devis (ADR-032) change l'état de ce devis : il n'est plus à relier
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+        queryClient.invalidateQueries({ queryKey: ['quotes'] }),
+      ]),
   })
 }
 
@@ -161,7 +168,12 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: (id: string) =>
       apiRequest(`/projects/${id}`, { method: 'DELETE' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+    // Supprimer le chantier libère le devis dont il est issu (ADR-032)
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+        queryClient.invalidateQueries({ queryKey: ['quotes'] }),
+      ]),
   })
 }
 

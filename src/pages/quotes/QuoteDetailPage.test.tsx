@@ -135,6 +135,64 @@ describe('QuoteDetailPage — les gestes selon l\'état', () => {
   })
 })
 
+describe('QuoteDetailPage — chantier issu du devis (ADR-032)', () => {
+  const accepted = quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T09:00:00.000Z' })
+  const withProject = quote({
+    status: 'ACCEPTED',
+    project: { id: 'p1', reference: 'CH-2026-001', title: 'Terrasse bois', status: 'IN_PROGRESS' },
+  })
+  const createLabel = 'Créer le chantier'
+
+  it('accepté, sans chantier : « Créer le chantier » ouvre le formulaire pré-rempli de ce devis', async () => {
+    show(accepted)
+
+    await userEvent.click(button(createLabel)!)
+
+    expect(mockNavigate).toHaveBeenCalledWith('/chantiers/nouveau?devis=q1')
+  })
+
+  it.each(['DRAFT', 'SENT', 'REJECTED'] as const)('un devis %s ne propose pas de créer un chantier', (status) => {
+    show(quote({ status }))
+
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('accepté, avec un chantier : un lien vers lui, plus de bouton', () => {
+    show(withProject)
+
+    expect(screen.getByRole('link', { name: 'CH-2026-001 · Terrasse bois' })).toHaveAttribute('href', '/chantiers/p1')
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('sans le droit de créer des chantiers, pas de bouton', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read'], chantiers: ['read'] }) })
+    show(accepted)
+
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('sans le droit de lire les chantiers, le chantier lié n\'est pas un lien', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read'] }) })
+    show(withProject)
+
+    expect(screen.queryByTestId('quote-project')).not.toBeInTheDocument()
+  })
+
+  it('« Devis seul » (module Chantiers absent) : ni bouton ni chantier lié, même pour l\'administrateur', () => {
+    useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+    show(accepted)
+
+    expect(button(createLabel)).not.toBeInTheDocument()
+  })
+
+  it('« Devis seul » : un devis resté lié à un chantier ne montre pas ce chantier', () => {
+    useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+    show(withProject)
+
+    expect(screen.queryByTestId('quote-project')).not.toBeInTheDocument()
+  })
+})
+
 describe('QuoteDetailPage — envoi par email et réponse du client', () => {
   it('« Envoyer par email » demande confirmation, avec l\'adresse du client, puis envoie', async () => {
     show(quote({ status: 'DRAFT' }))

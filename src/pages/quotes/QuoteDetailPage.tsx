@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Check, Copy, Download, Loader2, Mail, Pencil, RotateCcw, Send, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, RotateCcw, Send, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
@@ -127,6 +127,14 @@ export function QuoteDetailPage() {
             fullName(quote.client)
           )}
         </p>
+        {quote.project && can('chantiers', 'read') && (
+          <p className="text-sm" data-testid="quote-project">
+            <span className="text-muted-foreground">{t('quotes.project_label')} : </span>
+            <Link to={`/chantiers/${quote.project.id}`} className="text-primary">
+              {`${quote.project.reference} · ${quote.project.title}`}
+            </Link>
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">{t('quotes.created_on', { date: formatDate(quote.createdAt) })}</p>
         {quote.sentAt && <p className="text-xs text-muted-foreground">{t('quotes.sent_on', { date: formatDate(quote.sentAt) })}</p>}
         {quote.decidedAt && (
@@ -232,6 +240,13 @@ export function QuoteDetailPage() {
               {t('quotes.action_reopen')}
             </Button>
           </>
+        )}
+
+        {status === 'ACCEPTED' && !quote.project && can('chantiers', 'create') && (
+          <Button type="button" className={buttonClass} onClick={() => void navigate(`/chantiers/nouveau?devis=${id}`)}>
+            <Hammer className="h-4 w-4" />
+            {t('quotes.action_create_project')}
+          </Button>
         )}
 
         {status === 'DRAFT' && canDelete && (

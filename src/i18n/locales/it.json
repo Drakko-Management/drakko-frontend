@@ -490,7 +490,8 @@
     "delete_error": "Impossibile eliminare il cantiere",
     "locked_error": "Questo cantiere è bloccato: è stato inviato alla firma o è già firmato e non può più essere modificato né eliminato",
     "send_reserve_lift": "Invia revoca delle riserve",
-    "reserve_notes_label": "Riserve segnalate"
+    "reserve_notes_label": "Riserve segnalate",
+    "info_from_quote": "Preventivo di origine"
   },
   "create_project": {
     "title": "Nuovo cantiere",
@@ -513,7 +514,16 @@
     "title_placeholder": "Es.: Sistemazione terrazza",
     "create_client": "Crea «{{name}}»",
     "client_required": "Scegli un cliente dalla lista o crealo",
-    "client_not_found": "Cliente non trovato. Scegline un altro o crealo."
+    "client_not_found": "Cliente non trovato. Scegline un altro o crealo.",
+    "from_quote_label": "Parti da un preventivo accettato",
+    "from_quote_placeholder": "Scegli un preventivo…",
+    "from_quote_hint": "Il cliente, il titolo, l'indirizzo e l'importo sono presi dal preventivo e puoi modificarli. Un preventivo dà un solo cantiere.",
+    "from_quote_linked": "Cantiere dal preventivo {{reference}}",
+    "from_quote_remove": "Non collegare",
+    "from_quote_unavailable": "Questo preventivo non può dare un cantiere: non è accettato, oppure ne è già nato un cantiere.",
+    "err_quote_not_accepted": "Solo un preventivo accettato può dare un cantiere.",
+    "err_quote_client": "Il cliente del cantiere deve essere quello del preventivo.",
+    "err_quote_taken": "Da questo preventivo è già nato un cantiere."
   },
   "edit_project": {
     "title": "Modifica cantiere",
@@ -874,7 +884,9 @@
     "acceptance_rejected": "Rifiutato online il {{date}}.",
     "acceptance_expired": "Il link inviato a {{email}} è scaduto (valido fino al {{date}}).",
     "acceptance_withdrawn": "Il link inviato al cliente non funziona più: il preventivo è stato riaperto.",
-    "acceptance_comment": "Messaggio del cliente:"
+    "acceptance_comment": "Messaggio del cliente:",
+    "action_create_project": "Crea il cantiere",
+    "project_label": "Cantiere"
   },
   "quote_public": {
     "title": "Preventivo {{reference}}",

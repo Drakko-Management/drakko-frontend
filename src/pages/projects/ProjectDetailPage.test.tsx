@@ -211,6 +211,41 @@ describe('ProjectDetailPage — rendu', () => {
 
 // ── Bouton modifier — permissions ──────────────────────────────────────────
 
+describe('ProjectDetailPage — devis d\'origine (ADR-032)', () => {
+  const fromQuote = { ...PROJECT_DRAFT, quote: { id: 'q1', reference: 'DEV-2026-0007' } }
+  const showQuote = (project: unknown = fromQuote) => {
+    vi.mocked(useProject).mockReturnValue({ data: project, isLoading: false } as unknown as ReturnType<typeof useProject>)
+    renderDetail()
+  }
+
+  it('montre le devis dont le chantier est issu, avec un lien vers lui', () => {
+    showQuote()
+
+    expect(screen.getByText('Devis d\'origine')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'DEV-2026-0007' })).toHaveAttribute('href', '/devis/q1')
+  })
+
+  it('un chantier créé à la main n\'a pas de devis d\'origine', () => {
+    showQuote({ ...PROJECT_DRAFT, quote: null })
+
+    expect(screen.queryByTestId('project-from-quote')).not.toBeInTheDocument()
+  })
+
+  it('sans le droit de lire les devis, rien n\'est montré', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ chantiers: ['read'] }) })
+    showQuote()
+
+    expect(screen.queryByTestId('project-from-quote')).not.toBeInTheDocument()
+  })
+
+  it('sans le module Devis, rien n\'est montré, même pour l\'administrateur', () => {
+    useAuthStore.setState({ role: 'ADMIN', modules: ['chantiers'] })
+    showQuote()
+
+    expect(screen.queryByTestId('project-from-quote')).not.toBeInTheDocument()
+  })
+})
+
 describe('ProjectDetailPage — bouton modifier (RBAC)', () => {
   it('visible pour ADMIN sur un chantier non verrouillé', () => {
     renderDetail()
