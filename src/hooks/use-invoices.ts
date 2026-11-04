@@ -108,6 +108,14 @@ export function useCreditNote() {
   })
 }
 
+/** Envoie la facture (ou l'avoir) émis au client par email, avec son PDF : ne change rien d'autre que la trace de l'envoi. */
+export function useEmailInvoice() {
+  return useMutation({
+    mutationFn: (id: string) => apiRequest<Invoice>(`/invoices/${id}/email`, { method: 'POST' }),
+    onSuccess: refresh,
+  })
+}
+
 export function useDeleteInvoice() {
   return useMutation({
     mutationFn: (id: string) => apiRequest<void>(`/invoices/${id}`, { method: 'DELETE' }),

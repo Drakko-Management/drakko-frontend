@@ -55,6 +55,7 @@ const API_ERROR_KEYS: Record<string, string> = {
   QUOTE_ALREADY_INVOICED: 'invoices.err_quote_invoiced',
   VAT_EXEMPT_RATE: 'quotes.err_vat_exempt',
   INVOICE_NOT_FOUND: 'invoices.not_found',
+  INVOICE_EMAIL_FAILED: 'invoices.err_email_failed',
   INVOICE_LOCKED: 'invoices.err_locked',
   INVOICE_INVALID_STATUS: 'invoices.err_invalid_status',
   INVOICE_EMPTY: 'invoices.err_empty',

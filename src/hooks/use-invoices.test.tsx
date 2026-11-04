@@ -9,6 +9,7 @@ import {
   useCreateInvoice,
   useCreditNote,
   useDeleteInvoice,
+  useEmailInvoice,
   useInvoices,
   useIssueInvoice,
   usePayInvoice,
@@ -78,7 +79,7 @@ describe('les gestes sur une facture', () => {
     expect(lastCall()).toEqual({ path: '/invoices', method: 'POST', body: { quoteId: 'q1' } })
   })
 
-  it('modifier, émettre, payer, défaire, annuler par un avoir, supprimer : la bonne adresse et le bon verbe', async () => {
+  it('modifier, émettre, envoyer, payer, défaire, annuler par un avoir, supprimer : la bonne adresse et le bon verbe', async () => {
     const update = renderHook(() => useUpdateInvoice(), { wrapper })
     await update.result.current.mutateAsync({ id: 'i1', title: 'x', dueDate: null })
     expect(lastCall()).toEqual({ path: '/invoices/i1', method: 'PATCH', body: { title: 'x', dueDate: null } })
@@ -95,6 +96,10 @@ describe('les gestes sur une facture', () => {
     await unpay.result.current.mutateAsync('i1')
     expect(lastCall()).toMatchObject({ path: '/invoices/i1/unpay', method: 'POST' })
 
+    const email = renderHook(() => useEmailInvoice(), { wrapper })
+    await email.result.current.mutateAsync('i1')
+    expect(lastCall()).toEqual({ path: '/invoices/i1/email', method: 'POST', body: undefined })
+
     const credit = renderHook(() => useCreditNote(), { wrapper })
     await credit.result.current.mutateAsync('i1')
     expect(lastCall()).toMatchObject({ path: '/invoices/i1/credit-note', method: 'POST' })
@@ -107,6 +112,7 @@ describe('les gestes sur une facture', () => {
   it.each([
     ['créer', () => useCreateInvoice(), (r: ReturnType<typeof useCreateInvoice>) => r.mutateAsync({ quoteId: 'q1' })],
     ['émettre', () => useIssueInvoice(), (r: ReturnType<typeof useIssueInvoice>) => r.mutateAsync('i1')],
+    ['envoyer par email', () => useEmailInvoice(), (r: ReturnType<typeof useEmailInvoice>) => r.mutateAsync('i1')],
     ['payer', () => usePayInvoice(), (r: ReturnType<typeof usePayInvoice>) => r.mutateAsync({ id: 'i1' })],
     ['défaire un paiement', () => useUnpayInvoice(), (r: ReturnType<typeof useUnpayInvoice>) => r.mutateAsync('i1')],
     ['annuler par un avoir', () => useCreditNote(), (r: ReturnType<typeof useCreditNote>) => r.mutateAsync('i1')],

@@ -395,6 +395,9 @@ export interface Invoice {
   paymentMethod: PaymentMethod | null
   quoteId: string | null
   creditedInvoiceId: string | null
+  /** Le dernier envoi par email au client (adresse et heure) ; null tant qu'elle n'est jamais partie */
+  emailedAt: string | null
+  emailedTo: string | null
   createdAt: string
   updatedAt: string
   client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address'>

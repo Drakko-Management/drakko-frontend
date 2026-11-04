@@ -7,6 +7,7 @@ import {
   openInvoicePdf,
   useCreditNote,
   useDeleteInvoice,
+  useEmailInvoice,
   useInvoice,
   useIssueInvoice,
   usePayInvoice,
@@ -35,6 +36,7 @@ vi.mock('@/hooks/use-invoices', () => ({
   useUnpayInvoice: vi.fn(),
   useCreditNote: vi.fn(),
   useDeleteInvoice: vi.fn(),
+  useEmailInvoice: vi.fn(),
   openInvoicePdf: vi.fn(),
 }))
 vi.mock('@/hooks/use-organization', () => ({ useOrganization: vi.fn() }))
@@ -44,6 +46,7 @@ const pay = vi.fn()
 const unpay = vi.fn()
 const credit = vi.fn()
 const remove = vi.fn()
+const email = vi.fn()
 
 // L'identité de l'entreprise est complète : on peut émettre
 const COMPLETE_ORG = {
@@ -76,11 +79,13 @@ beforeEach(() => {
   unpay.mockResolvedValue(issuedInvoice())
   credit.mockResolvedValue(creditNote())
   remove.mockResolvedValue(undefined)
+  email.mockResolvedValue(issuedInvoice())
   vi.mocked(useIssueInvoice).mockReturnValue({ mutateAsync: issue, isPending: false } as never)
   vi.mocked(usePayInvoice).mockReturnValue({ mutateAsync: pay, isPending: false } as never)
   vi.mocked(useUnpayInvoice).mockReturnValue({ mutateAsync: unpay, isPending: false } as never)
   vi.mocked(useCreditNote).mockReturnValue({ mutateAsync: credit, isPending: false } as never)
   vi.mocked(useDeleteInvoice).mockReturnValue({ mutateAsync: remove, isPending: false } as never)
+  vi.mocked(useEmailInvoice).mockReturnValue({ mutateAsync: email, isPending: false } as never)
   vi.mocked(openInvoicePdf).mockResolvedValue(undefined)
   vi.mocked(useOrganization).mockReturnValue({ data: COMPLETE_ORG } as never)
   useAuthStore.setState({ role: 'ADMIN', permissions: null, modules: null })
@@ -190,15 +195,15 @@ describe('InvoiceDetailPage — gestes selon l\'état', () => {
     for (const name of [PDF, 'Modifier', 'Émettre la facture', 'Supprimer le brouillon']) {
       expect(button(name)).toBeInTheDocument()
     }
-    for (const name of ['Marquer payée', 'Annuler par un avoir', 'Annuler le paiement']) {
+    for (const name of ['Marquer payée', 'Annuler par un avoir', 'Annuler le paiement', 'Envoyer par email']) {
       expect(button(name)).not.toBeInTheDocument()
     }
   })
 
-  it('émise : PDF, marquer payée, annuler par un avoir ; ni modifier, ni émettre, ni supprimer', () => {
+  it('émise : PDF, envoyer par email, marquer payée, annuler par un avoir ; ni modifier, ni émettre, ni supprimer', () => {
     show(issuedInvoice())
 
-    for (const name of [PDF, 'Marquer payée', 'Annuler par un avoir']) {
+    for (const name of [PDF, 'Envoyer par email', 'Marquer payée', 'Annuler par un avoir']) {
       expect(button(name)).toBeInTheDocument()
     }
     for (const name of ['Modifier', 'Émettre la facture', 'Supprimer le brouillon', 'Annuler le paiement']) {
@@ -206,36 +211,40 @@ describe('InvoiceDetailPage — gestes selon l\'état', () => {
     }
   })
 
-  it('payée : seulement le PDF et « Annuler le paiement » (une facture payée ne s\'annule pas par un avoir)', () => {
+  it('payée : le PDF, l\'envoi par email et « Annuler le paiement » (une facture payée ne s\'annule pas par un avoir)', () => {
     show(issuedInvoice({ status: 'PAID', paidAt: '2026-11-10T00:00:00.000Z' }))
 
     expect(button(PDF)).toBeInTheDocument()
+    expect(button('Envoyer par email')).toBeInTheDocument()
     expect(button('Annuler le paiement')).toBeInTheDocument()
     expect(button('Annuler par un avoir')).not.toBeInTheDocument()
     expect(button('Marquer payée')).not.toBeInTheDocument()
   })
 
-  it('annulée : seulement le PDF', () => {
+  it('annulée : seulement le PDF, sans envoi par email', () => {
     show(issuedInvoice({ status: 'CANCELLED' }))
 
     expect(button(PDF)).toBeInTheDocument()
+    expect(button('Envoyer par email')).not.toBeInTheDocument() // son avoir la remplace
     expect(screen.getAllByRole('button')).toHaveLength(2) // PDF + retour
   })
 
-  it('un avoir : seulement le PDF', () => {
+  it('un avoir : le PDF et l\'envoi par email, ni payer ni modifier', () => {
     show(creditNote())
 
     expect(button(PDF)).toBeInTheDocument()
+    expect(button('Envoyer par email')).toBeInTheDocument()
     for (const name of ['Marquer payée', 'Annuler par un avoir', 'Modifier']) {
       expect(button(name)).not.toBeInTheDocument()
     }
   })
 
-  it('lecture seule : le PDF, aucun geste qui écrit', () => {
+  it('lecture seule : le PDF, aucun geste qui écrit (pas d\'envoi par email)', () => {
     useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ factures: ['read'], clients: ['read'] }) })
-    show(invoice())
+    show(issuedInvoice())
 
     expect(button(PDF)).toBeInTheDocument()
+    expect(button('Envoyer par email')).not.toBeInTheDocument()
     for (const name of ['Modifier', 'Émettre la facture', 'Supprimer le brouillon']) {
       expect(button(name)).not.toBeInTheDocument()
     }
@@ -353,6 +362,97 @@ describe('InvoiceDetailPage — émettre', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Émettre' }))
 
     expect(toast.error).toHaveBeenCalledWith('L\'échéance est déjà passée : choisissez une date à venir')
+  })
+})
+
+describe('InvoiceDetailPage — envoyer par email', () => {
+  it('demande confirmation en disant à qui part le PDF, puis envoie', async () => {
+    show(issuedInvoice())
+
+    await userEvent.click(button('Envoyer par email')!)
+
+    expect(screen.getByText('Envoyer par email ?')).toBeInTheDocument()
+    expect(screen.getByText(/FAC-2026-0001 part à lea@martin\.test, avec son PDF en pièce jointe/)).toBeInTheDocument()
+    expect(email).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+    expect(email).toHaveBeenCalledWith('i1')
+    expect(toast.success).toHaveBeenCalledWith('Envoyé à lea@martin.test')
+    expect(screen.queryByText('Envoyer par email ?')).not.toBeInTheDocument()
+  })
+
+  it('annuler la confirmation n\'envoie rien', async () => {
+    show(issuedInvoice())
+    await userEvent.click(button('Envoyer par email')!)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+
+    expect(email).not.toHaveBeenCalled()
+  })
+
+  it('jamais envoyée : aucune ligne « dernier envoi »', () => {
+    show(issuedInvoice())
+
+    expect(screen.queryByTestId('invoice-emailed')).not.toBeInTheDocument()
+  })
+
+  it('déjà envoyée : le dernier envoi est écrit, et le geste devient « Renvoyer »', async () => {
+    show(issuedInvoice({ emailedAt: '2026-11-05T09:30:00.000Z', emailedTo: 'lea@martin.test' }))
+
+    expect(screen.getByTestId('invoice-emailed')).toHaveTextContent('Dernier envoi par email à lea@martin.test le 5 nov. 2026')
+    expect(button('Envoyer par email')).not.toBeInTheDocument()
+
+    await userEvent.click(button('Renvoyer par email')!)
+
+    expect(screen.getByText('Renvoyer par email ?')).toBeInTheDocument()
+    expect(screen.getByText(/FAC-2026-0001 repart à lea@martin\.test/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Envoyer' }))
+    expect(email).toHaveBeenCalledWith('i1')
+  })
+
+  it('un avoir part avec son numéro', async () => {
+    show(creditNote())
+
+    await userEvent.click(button('Envoyer par email')!)
+
+    expect(screen.getByText(/AV-2026-0001 part à lea@martin\.test/)).toBeInTheDocument()
+  })
+
+  it('un email qui ne part pas est dit avec sa traduction', async () => {
+    email.mockRejectedValue(new ApiError(502, 'x', 'INVOICE_EMAIL_FAILED'))
+    show(issuedInvoice())
+    await userEvent.click(button('Envoyer par email')!)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+    expect(toast.error).toHaveBeenCalledWith('L\'email n\'est pas parti. Réessayez dans un instant.')
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it('une erreur inconnue retombe sur le message général, jamais sur le texte du serveur', async () => {
+    email.mockRejectedValue(new ApiError(500, 'boom interne', 'AUTRE'))
+    show(issuedInvoice())
+    await userEvent.click(button('Envoyer par email')!)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+    expect(toast.error).toHaveBeenCalledWith('Impossible d\'envoyer l\'email')
+  })
+
+  it('pendant l\'envoi, les autres gestes sont bloqués', () => {
+    vi.mocked(useEmailInvoice).mockReturnValue({ mutateAsync: email, isPending: true } as never)
+    show(issuedInvoice())
+
+    expect(button('Marquer payée')).toBeDisabled()
+    expect(button('Envoyer par email')).toBeDisabled()
+  })
+
+  it('avec le droit de modifier mais pas de créer, l\'envoi reste possible', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ factures: ['read', 'update'] }) })
+    show(issuedInvoice())
+
+    expect(button('Envoyer par email')).toBeInTheDocument()
   })
 })
 

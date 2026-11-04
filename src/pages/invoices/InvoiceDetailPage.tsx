@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Ban, Banknote, Download, FileCheck2, Loader2, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { ArrowLeft, Ban, Banknote, Download, FileCheck2, Loader2, Mail, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
@@ -12,6 +12,7 @@ import {
   openInvoicePdf,
   useCreditNote,
   useDeleteInvoice,
+  useEmailInvoice,
   useInvoice,
   useIssueInvoice,
   usePayInvoice,
@@ -29,7 +30,7 @@ import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 import { PayInvoiceDialog } from '@/modules/factures/PayInvoiceDialog'
 import { paymentDays } from '@/modules/factures/payment-terms'
 
-type Dialog = 'issue' | 'identity' | 'pay' | 'unpay' | 'credit' | 'delete' | null
+type Dialog = 'issue' | 'identity' | 'email' | 'pay' | 'unpay' | 'credit' | 'delete' | null
 
 export function InvoiceDetailPage() {
   const { id = '' } = useParams()
@@ -39,6 +40,7 @@ export function InvoiceDetailPage() {
   const { data: invoice, isLoading, isError } = useInvoice(id)
   const { data: org } = useOrganization()
   const issue = useIssueInvoice()
+  const emailInvoice = useEmailInvoice()
   const pay = usePayInvoice()
   const unpay = useUnpayInvoice()
   const creditNote = useCreditNote()
@@ -67,7 +69,20 @@ export function InvoiceDetailPage() {
   const missing = missingIdentity(org, invoice.vatExempt)
   const name = invoice.reference ?? t('invoices.draft_name')
   const buttonClass = 'min-h-[44px]'
-  const busy = issue.isPending || pay.isPending || unpay.isPending || creditNote.isPending
+  const busy = issue.isPending || emailInvoice.isPending || pay.isPending || unpay.isPending || creditNote.isPending
+  // Seule une facture émise ou payée part (pas un brouillon sans numéro, pas une facture annulée : son avoir la remplace)
+  const canEmail = canUpdate && (status === 'ISSUED' || status === 'PAID')
+
+  async function handleEmail() {
+    try {
+      await emailInvoice.mutateAsync(id)
+      toast.success(t('invoices.email_done', { email: invoice?.client.email ?? '' }))
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'invoices.email_error'))
+    } finally {
+      setDialog(null)
+    }
+  }
 
   async function handleIssue() {
     try {
@@ -202,6 +217,11 @@ export function InvoiceDetailPage() {
             {t(invoice.overdue ? 'invoices.overdue_since' : 'invoices.due_on', { date: formatDay(invoice.dueDate) })}
           </p>
         )}
+        {invoice.emailedAt && invoice.emailedTo && (
+          <p className="text-xs text-muted-foreground" data-testid="invoice-emailed">
+            {t('invoices.emailed_on', { email: invoice.emailedTo, date: formatDate(invoice.emailedAt) })}
+          </p>
+        )}
         {invoice.paidAt && (
           <p className="text-xs text-muted-foreground" data-testid="invoice-paid">
             {invoice.paymentMethod
@@ -267,6 +287,13 @@ export function InvoiceDetailPage() {
           {pdfPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           {t('invoices.action_pdf')}
         </Button>
+
+        {canEmail && (
+          <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setDialog('email')}>
+            <Mail className="h-4 w-4" />
+            {t(invoice.emailedAt ? 'invoices.action_email_again' : 'invoices.action_email')}
+          </Button>
+        )}
 
         {status === 'DRAFT' && canUpdate && (
           <>
@@ -339,6 +366,19 @@ export function InvoiceDetailPage() {
         description={t('invoices.identity_description', { fields: missing.map((key) => t(key)).join(', ') })}
         confirmLabel={t('invoices.identity_confirm')}
         onConfirm={() => void navigate('/parametres/entreprise')}
+      />
+
+      <ConfirmDialog
+        open={dialog === 'email'}
+        onOpenChange={(open) => !open && setDialog(null)}
+        title={t(invoice.emailedAt ? 'invoices.email_again_title' : 'invoices.email_title')}
+        description={t(invoice.emailedAt ? 'invoices.email_again_description' : 'invoices.email_description', {
+          reference: name,
+          email: invoice.client.email,
+        })}
+        confirmLabel={t('invoices.email_confirm')}
+        pending={emailInvoice.isPending}
+        onConfirm={() => void handleEmail()}
       />
 
       <PayInvoiceDialog
