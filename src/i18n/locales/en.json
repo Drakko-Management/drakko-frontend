@@ -185,6 +185,7 @@
     "org_city": "City",
     "org_country": "Country",
     "org_bank_section": "Bank details",
+    "org_bank_hint": "Printed on your invoices awaiting payment (bank transfer). Account holder and BIC are optional.",
     "org_bank_holder": "Account holder",
     "org_iban": "IBAN",
     "org_bic": "BIC",

@@ -384,6 +384,7 @@ export function SettingsEnterprisePage() {
               <Field label={t('settings.org_bic')}>
                 <Input className={inputCls} value={form.bic} onChange={f('bic')} maxLength={11} />
               </Field>
+              {hasInvoices && <p className="text-xs text-muted-foreground">{t('settings.org_bank_hint')}</p>}
             </Card>
 
             {/* Assurance */}

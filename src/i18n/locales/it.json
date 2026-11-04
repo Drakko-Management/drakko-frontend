@@ -185,6 +185,7 @@
     "org_city": "Città",
     "org_country": "Paese",
     "org_bank_section": "Dati bancari",
+    "org_bank_hint": "Stampati sulle tue fatture da pagare (bonifico). Intestatario e BIC sono facoltativi.",
     "org_bank_holder": "Titolare del conto",
     "org_iban": "IBAN",
     "org_bic": "BIC",

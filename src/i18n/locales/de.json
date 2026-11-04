@@ -185,6 +185,7 @@
     "org_city": "Stadt",
     "org_country": "Land",
     "org_bank_section": "Bankdaten",
+    "org_bank_hint": "Wird auf Ihren offenen Rechnungen gedruckt (Überweisung). Kontoinhaber und BIC sind optional.",
     "org_bank_holder": "Kontoinhaber",
     "org_iban": "IBAN",
     "org_bic": "BIC",

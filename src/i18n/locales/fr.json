@@ -185,6 +185,7 @@
     "org_city": "Ville",
     "org_country": "Pays",
     "org_bank_section": "Informations bancaires",
+    "org_bank_hint": "Imprimés sur vos factures à régler (virement). Le titulaire et le BIC sont facultatifs.",
     "org_bank_holder": "Titulaire du compte",
     "org_iban": "IBAN",
     "org_bic": "BIC",

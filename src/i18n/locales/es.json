@@ -185,6 +185,7 @@
     "org_city": "Ciudad",
     "org_country": "País",
     "org_bank_section": "Datos bancarios",
+    "org_bank_hint": "Se imprimen en tus facturas pendientes de pago (transferencia). El titular y el BIC son opcionales.",
     "org_bank_holder": "Titular de la cuenta",
     "org_iban": "IBAN",
     "org_bic": "BIC",

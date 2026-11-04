@@ -91,6 +91,20 @@ describe('SettingsEnterprisePage — documents (ADR-033)', () => {
     expect(screen.queryByText(/Sert aussi à calculer l'échéance/)).not.toBeInTheDocument()
   })
 
+  it('avec la Facturation, la section bancaire dit que l\'IBAN s\'imprime sur les factures à régler', () => {
+    useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+    renderPage()
+
+    expect(screen.getByText(/Imprimés sur vos factures à régler/)).toBeInTheDocument()
+  })
+
+  it('sans la Facturation, rien ne dit que l\'IBAN est imprimé (il ne l\'est pas)', () => {
+    useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+    renderPage()
+
+    expect(screen.queryByText(/Imprimés sur vos factures à régler/)).not.toBeInTheDocument()
+  })
+
   it('« Chantiers » seul : pas d\'interrupteur de franchise, aucun devis ni facture n\'en parle', () => {
     useAuthStore.setState({ role: 'ADMIN', modules: ['chantiers'] })
     renderPage()
