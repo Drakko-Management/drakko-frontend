@@ -193,6 +193,8 @@
     "org_insurer_name": "Assureur",
     "org_insurer_policy": "N° de contrat",
     "org_insurer_expiry": "Date d'expiration",
+    "org_insurance_hint": "Imprimée sur vos documents (devis, factures). Les trois champs sont facultatifs.",
+    "org_insurance_expired": "Cette assurance a expiré : sa date s'imprime quand même sur vos documents.",
     "org_docs_section": "Paramètres des documents",
     "org_auto_reference_label": "Référence automatique",
     "org_auto_reference_hint": "Génère automatiquement la référence des chantiers",

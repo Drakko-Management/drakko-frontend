@@ -193,6 +193,8 @@
     "org_insurer_name": "Assicuratore",
     "org_insurer_policy": "N° di polizza",
     "org_insurer_expiry": "Data di scadenza",
+    "org_insurance_hint": "Stampata sui tuoi documenti (preventivi, fatture). I tre campi sono facoltativi.",
+    "org_insurance_expired": "Questa assicurazione è scaduta: la data viene comunque stampata sui tuoi documenti.",
     "org_docs_section": "Impostazioni documenti",
     "org_auto_reference_label": "Riferimento automatico",
     "org_auto_reference_hint": "Genera automaticamente i riferimenti dei cantieri",

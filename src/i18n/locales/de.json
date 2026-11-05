@@ -193,6 +193,8 @@
     "org_insurer_name": "Versicherer",
     "org_insurer_policy": "Policennummer",
     "org_insurer_expiry": "Ablaufdatum",
+    "org_insurance_hint": "Wird auf Ihren Dokumenten gedruckt (Angebote, Rechnungen). Alle drei Felder sind optional.",
+    "org_insurance_expired": "Diese Versicherung ist abgelaufen: Ihr Datum wird weiterhin auf Ihren Dokumenten gedruckt.",
     "org_docs_section": "Dokumenteneinstellungen",
     "org_auto_reference_label": "Automatische Referenz",
     "org_auto_reference_hint": "Generiert automatisch Projektreferenzen",

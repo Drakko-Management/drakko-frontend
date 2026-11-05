@@ -82,6 +82,14 @@ const EMPTY: OrgFormState = {
   defaultVatRate: '10', vatExempt: false, defaultPaymentTerms: '', latePaymentPenalties: '',
 }
 
+// Un jour saisi (AAAA-MM-JJ) déjà passé ; le jour même compte encore. Une saisie vide ou qui n'est pas un jour : non.
+function isPastDay(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return value < today
+}
+
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground pt-2 pb-1">
@@ -450,17 +458,27 @@ export function SettingsEnterprisePage() {
             {/* Assurance */}
             <Card className="p-4 space-y-4">
               <SectionTitle>{t('settings.org_insurance_section')}</SectionTitle>
-              <Field label={t('settings.org_insurer_name')}>
-                <Input className={inputCls} value={form.insurerName} onChange={f('insurerName')} maxLength={100} />
+              <Field label={t('settings.org_insurer_name')} htmlFor="org-insurer-name">
+                <Input id="org-insurer-name" className={inputCls} value={form.insurerName} onChange={f('insurerName')} maxLength={100} />
               </Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label={t('settings.org_insurer_policy')}>
-                  <Input className={inputCls} value={form.insurerPolicy} onChange={f('insurerPolicy')} maxLength={50} />
+                <Field label={t('settings.org_insurer_policy')} htmlFor="org-insurer-policy">
+                  <Input id="org-insurer-policy" className={inputCls} value={form.insurerPolicy} onChange={f('insurerPolicy')} maxLength={50} />
                 </Field>
-                <Field label={t('settings.org_insurer_expiry')}>
-                  <Input className={inputCls} type="date" value={form.insurerExpiry} onChange={f('insurerExpiry')} />
+                <Field label={t('settings.org_insurer_expiry')} htmlFor="org-insurer-expiry">
+                  <Input id="org-insurer-expiry" className={inputCls} type="date" value={form.insurerExpiry} onChange={f('insurerExpiry')} />
                 </Field>
               </div>
+              {(hasQuotes || hasInvoices) && (
+                <>
+                  <p className="text-xs text-muted-foreground">{t('settings.org_insurance_hint')}</p>
+                  {isPastDay(form.insurerExpiry) && (
+                    <p className="text-xs text-destructive" data-testid="insurance-expired">
+                      {t('settings.org_insurance_expired')}
+                    </p>
+                  )}
+                </>
+              )}
             </Card>
 
             {/* Documents */}

@@ -193,6 +193,8 @@
     "org_insurer_name": "Aseguradora",
     "org_insurer_policy": "N° de póliza",
     "org_insurer_expiry": "Fecha de vencimiento",
+    "org_insurance_hint": "Se imprime en tus documentos (presupuestos, facturas). Los tres campos son opcionales.",
+    "org_insurance_expired": "Este seguro ha vencido: su fecha se sigue imprimiendo en tus documentos.",
     "org_docs_section": "Configuración de documentos",
     "org_auto_reference_label": "Referencia automática",
     "org_auto_reference_hint": "Genera automáticamente las referencias de obras",

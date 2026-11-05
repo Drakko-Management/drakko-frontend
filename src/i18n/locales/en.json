@@ -193,6 +193,8 @@
     "org_insurer_name": "Insurer",
     "org_insurer_policy": "Policy number",
     "org_insurer_expiry": "Expiry date",
+    "org_insurance_hint": "Printed on your documents (quotes, invoices). All three fields are optional.",
+    "org_insurance_expired": "This insurance has expired: its date is still printed on your documents.",
     "org_docs_section": "Document settings",
     "org_auto_reference_label": "Automatic reference",
     "org_auto_reference_hint": "Automatically generates project references",

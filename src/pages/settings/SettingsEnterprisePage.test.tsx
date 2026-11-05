@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { toast } from 'sonner'
@@ -104,6 +104,55 @@ describe('SettingsEnterprisePage — documents (ADR-033)', () => {
     renderPage()
 
     expect(screen.queryByText(/Imprimés sur vos factures à régler/)).not.toBeInTheDocument()
+  })
+
+  describe('assurance décennale', () => {
+    const localDay = (offsetDays: number) => {
+      const d = new Date()
+      d.setDate(d.getDate() + offsetDays)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    }
+    const expiredNotice = () => screen.queryByTestId('insurance-expired')
+
+    it('avec les Devis ou la Facturation, la section dit qu\'elle s\'imprime sur les documents', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+      renderPage()
+
+      expect(screen.getByText(/Imprimée sur vos documents \(devis, factures\)/)).toBeInTheDocument()
+    })
+
+    it('« Chantiers » seul : aucun document ne l\'imprime, la section ne le dit pas', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['chantiers'] })
+      renderPage({ insurerExpiry: '2020-01-01' })
+
+      expect(screen.queryByText(/Imprimée sur vos documents/)).not.toBeInTheDocument()
+      expect(expiredNotice()).not.toBeInTheDocument()
+    })
+
+    it('une assurance expirée est signalée : sa date s\'imprime quand même', () => {
+      renderPage({ insurerExpiry: '2020-01-01' })
+
+      expect(expiredNotice()).toHaveTextContent(/a expiré/)
+    })
+
+    it.each([
+      ['qui expire demain', localDay(1)],
+      ['qui expire aujourd\'hui (le jour même elle couvre encore)', localDay(0)],
+      ['sans date', ''],
+    ])('une assurance %s n\'est pas signalée', (_name, insurerExpiry) => {
+      renderPage({ insurerExpiry })
+
+      expect(expiredNotice()).not.toBeInTheDocument()
+    })
+
+    it('l\'avertissement suit la saisie', async () => {
+      renderPage({ insurerExpiry: '2099-12-31' })
+      expect(expiredNotice()).not.toBeInTheDocument()
+
+      fireEvent.change(screen.getByLabelText("Date d'expiration"), { target: { value: '2020-06-30' } })
+
+      expect(expiredNotice()).toBeInTheDocument()
+    })
   })
 
   it('« Chantiers » seul : pas d\'interrupteur de franchise, aucun devis ni facture n\'en parle', () => {
