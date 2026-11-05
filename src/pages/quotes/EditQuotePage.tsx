@@ -8,8 +8,10 @@ import { EditPageTitle } from '@/components/common/EditPageTitle'
 import { useQuote, useUpdateQuote } from '@/hooks/use-quotes'
 import { useOrganization } from '@/hooks/use-organization'
 import { apiErrorMessage } from '@/lib/api-error'
+import { UnsavedChangesDialog } from '@/components/common/UnsavedChangesGuard'
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { QuoteFormFields } from './QuoteFormFields'
-import { EMPTY_QUOTE_FORM, formFromQuote, toQuoteInput, type QuoteFormValues } from './quote-form'
+import { EMPTY_QUOTE_FORM, formFromQuote, isFormDirty, toQuoteInput, type QuoteFormValues } from './quote-form'
 
 const FALLBACK_VAT_RATE = 10
 
@@ -21,12 +23,17 @@ export function EditQuotePage() {
   const updateQuote = useUpdateQuote()
   const { data: org } = useOrganization()
   const [values, setValues] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
+  // Ce que le formulaire contenait à l'ouverture : ce qui s'en écarte n'est pas enregistré
+  const [baseline, setBaseline] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
   const [loadedId, setLoadedId] = useState<string | null>(null)
+  const guard = useUnsavedChanges(loadedId !== null && isFormDirty(values, baseline))
 
   // Le formulaire se remplit une fois, à l'arrivée du devis : une relecture en arrière-plan ne doit pas écraser la saisie
   useEffect(() => {
     if (quote && quote.id !== loadedId) {
-      setValues(formFromQuote(quote))
+      const loaded = formFromQuote(quote)
+      setValues(loaded)
+      setBaseline(loaded)
       setLoadedId(quote.id)
     }
   }, [quote, loadedId])
@@ -34,6 +41,7 @@ export function EditQuotePage() {
   async function handleSubmit() {
     try {
       await updateQuote.mutateAsync({ id, ...toQuoteInput(values) })
+      guard.markSaved()
       toast.success(t('quotes.updated'))
       void navigate(`/devis/${id}`, { replace: true })
     } catch (err) {
@@ -94,6 +102,8 @@ export function EditQuotePage() {
         submitLabel={t('quotes.form_save')}
         defaultVatRate={org?.defaultVatRate ?? FALLBACK_VAT_RATE}
       />
+
+      <UnsavedChangesDialog guard={guard} />
     </div>
   )
 }

@@ -14,6 +14,9 @@ import { formatMoney } from '@/modules/devis/format'
 import { formatDay } from '@/modules/factures/format'
 import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 
+// Les factures se chargent par 50 ; « Afficher plus » en demande 50 de plus (la liste ne s'arrête jamais en silence)
+const PAGE_SIZE = 50
+
 type Filter = 'ALL' | 'DRAFT' | 'ISSUED' | 'OVERDUE' | 'PAID' | 'CREDIT_NOTE'
 
 const FILTERS: Filter[] = ['ALL', 'DRAFT', 'ISSUED', 'OVERDUE', 'PAID', 'CREDIT_NOTE']
@@ -46,7 +49,14 @@ export function InvoicesPage() {
     return () => clearTimeout(timer)
   }, [search])
 
-  const { data: invoices, isLoading } = useInvoices({ ...QUERY[filter], q: debounced || undefined })
+  // Combien de factures demandées : il repart de 50 dès que l'onglet ou la recherche change
+  const filterKey = `${filter}|${debounced}`
+  const [asked, setAsked] = useState({ filterKey, limit: PAGE_SIZE })
+  const limit = asked.filterKey === filterKey ? asked.limit : PAGE_SIZE
+
+  const { data: invoices, isLoading } = useInvoices({ ...QUERY[filter], q: debounced || undefined, limit })
+  // Autant que demandé : il y en a peut-être d'autres
+  const hasMore = (invoices?.length ?? 0) >= limit
 
   const canCreate = can('factures', 'create')
   const filtered = filter !== 'ALL' || debounced !== ''
@@ -143,6 +153,17 @@ export function InvoicesPage() {
           )
         })}
       </ul>
+
+      {hasMore && (
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-[44px] w-full"
+          onClick={() => setAsked({ filterKey, limit: limit + PAGE_SIZE })}
+        >
+          {t('common.show_more')}
+        </Button>
+      )}
 
       {canCreate && <Fab onClick={() => void navigate('/factures/nouveau')} />}
     </div>

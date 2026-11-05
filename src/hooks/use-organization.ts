@@ -12,10 +12,13 @@ export function useOrganization() {
   })
 }
 
+/** Ce que l'API reçoit : un champ facultatif vidé part en `null` (il s'efface), absent il ne change pas. */
+export type OrganizationUpdate = { [K in keyof Omit<Organization, 'id' | 'logoUrl'>]?: Organization[K] | null }
+
 export function useUpdateOrganization() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: Partial<Omit<Organization, 'id' | 'logoUrl'>>) =>
+    mutationFn: (data: OrganizationUpdate) =>
       apiRequest<Organization>('/organizations/me', {
         method: 'PATCH',
         body: JSON.stringify(data),

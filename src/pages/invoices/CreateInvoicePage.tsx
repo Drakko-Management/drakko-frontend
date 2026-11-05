@@ -8,7 +8,9 @@ import { useOrganization } from '@/hooks/use-organization'
 import { apiErrorMessage } from '@/lib/api-error'
 import { paymentDays } from '@/modules/factures/payment-terms'
 import { QuoteFormFields } from '@/pages/quotes/QuoteFormFields'
-import { EMPTY_QUOTE_FORM, type QuoteFormValues } from '@/pages/quotes/quote-form'
+import { EMPTY_QUOTE_FORM, isFormDirty, type QuoteFormValues } from '@/pages/quotes/quote-form'
+import { UnsavedChangesDialog } from '@/components/common/UnsavedChangesGuard'
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { toInvoiceInput } from './invoice-form'
 
 // Le taux appliqué quand l'organisation n'en a pas réglé (même valeur par défaut que le back)
@@ -21,10 +23,13 @@ export function CreateInvoicePage() {
   const createInvoice = useCreateInvoice()
   const { data: org } = useOrganization()
   const [values, setValues] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
+  // Une saisie non enregistrée ne se perd pas sans prévenir (retour, menu, rafraîchissement)
+  const guard = useUnsavedChanges(isFormDirty(values, EMPTY_QUOTE_FORM))
 
   async function handleSubmit() {
     try {
       const invoice = await createInvoice.mutateAsync(toInvoiceInput(values))
+      guard.markSaved()
       toast.success(t('invoices.created'))
       void navigate(`/factures/${invoice.id}`, { replace: true })
     } catch (err) {
@@ -57,6 +62,8 @@ export function CreateInvoicePage() {
         submitLabel={t('invoices.form_create')}
         defaultVatRate={org?.defaultVatRate ?? FALLBACK_VAT_RATE}
       />
+
+      <UnsavedChangesDialog guard={guard} />
     </div>
   )
 }

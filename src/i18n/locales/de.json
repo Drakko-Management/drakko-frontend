@@ -237,7 +237,13 @@
     "filters_reset": "Ursprüngliche Einstellungen wiederherstellen",
     "org_vat_exempt_label": "Befreiung von der Mehrwertsteuer",
     "org_vat_exempt_hint": "Kleinunternehmen: Ihre Angebote und Rechnungen enthalten keine Mehrwertsteuer und tragen den Hinweis „Mehrwertsteuer nicht anwendbar, Art. 293 B des französischen Steuergesetzbuchs“.",
-    "org_payment_terms_hint": "Dient auch zur Berechnung der Fälligkeit Ihrer Rechnungen (30 Tage, wenn nichts gewählt ist)."
+    "org_payment_terms_hint": "Dient auch zur Berechnung der Fälligkeit Ihrer Rechnungen (30 Tage, wenn nichts gewählt ist).",
+    "err_siret": "Diese SIRET ist ungültig: 14 Ziffern einschließlich Prüfziffer.",
+    "err_vat_number": "Diese USt-IdNr. ist ungültig (Beispiel: FR40303265045).",
+    "err_iban": "Diese IBAN ist ungültig: Prüfen Sie die Ziffern, die Prüfsumme stimmt nicht.",
+    "err_bic": "Dieser BIC ist ungültig: 8 oder 11 Zeichen (Beispiel: AGRIFRPP).",
+    "err_email": "Diese E-Mail-Adresse ist ungültig.",
+    "org_invalid": "Korrigieren Sie die fehlerhaften Felder vor dem Speichern."
   },
   "common": {
     "back": "Zurück",
@@ -275,7 +281,12 @@
     "previous_page": "Vorherige Seite",
     "next_page": "Nächste Seite",
     "last_page": "Letzte Seite",
-    "module_not_active": "Dieses Modul ist für Ihr Unternehmen nicht aktiviert."
+    "module_not_active": "Dieses Modul ist für Ihr Unternehmen nicht aktiviert.",
+    "show_more": "Mehr anzeigen",
+    "unsaved_title": "Ohne Speichern verlassen?",
+    "unsaved_description": "Ihre Eingaben sind nicht gespeichert: Wenn Sie diese Seite verlassen, gehen sie verloren.",
+    "unsaved_leave": "Ohne Speichern verlassen",
+    "unsaved_stay": "Auf der Seite bleiben"
   },
   "not_found": {
     "title": "Seite nicht gefunden",
@@ -904,7 +915,21 @@
     "action_create_balance_invoice": "Restrechnung erstellen",
     "deposit_created": "Entwurf der Anzahlung erstellt",
     "deposit_error": "Anzahlung konnte nicht erstellt werden",
-    "deposits_label": "Anzahlungen"
+    "deposits_label": "Anzahlungen",
+    "accept_title": "Dieses Angebot als angenommen markieren?",
+    "accept_description": "Sie halten fest, dass Ihr Kunde das Angebot {{reference}} angenommen hat (telefonisch, auf Papier …). Der gesendete Link funktioniert dann nicht mehr. Sie können das rückgängig machen, solange keine Baustelle und keine Rechnung daraus entstanden ist.",
+    "accept_confirm": "Als angenommen markieren",
+    "reject_title": "Dieses Angebot als abgelehnt markieren?",
+    "reject_description": "Sie halten fest, dass Ihr Kunde das Angebot {{reference}} abgelehnt hat. Der gesendete Link funktioniert dann nicht mehr. Sie können das rückgängig machen.",
+    "reject_confirm": "Als abgelehnt markieren",
+    "action_undecide": "Entscheidung rückgängig machen",
+    "undecide_title": "Entscheidung rückgängig machen?",
+    "undecide_description": "Das Angebot {{reference}} ist wieder „gesendet“. Sie können es erneut annehmen, ablehnen oder zum Bearbeiten wieder öffnen.",
+    "undecide_confirm": "Entscheidung rückgängig machen",
+    "done_undecide": "Entscheidung rückgängig gemacht: Das Angebot ist wieder gesendet",
+    "hint_decision_locked": "Diese Entscheidung lässt sich nicht mehr rückgängig machen: Der Kunde hat online angenommen, oder eine Baustelle oder Rechnung ist daraus entstanden (löschen Sie sie bzw. stornieren Sie zuerst die Rechnung).",
+    "err_accepted_online": "Der Kunde hat dieses Angebot online angenommen: Seine Antwort lässt sich nicht rückgängig machen.",
+    "err_has_follow_up": "Aus diesem Angebot sind eine Baustelle oder eine Rechnung entstanden: Löschen Sie sie bzw. stornieren Sie die Rechnung, bevor Sie die Entscheidung rückgängig machen."
   },
   "quote_public": {
     "title": "Angebot {{reference}}",

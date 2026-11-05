@@ -364,6 +364,28 @@ export interface QuoteInvoice {
   total: string
 }
 
+/** Les comptes du bloc Devis du tableau de bord, lus en base (pas dans la liste, qui s'arrête à 200) */
+export interface QuotesSummary {
+  drafts: number
+  sent: number
+  accepted: number
+  /** Les cinq devis les plus récents */
+  recent: Quote[]
+}
+
+/** Les comptes du bloc Factures du tableau de bord, lus en base */
+export interface InvoicesSummary {
+  drafts: number
+  /** Factures émises dont l'échéance est passée */
+  overdue: number
+  /** Factures émises et pas payées (hors avoirs) */
+  toCollect: number
+  /** Total TTC de ces factures, chaîne décimale */
+  toCollectTotal: string
+  /** Les cinq factures les plus récentes */
+  recent: Invoice[]
+}
+
 /** Brouillon, émise (numérotée, figée), payée, annulée par un avoir (ADR-033) */
 export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED'
 /** Une facture ou son avoir (une facture de montants négatifs) */

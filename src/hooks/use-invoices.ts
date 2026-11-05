@@ -1,8 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api-client'
 import { openPdf } from '@/lib/open-pdf'
 import { queryClient } from '@/lib/query-client'
-import type { Invoice, InvoiceKind, InvoiceStatus, PaymentMethod } from '@/types/api'
+import type { Invoice, InvoiceKind, InvoiceStatus, InvoicesSummary, PaymentMethod } from '@/types/api'
 import type { QuoteLineInput } from './use-quotes'
 
 export interface InvoiceFilters {
@@ -12,6 +12,8 @@ export interface InvoiceFilters {
   overdue?: boolean
   clientId?: string
   q?: string
+  /** Combien au plus (200 sans ce paramètre) : « Afficher plus » le fait grandir */
+  limit?: number
 }
 
 /**
@@ -47,11 +49,22 @@ export function useInvoices(filters: InvoiceFilters = {}, enabled = true) {
   if (filters.overdue) qs.set('overdue', 'true')
   if (filters.clientId) qs.set('clientId', filters.clientId)
   if (filters.q) qs.set('q', filters.q)
+  if (filters.limit) qs.set('limit', String(filters.limit))
   const text = qs.toString()
   return useQuery({
     queryKey: ['invoices', 'list', filters],
     queryFn: () => apiRequest<Invoice[]>(`/invoices${text ? `?${text}` : ''}`),
     enabled,
+    // « Afficher plus » ou une frappe dans la recherche : la liste reste affichée le temps de la suivante
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Les comptes du tableau de bord (brouillons, à encaisser et son montant, retards) : lus en base, jamais déduits de la liste. */
+export function useInvoicesSummary() {
+  return useQuery({
+    queryKey: ['invoices', 'summary'],
+    queryFn: () => apiRequest<InvoicesSummary>('/invoices/summary'),
   })
 }
 

@@ -2,14 +2,11 @@ import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { FilePen, Send, CheckCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useQuotes } from '@/hooks/use-quotes'
+import { useQuotesSummary } from '@/hooks/use-quotes'
 import { fullName } from '@/lib/utils'
 import type { Quote, QuoteStatus } from '@/types/api'
 import { formatMoney } from './format'
 import { QuoteStatusBadge } from './QuoteStatusBadge'
-
-// Assez pour un coup d'œil ; la liste complète est à un clic
-const RECENT_COUNT = 5
 
 const STATS: { status: QuoteStatus; icon: React.ElementType; color: string; labelKey: string }[] = [
   { status: 'DRAFT', icon: FilePen, color: 'bg-gray-100 text-gray-700', labelKey: 'quotes.stat_draft' },
@@ -40,14 +37,17 @@ function QuoteRow({ quote, onClick }: { quote: Quote; onClick: () => void }) {
 
 /**
  * Le bloc Devis du tableau de bord (ADR-027) : combien de brouillons, d'envoyés et d'acceptés, puis les devis récents.
- * Il n'est monté que si l'utilisateur peut lire les devis : il ne revérifie pas ce droit.
+ * Les comptes viennent de la synthèse du serveur, pas de la liste (limitée à 200). Il n'est monté que si l'utilisateur
+ * peut lire les devis : il ne revérifie pas ce droit.
  */
 export function QuotesDashboardWidget() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { data: quotes, isLoading } = useQuotes()
+  const { data: summary, isLoading } = useQuotesSummary()
+  const quotes = summary?.recent
 
-  const count = (status: QuoteStatus) => quotes?.filter((q) => q.status === status).length ?? 0
+  const count = (status: QuoteStatus) =>
+    status === 'DRAFT' ? (summary?.drafts ?? 0) : status === 'SENT' ? (summary?.sent ?? 0) : (summary?.accepted ?? 0)
 
   return (
     <section className="space-y-3" aria-label={t('nav.quotes')}>
@@ -92,7 +92,7 @@ export function QuotesDashboardWidget() {
         </div>
       ) : quotes && quotes.length > 0 ? (
         <div className="grid gap-2 lg:grid-cols-2">
-          {quotes.slice(0, RECENT_COUNT).map((quote) => (
+          {quotes.map((quote) => (
             <QuoteRow key={quote.id} quote={quote} onClick={() => void navigate(`/devis/${quote.id}`)} />
           ))}
         </div>

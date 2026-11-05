@@ -23,12 +23,15 @@ vi.mock('@/hooks/use-projects', () => ({
 
 // Le bloc Devis fait ses propres requêtes : ces tests portent sur le bloc Chantiers
 vi.mock('@/hooks/use-quotes', () => ({
-  useQuotes: vi.fn().mockReturnValue({ data: [], isLoading: false }),
+  useQuotesSummary: vi.fn().mockReturnValue({ data: { drafts: 0, sent: 0, accepted: 0, recent: [] }, isLoading: false }),
 }))
 
 // Le bloc Factures aussi
 vi.mock('@/hooks/use-invoices', () => ({
-  useInvoices: vi.fn().mockReturnValue({ data: [], isLoading: false }),
+  useInvoicesSummary: vi.fn().mockReturnValue({
+    data: { drafts: 0, overdue: 0, toCollect: 0, toCollectTotal: '0.00', recent: [] },
+    isLoading: false,
+  }),
 }))
 
 // ── Fixtures ───────────────────────────────────────────────────────────────

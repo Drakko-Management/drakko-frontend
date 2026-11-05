@@ -14,6 +14,17 @@ import {
   useDeleteLogo,
 } from '@/hooks/use-organization'
 import { usePermissions } from '@/hooks/use-permissions'
+import {
+  isValidBic,
+  isValidEmail,
+  isValidIban,
+  isValidSiret,
+  isValidVatNumber,
+  normalizeBic,
+  normalizeIban,
+  normalizeSiret,
+  normalizeVatNumber,
+} from '@/lib/identifiers'
 import { SettingsSubHeader } from './SettingsSubHeader'
 
 type OrgFormState = {
@@ -79,14 +90,46 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, htmlFor, error, children }: { label: string; htmlFor?: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-sm">{label}</Label>
+      <Label className="text-sm" htmlFor={htmlFor}>
+        {label}
+      </Label>
       {children}
+      {error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
+
+// SIRET, TVA, IBAN et BIC s'impriment sur les documents : leurs clés de contrôle sont vérifiées avant d'enregistrer
+// (`lib/identifiers.ts`), l'email aussi (c'est l'adresse où le client répond). Un champ vide n'est pas une erreur.
+type CheckedField = 'siret' | 'vatNumber' | 'iban' | 'bic' | 'email'
+const CHECKS: Record<CheckedField, { normalize: (value: string) => string; valid: (value: string) => boolean; message: string }> = {
+  siret: { normalize: normalizeSiret, valid: isValidSiret, message: 'settings.err_siret' },
+  vatNumber: { normalize: normalizeVatNumber, valid: isValidVatNumber, message: 'settings.err_vat_number' },
+  iban: { normalize: normalizeIban, valid: isValidIban, message: 'settings.err_iban' },
+  bic: { normalize: normalizeBic, valid: isValidBic, message: 'settings.err_bic' },
+  email: { normalize: (value) => value.trim(), valid: isValidEmail, message: 'settings.err_email' },
+}
+
+/** Les champs contrôlés dont la saisie est fausse (clé de libellé de l'erreur). */
+function checkedErrors(form: OrgFormState): Partial<Record<CheckedField, string>> {
+  const errors: Partial<Record<CheckedField, string>> = {}
+  for (const key of Object.keys(CHECKS) as CheckedField[]) {
+    const { normalize, valid, message } = CHECKS[key]
+    const value = normalize(form[key])
+    if (value !== '' && !valid(value)) errors[key] = message
+  }
+  return errors
+}
+
+/** Un champ facultatif vidé s'efface : `null`, pas « rien à changer ». */
+const textOrNull = (value: string): string | null => value.trim() || null
 
 export function SettingsEnterprisePage() {
   const { t } = useTranslation()
@@ -104,6 +147,9 @@ export function SettingsEnterprisePage() {
   const [form, setForm] = useState<OrgFormState>(EMPTY)
   const [logoPreviewOpen, setLogoPreviewOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  // Une erreur de format ne s'affiche qu'une fois le champ quitté, ou à l'enregistrement : pas pendant la frappe
+  const [touched, setTouched] = useState<Set<CheckedField>>(new Set())
+  const [attempted, setAttempted] = useState(false)
 
   useEffect(() => {
     if (!org) return
@@ -164,29 +210,34 @@ export function SettingsEnterprisePage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setAttempted(true)
+    if (Object.keys(errors).length > 0) {
+      toast.error(t('settings.org_invalid'))
+      return
+    }
     void updateOrg.mutateAsync({
       name:                form.name.trim(),
       language:            form.language,
-      tradeName:           form.tradeName || undefined,
-      siret:               form.siret || undefined,
-      vatNumber:           form.vatNumber || undefined,
-      legalForm:           form.legalForm || undefined,
-      shareCapital:        form.shareCapital || undefined,
-      phone:               form.phone || undefined,
-      mobile:              form.mobile || undefined,
-      email:               form.email || undefined,
-      website:             form.website || undefined,
-      address:             form.address || undefined,
-      addressLine2:        form.addressLine2 || undefined,
-      postalCode:          form.postalCode || undefined,
-      city:                form.city || undefined,
-      country:             form.country || undefined,
-      bankHolder:          form.bankHolder || undefined,
-      iban:                form.iban || undefined,
-      bic:                 form.bic || undefined,
-      insurerName:         form.insurerName || undefined,
-      insurerPolicy:       form.insurerPolicy || undefined,
-      insurerExpiry:       form.insurerExpiry || undefined,
+      tradeName:           textOrNull(form.tradeName),
+      siret:               normalizeSiret(form.siret) || null,
+      vatNumber:           normalizeVatNumber(form.vatNumber) || null,
+      legalForm:           textOrNull(form.legalForm),
+      shareCapital:        textOrNull(form.shareCapital),
+      phone:               textOrNull(form.phone),
+      mobile:              textOrNull(form.mobile),
+      email:               textOrNull(form.email),
+      website:             textOrNull(form.website),
+      address:             textOrNull(form.address),
+      addressLine2:        textOrNull(form.addressLine2),
+      postalCode:          textOrNull(form.postalCode),
+      city:                textOrNull(form.city),
+      country:             textOrNull(form.country),
+      bankHolder:          textOrNull(form.bankHolder),
+      iban:                normalizeIban(form.iban) || null,
+      bic:                 normalizeBic(form.bic) || null,
+      insurerName:         textOrNull(form.insurerName),
+      insurerPolicy:       textOrNull(form.insurerPolicy),
+      insurerExpiry:       textOrNull(form.insurerExpiry),
       projectPrefix:       form.projectPrefix || 'CH',
       autoProjectReference: form.autoProjectReference,
       quotePrefix:         form.quotePrefix || undefined,
@@ -194,8 +245,8 @@ export function SettingsEnterprisePage() {
       reportPrefix:        form.reportPrefix || undefined,
       defaultVatRate:      form.defaultVatRate ? parseFloat(form.defaultVatRate) : undefined,
       vatExempt:           form.vatExempt,
-      defaultPaymentTerms: form.defaultPaymentTerms || undefined,
-      latePaymentPenalties:form.latePaymentPenalties || undefined,
+      defaultPaymentTerms: textOrNull(form.defaultPaymentTerms),
+      latePaymentPenalties:textOrNull(form.latePaymentPenalties),
       primaryColor:        form.primaryColor || undefined,
     }, {
       onSuccess: () => toast.success(t('settings.org_saved')),
@@ -203,6 +254,15 @@ export function SettingsEnterprisePage() {
   }
 
   const inputCls = 'min-h-[44px]'
+  const errors = checkedErrors(form)
+  // Le message d'un champ contrôlé, une fois qu'on l'a quitté ou qu'on a voulu enregistrer
+  const shownError = (key: CheckedField): string | undefined =>
+    errors[key] && (attempted || touched.has(key)) ? t(errors[key] as string) : undefined
+  const checked = (key: CheckedField) => ({
+    id: `org-${key}`,
+    'aria-invalid': shownError(key) ? true : undefined,
+    onBlur: () => setTouched((previous) => new Set(previous).add(key)),
+  })
 
   return (
     <>
@@ -304,11 +364,11 @@ export function SettingsEnterprisePage() {
                 <Input className={inputCls} value={form.tradeName} onChange={f('tradeName')} maxLength={100} />
               </Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label={t('settings.org_siret')}>
-                  <Input className={inputCls} value={form.siret} onChange={f('siret')} maxLength={14} placeholder="12345678901234" />
+                <Field label={t('settings.org_siret')} htmlFor="org-siret" error={shownError('siret')}>
+                  <Input className={inputCls} value={form.siret} onChange={f('siret')} maxLength={17} placeholder="12345678901234" {...checked('siret')} />
                 </Field>
-                <Field label={t('settings.org_vat_number')}>
-                  <Input className={inputCls} value={form.vatNumber} onChange={f('vatNumber')} maxLength={20} placeholder="FR12345678901" />
+                <Field label={t('settings.org_vat_number')} htmlFor="org-vatNumber" error={shownError('vatNumber')}>
+                  <Input className={inputCls} value={form.vatNumber} onChange={f('vatNumber')} maxLength={20} placeholder="FR12345678901" {...checked('vatNumber')} />
                 </Field>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -342,8 +402,8 @@ export function SettingsEnterprisePage() {
                   <Input className={inputCls} type="tel" value={form.mobile} onChange={f('mobile')} maxLength={20} />
                 </Field>
               </div>
-              <Field label={t('settings.org_email')}>
-                <Input className={inputCls} type="email" value={form.email} onChange={f('email')} maxLength={100} />
+              <Field label={t('settings.org_email')} htmlFor="org-email" error={shownError('email')}>
+                <Input className={inputCls} type="text" inputMode="email" autoComplete="email" value={form.email} onChange={f('email')} maxLength={100} {...checked('email')} />
               </Field>
               <Field label={t('settings.org_website')}>
                 <Input className={inputCls} type="url" value={form.website} onChange={f('website')} maxLength={100} placeholder="https://" />
@@ -378,11 +438,11 @@ export function SettingsEnterprisePage() {
               <Field label={t('settings.org_bank_holder')}>
                 <Input className={inputCls} value={form.bankHolder} onChange={f('bankHolder')} maxLength={100} />
               </Field>
-              <Field label={t('settings.org_iban')}>
-                <Input className={inputCls} value={form.iban} onChange={f('iban')} maxLength={34} placeholder="FR76 XXXX XXXX XXXX" />
+              <Field label={t('settings.org_iban')} htmlFor="org-iban" error={shownError('iban')}>
+                <Input className={inputCls} value={form.iban} onChange={f('iban')} maxLength={42} placeholder="FR76 XXXX XXXX XXXX" {...checked('iban')} />
               </Field>
-              <Field label={t('settings.org_bic')}>
-                <Input className={inputCls} value={form.bic} onChange={f('bic')} maxLength={11} />
+              <Field label={t('settings.org_bic')} htmlFor="org-bic" error={shownError('bic')}>
+                <Input className={inputCls} value={form.bic} onChange={f('bic')} maxLength={13} {...checked('bic')} />
               </Field>
               {hasInvoices && <p className="text-xs text-muted-foreground">{t('settings.org_bank_hint')}</p>}
             </Card>

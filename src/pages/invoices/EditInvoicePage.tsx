@@ -10,7 +10,9 @@ import { useOrganization } from '@/hooks/use-organization'
 import { apiErrorMessage } from '@/lib/api-error'
 import { paymentDays } from '@/modules/factures/payment-terms'
 import { QuoteFormFields } from '@/pages/quotes/QuoteFormFields'
-import { EMPTY_QUOTE_FORM, type QuoteFormValues } from '@/pages/quotes/quote-form'
+import { EMPTY_QUOTE_FORM, isFormDirty, type QuoteFormValues } from '@/pages/quotes/quote-form'
+import { UnsavedChangesDialog } from '@/components/common/UnsavedChangesGuard'
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { deductionsOf, formFromInvoice, toInvoiceInput } from './invoice-form'
 
 const FALLBACK_VAT_RATE = 10
@@ -23,12 +25,17 @@ export function EditInvoicePage() {
   const updateInvoice = useUpdateInvoice()
   const { data: org } = useOrganization()
   const [values, setValues] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
+  // Ce que le formulaire contenait à l'ouverture : ce qui s'en écarte n'est pas enregistré
+  const [baseline, setBaseline] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
   const [loadedId, setLoadedId] = useState<string | null>(null)
+  const guard = useUnsavedChanges(loadedId !== null && isFormDirty(values, baseline))
 
   // Le formulaire se remplit une fois, à l'arrivée de la facture : une relecture en arrière-plan ne doit pas écraser la saisie
   useEffect(() => {
     if (invoice && invoice.id !== loadedId) {
-      setValues(formFromInvoice(invoice))
+      const loaded = formFromInvoice(invoice)
+      setValues(loaded)
+      setBaseline(loaded)
       setLoadedId(invoice.id)
     }
   }, [invoice, loadedId])
@@ -36,6 +43,7 @@ export function EditInvoicePage() {
   async function handleSubmit() {
     try {
       await updateInvoice.mutateAsync({ id, ...toInvoiceInput(values) })
+      guard.markSaved()
       toast.success(t('invoices.updated'))
       void navigate(`/factures/${id}`, { replace: true })
     } catch (err) {
@@ -99,6 +107,8 @@ export function EditInvoicePage() {
         submitLabel={t('invoices.form_save')}
         defaultVatRate={org?.defaultVatRate ?? FALLBACK_VAT_RATE}
       />
+
+      <UnsavedChangesDialog guard={guard} />
     </div>
   )
 }

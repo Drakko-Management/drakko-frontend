@@ -237,7 +237,13 @@
     "filters_reset": "Ripristina le impostazioni originali",
     "org_vat_exempt_label": "Regime di franchigia IVA",
     "org_vat_exempt_hint": "Microimpresa: i tuoi preventivi e le tue fatture non hanno IVA e riportano la dicitura «IVA non applicabile, art. 293 B del codice tributario francese».",
-    "org_payment_terms_hint": "Serve anche a calcolare la scadenza delle tue fatture (30 giorni se non scegli nulla)."
+    "org_payment_terms_hint": "Serve anche a calcolare la scadenza delle tue fatture (30 giorni se non scegli nulla).",
+    "err_siret": "Questo SIRET non è valido: 14 cifre, compresa la cifra di controllo.",
+    "err_vat_number": "Questo numero di partita IVA non è valido (esempio: FR40303265045).",
+    "err_iban": "Questo IBAN non è valido: controlla le cifre, la chiave di controllo non corrisponde.",
+    "err_bic": "Questo BIC non è valido: 8 o 11 caratteri (esempio: AGRIFRPP).",
+    "err_email": "Questo indirizzo email non è valido.",
+    "org_invalid": "Correggi i campi con errori prima di salvare."
   },
   "common": {
     "back": "Indietro",
@@ -275,7 +281,12 @@
     "previous_page": "Pagina precedente",
     "next_page": "Pagina successiva",
     "last_page": "Ultima pagina",
-    "module_not_active": "Questo modulo non è attivato per la tua azienda."
+    "module_not_active": "Questo modulo non è attivato per la tua azienda.",
+    "show_more": "Mostra altro",
+    "unsaved_title": "Uscire senza salvare?",
+    "unsaved_description": "Quello che hai scritto non è salvato: uscendo da questa pagina lo perderai.",
+    "unsaved_leave": "Esci senza salvare",
+    "unsaved_stay": "Resta nella pagina"
   },
   "not_found": {
     "title": "Pagina non trovata",
@@ -904,7 +915,21 @@
     "action_create_balance_invoice": "Crea la fattura di saldo",
     "deposit_created": "Bozza dell'acconto creata",
     "deposit_error": "Impossibile creare l'acconto",
-    "deposits_label": "Acconti"
+    "deposits_label": "Acconti",
+    "accept_title": "Segnare questo preventivo come accettato?",
+    "accept_description": "Indichi che il tuo cliente ha accettato il preventivo {{reference}} (per telefono, su carta…). Il link inviato smetterà di funzionare. Potrai annullare finché non ne deriva un cantiere o una fattura.",
+    "accept_confirm": "Segna come accettato",
+    "reject_title": "Segnare questo preventivo come rifiutato?",
+    "reject_description": "Indichi che il tuo cliente ha rifiutato il preventivo {{reference}}. Il link inviato smetterà di funzionare. Potrai annullare.",
+    "reject_confirm": "Segna come rifiutato",
+    "action_undecide": "Annulla la decisione",
+    "undecide_title": "Annullare la decisione?",
+    "undecide_description": "Il preventivo {{reference}} torna «inviato». Potrai di nuovo accettarlo, rifiutarlo o riaprirlo per modificarlo.",
+    "undecide_confirm": "Annulla la decisione",
+    "done_undecide": "Decisione annullata: il preventivo è di nuovo inviato",
+    "hint_decision_locked": "Questa decisione non si può più annullare: il cliente ha accettato online, oppure ne deriva un cantiere o una fattura (eliminali o annulla prima la fattura).",
+    "err_accepted_online": "Il cliente ha accettato questo preventivo online: la sua risposta non si può annullare.",
+    "err_has_follow_up": "Da questo preventivo derivano un cantiere o una fattura: eliminali o annulla la fattura prima di annullare la decisione."
   },
   "quote_public": {
     "title": "Preventivo {{reference}}",

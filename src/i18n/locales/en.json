@@ -237,7 +237,13 @@
     "filters_reset": "Restore the original settings",
     "org_vat_exempt_label": "VAT exemption (micro-business)",
     "org_vat_exempt_hint": "Micro-business: your quotes and invoices carry no VAT and show the mention “VAT not applicable, art. 293 B of the French tax code”.",
-    "org_payment_terms_hint": "Also used to work out the due date of your invoices (30 days if nothing is selected)."
+    "org_payment_terms_hint": "Also used to work out the due date of your invoices (30 days if nothing is selected).",
+    "err_siret": "This SIRET is not valid: 14 digits, check digit included.",
+    "err_vat_number": "This VAT number is not valid (example: FR40303265045).",
+    "err_iban": "This IBAN is not valid: check the digits, the check key does not match.",
+    "err_bic": "This BIC is not valid: 8 or 11 characters (example: AGRIFRPP).",
+    "err_email": "This email address is not valid.",
+    "org_invalid": "Fix the fields in error before saving."
   },
   "common": {
     "back": "Back",
@@ -275,7 +281,12 @@
     "previous_page": "Previous page",
     "next_page": "Next page",
     "last_page": "Last page",
-    "module_not_active": "This module is not enabled for your company."
+    "module_not_active": "This module is not enabled for your company.",
+    "show_more": "Show more",
+    "unsaved_title": "Leave without saving?",
+    "unsaved_description": "What you entered is not saved: leaving this page will lose it.",
+    "unsaved_leave": "Leave without saving",
+    "unsaved_stay": "Stay on the page"
   },
   "not_found": {
     "title": "Page not found",
@@ -904,7 +915,21 @@
     "action_create_balance_invoice": "Create the balance invoice",
     "deposit_created": "Deposit invoice draft created",
     "deposit_error": "Could not create the deposit invoice",
-    "deposits_label": "Deposits"
+    "deposits_label": "Deposits",
+    "accept_title": "Mark this quote as accepted?",
+    "accept_description": "You are recording that your client accepted quote {{reference}} (by phone, on paper…). The link you sent will stop working. You can undo this as long as no project or invoice comes from it.",
+    "accept_confirm": "Mark as accepted",
+    "reject_title": "Mark this quote as rejected?",
+    "reject_description": "You are recording that your client rejected quote {{reference}}. The link you sent will stop working. You can undo this.",
+    "reject_confirm": "Mark as rejected",
+    "action_undecide": "Undo the decision",
+    "undecide_title": "Undo the decision?",
+    "undecide_description": "Quote {{reference}} goes back to “sent”. You will be able to accept it, reject it or reopen it to edit it again.",
+    "undecide_confirm": "Undo the decision",
+    "done_undecide": "Decision undone: the quote is sent again",
+    "hint_decision_locked": "This decision can no longer be undone: the client accepted online, or a project or an invoice comes from it (delete them or cancel the invoice first).",
+    "err_accepted_online": "The client accepted this quote online: their answer cannot be undone.",
+    "err_has_follow_up": "A project or an invoice comes from this quote: delete them or cancel the invoice before undoing the decision."
   },
   "quote_public": {
     "title": "Quote {{reference}}",

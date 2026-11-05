@@ -6,8 +6,10 @@ import { ArrowLeft } from 'lucide-react'
 import { useCreateQuote } from '@/hooks/use-quotes'
 import { useOrganization } from '@/hooks/use-organization'
 import { apiErrorMessage } from '@/lib/api-error'
+import { UnsavedChangesDialog } from '@/components/common/UnsavedChangesGuard'
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { QuoteFormFields } from './QuoteFormFields'
-import { EMPTY_QUOTE_FORM, toQuoteInput, type QuoteFormValues } from './quote-form'
+import { EMPTY_QUOTE_FORM, isFormDirty, toQuoteInput, type QuoteFormValues } from './quote-form'
 
 // Le taux appliqué quand l'organisation n'en a pas réglé (même valeur par défaut que le back)
 const FALLBACK_VAT_RATE = 10
@@ -18,10 +20,13 @@ export function CreateQuotePage() {
   const createQuote = useCreateQuote()
   const { data: org } = useOrganization()
   const [values, setValues] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
+  // Une saisie non enregistrée ne se perd pas sans prévenir (retour, menu, rafraîchissement)
+  const guard = useUnsavedChanges(isFormDirty(values, EMPTY_QUOTE_FORM))
 
   async function handleSubmit() {
     try {
       const quote = await createQuote.mutateAsync(toQuoteInput(values))
+      guard.markSaved()
       toast.success(t('quotes.created', { reference: quote.reference }))
       void navigate(`/devis/${quote.id}`, { replace: true })
     } catch (err) {
@@ -52,6 +57,8 @@ export function CreateQuotePage() {
         submitLabel={t('quotes.form_create')}
         defaultVatRate={org?.defaultVatRate ?? FALLBACK_VAT_RATE}
       />
+
+      <UnsavedChangesDialog guard={guard} />
     </div>
   )
 }

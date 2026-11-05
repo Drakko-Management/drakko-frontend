@@ -11,6 +11,7 @@ import {
   useDeleteInvoice,
   useEmailInvoice,
   useInvoices,
+  useInvoicesSummary,
   useIssueInvoice,
   usePayInvoice,
   useUnpayInvoice,
@@ -63,10 +64,41 @@ describe('useInvoices', () => {
     })
   })
 
+  it('envoie le nombre demandé sous « limit »', async () => {
+    renderHook(() => useInvoices({ limit: 100 }), { wrapper })
+
+    await waitFor(() => expect(apiRequest).toHaveBeenCalledTimes(1))
+    expect(lastCall().path).toBe('/invoices?limit=100')
+  })
+
   it('ne demande rien quand il est désactivé', () => {
     renderHook(() => useInvoices({}, false), { wrapper })
 
     expect(apiRequest).not.toHaveBeenCalled()
+  })
+})
+
+describe('useInvoicesSummary', () => {
+  it('lit les comptes du tableau de bord à /invoices/summary', async () => {
+    const summary = { drafts: 1, overdue: 2, toCollect: 3, toCollectTotal: '10.00', recent: [] }
+    vi.mocked(apiRequest).mockResolvedValue(summary)
+
+    const { result } = renderHook(() => useInvoicesSummary(), { wrapper })
+
+    await waitFor(() => expect(result.current.data).toEqual(summary))
+    expect(lastCall().path).toBe('/invoices/summary')
+  })
+
+  it('se relit quand une facture change (la clé commence par « invoices »)', async () => {
+    vi.mocked(apiRequest).mockResolvedValue({ drafts: 0, overdue: 0, toCollect: 0, toCollectTotal: '0.00', recent: [] })
+    const { result } = renderHook(() => useInvoicesSummary(), { wrapper })
+    await waitFor(() => expect(result.current.data).toBeDefined())
+    const issue = renderHook(() => useIssueInvoice(), { wrapper })
+    vi.mocked(apiRequest).mockClear()
+
+    await issue.result.current.mutateAsync('i1')
+
+    await waitFor(() => expect(vi.mocked(apiRequest).mock.calls.some(([path]) => path === '/invoices/summary')).toBe(true))
   })
 })
 

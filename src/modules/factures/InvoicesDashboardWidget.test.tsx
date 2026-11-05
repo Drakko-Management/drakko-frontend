@@ -2,20 +2,32 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { useInvoices } from '@/hooks/use-invoices'
+import { useInvoicesSummary } from '@/hooks/use-invoices'
 import { InvoicesDashboardWidget } from './InvoicesDashboardWidget'
-import { creditNote, invoice, issuedInvoice } from '@/test/invoice-fixtures'
+import { issuedInvoice } from '@/test/invoice-fixtures'
 import { plain } from '@/test/quote-fixtures'
+import type { InvoicesSummary } from '@/types/api'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router')>()
   return { ...actual, useNavigate: () => mockNavigate }
 })
-vi.mock('@/hooks/use-invoices', () => ({ useInvoices: vi.fn() }))
+vi.mock('@/hooks/use-invoices', () => ({ useInvoicesSummary: vi.fn() }))
 
-function show(data: unknown[] | undefined, isLoading = false) {
-  vi.mocked(useInvoices).mockReturnValue({ data, isLoading } as never)
+const SUMMARY: InvoicesSummary = {
+  drafts: 2,
+  overdue: 1,
+  toCollect: 2,
+  toCollectTotal: '350.50',
+  recent: [
+    issuedInvoice({ id: 'a', total: '100.00', reference: 'FAC-2026-0001', title: null }),
+    issuedInvoice({ id: 'b', total: '250.50', overdue: true, reference: 'FAC-2026-0002', title: null }),
+  ],
+}
+
+function show(summary: InvoicesSummary | undefined = SUMMARY, isLoading = false) {
+  vi.mocked(useInvoicesSummary).mockReturnValue({ data: summary, isLoading } as never)
   render(
     <MemoryRouter>
       <InvoicesDashboardWidget />
@@ -30,32 +42,31 @@ const tile = (label: string) => screen.getAllByRole('button')[TILES.indexOf(labe
 beforeEach(() => vi.clearAllMocks())
 
 describe('InvoicesDashboardWidget', () => {
-  const data = [
-    invoice({ id: 'd1' }),
-    invoice({ id: 'd2' }),
-    issuedInvoice({ id: 'a', total: '100.00' }),
-    issuedInvoice({ id: 'b', total: '250.50', overdue: true, reference: 'FAC-2026-0002' }),
-    issuedInvoice({ id: 'c', status: 'PAID', reference: 'FAC-2026-0003', total: '999.00' }),
-    creditNote({ id: 'cn1', total: '-100.00' }),
-  ]
-
   it('compte les brouillons, les factures à encaisser et celles en retard', () => {
-    show(data)
+    show()
 
     expect(within(tile('Brouillons')).getByText('2')).toBeInTheDocument()
-    // À encaisser : les deux factures émises ; ni la payée ni l'avoir
     expect(within(tile('À encaisser')).getByText('2')).toBeInTheDocument()
     expect(within(tile('En retard')).getByText('1')).toBeInTheDocument()
   })
 
-  it('dit le montant à encaisser, centime près, sans compter les avoirs ni les factures payées', () => {
-    show(data)
+  it('les comptes viennent de la synthèse du serveur, pas des factures récentes : 312 à encaisser restent 312', () => {
+    show({ ...SUMMARY, drafts: 205, toCollect: 312, overdue: 41, toCollectTotal: '48210.35' })
+
+    expect(within(tile('Brouillons')).getByText('205')).toBeInTheDocument()
+    expect(within(tile('À encaisser')).getByText('312')).toBeInTheDocument()
+    expect(within(tile('En retard')).getByText('41')).toBeInTheDocument()
+    expect(plain(screen.getByTestId('invoices-to-collect').textContent)).toBe('48\u202f210,35 € à encaisser'.replace('\u202f', ' '))
+  })
+
+  it('dit le montant à encaisser tel que le serveur le calcule', () => {
+    show()
 
     expect(plain(screen.getByTestId('invoices-to-collect').textContent)).toBe('350,50 € à encaisser')
   })
 
   it('rien à encaisser : pas de phrase de montant', () => {
-    show([invoice()])
+    show({ ...SUMMARY, toCollect: 0, toCollectTotal: '0.00' })
 
     expect(screen.queryByTestId('invoices-to-collect')).not.toBeInTheDocument()
   })
@@ -65,24 +76,24 @@ describe('InvoicesDashboardWidget', () => {
     ['À encaisser', 'ISSUED'],
     ['En retard', 'OVERDUE'],
   ])('« %s » ouvre la liste filtrée', async (label, filter) => {
-    show(data)
+    show()
 
     await userEvent.click(tile(label))
 
     expect(mockNavigate).toHaveBeenCalledWith(`/factures?filter=${filter}`)
   })
 
-  it('montre les factures récentes (cinq au plus) et chacune s\'ouvre', async () => {
-    show(Array.from({ length: 8 }, (_, i) => issuedInvoice({ id: `i${i}`, reference: `FAC-2026-000${i}`, title: null })))
+  it('montre les factures récentes de la synthèse et chacune s\'ouvre', async () => {
+    show()
 
     const rows = screen.getAllByRole('button', { name: /FAC-2026-000/ })
-    expect(rows).toHaveLength(5)
+    expect(rows).toHaveLength(2)
     await userEvent.click(rows[0])
-    expect(mockNavigate).toHaveBeenCalledWith('/factures/i0')
+    expect(mockNavigate).toHaveBeenCalledWith('/factures/a')
   })
 
   it('« Voir tout » ouvre la liste', async () => {
-    show(data)
+    show()
 
     await userEvent.click(screen.getByRole('button', { name: 'Voir tout' }))
 
@@ -90,7 +101,7 @@ describe('InvoicesDashboardWidget', () => {
   })
 
   it('aucune facture : le dit', () => {
-    show([])
+    show({ drafts: 0, overdue: 0, toCollect: 0, toCollectTotal: '0.00', recent: [] })
 
     expect(screen.getByText('Aucune facture pour le moment')).toBeInTheDocument()
   })

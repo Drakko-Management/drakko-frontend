@@ -57,7 +57,7 @@ describe('QuotesPage', () => {
   it('sans filtre, la requête n\'en porte aucun ; un état choisi dans l\'adresse filtre la liste', () => {
     renderAt('/devis?status=SENT')
 
-    expect(useQuotes).toHaveBeenLastCalledWith({ status: 'SENT', q: undefined })
+    expect(useQuotes).toHaveBeenLastCalledWith({ status: 'SENT', q: undefined, limit: 50 })
     expect(screen.getByRole('tab', { name: 'Envoyé' })).toHaveAttribute('aria-selected', 'true')
   })
 
@@ -65,7 +65,7 @@ describe('QuotesPage', () => {
     renderAt('/devis?status=NIMPORTE')
 
     expect(screen.getByRole('tab', { name: 'Tous' })).toHaveAttribute('aria-selected', 'true')
-    expect(useQuotes).toHaveBeenLastCalledWith({ status: undefined, q: undefined })
+    expect(useQuotes).toHaveBeenLastCalledWith({ status: undefined, q: undefined, limit: 50 })
   })
 
   it('choisir un état relance la liste avec cet état', async () => {
@@ -73,7 +73,7 @@ describe('QuotesPage', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Brouillon' }))
 
-    expect(useQuotes).toHaveBeenLastCalledWith({ status: 'DRAFT', q: undefined })
+    expect(useQuotes).toHaveBeenLastCalledWith({ status: 'DRAFT', q: undefined, limit: 50 })
   })
 
   it('aucun devis : invite à créer le premier', async () => {
@@ -98,5 +98,53 @@ describe('QuotesPage', () => {
     renderAt()
 
     expect(screen.queryByRole('button', { name: 'Nouveau devis' })).not.toBeInTheDocument()
+  })
+
+  describe('« Afficher plus » : la liste ne s\'arrête jamais en silence', () => {
+    const many = (count: number) =>
+      Array.from({ length: count }, (_, i) => quote({ id: `q${i}`, reference: `DEV-2026-${String(i).padStart(4, '0')}`, title: `Devis ${i}` }))
+
+    it('moins de devis que demandé : tout est là, pas de bouton', () => {
+      vi.mocked(useQuotes).mockReturnValue({ data: many(49), isLoading: false } as never)
+      renderAt()
+
+      expect(screen.queryByRole('button', { name: 'Afficher plus' })).not.toBeInTheDocument()
+    })
+
+    it('autant de devis que demandé : il y en a peut-être d\'autres, « Afficher plus » en demande cinquante de plus', async () => {
+      vi.mocked(useQuotes).mockReturnValue({ data: many(50), isLoading: false } as never)
+      renderAt()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Afficher plus' }))
+
+      expect(useQuotes).toHaveBeenLastCalledWith({ status: undefined, q: undefined, limit: 100 })
+    })
+
+    it('les demandes s\'additionnent : 50, 100, 150', async () => {
+      vi.mocked(useQuotes).mockImplementation(((filters: { limit?: number }) => ({
+        data: many(filters.limit ?? 50),
+        isLoading: false,
+      })) as never)
+      renderAt()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Afficher plus' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Afficher plus' }))
+
+      expect(useQuotes).toHaveBeenLastCalledWith(expect.objectContaining({ limit: 150 }))
+    })
+
+    it('changer d\'état repart de cinquante', async () => {
+      vi.mocked(useQuotes).mockImplementation(((filters: { limit?: number }) => ({
+        data: many(filters.limit ?? 50),
+        isLoading: false,
+      })) as never)
+      renderAt()
+      await userEvent.click(screen.getByRole('button', { name: 'Afficher plus' }))
+      expect(useQuotes).toHaveBeenLastCalledWith(expect.objectContaining({ limit: 100 }))
+
+      await userEvent.click(screen.getByRole('tab', { name: 'Brouillon' }))
+
+      expect(useQuotes).toHaveBeenLastCalledWith({ status: 'DRAFT', q: undefined, limit: 50 })
+    })
   })
 })

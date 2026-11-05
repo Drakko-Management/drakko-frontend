@@ -2,15 +2,11 @@ import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle, FilePen, Wallet } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useInvoices } from '@/hooks/use-invoices'
+import { useInvoicesSummary } from '@/hooks/use-invoices'
 import { fullName } from '@/lib/utils'
-import { centsToNumber, toCents } from '@/modules/devis/totals'
 import { formatMoney } from '@/modules/devis/format'
 import type { Invoice } from '@/types/api'
 import { InvoiceStatusBadge } from './InvoiceStatusBadge'
-
-// Assez pour un coup d'œil ; la liste complète est à un clic
-const RECENT_COUNT = 5
 
 type StatKey = 'DRAFT' | 'ISSUED' | 'OVERDUE'
 
@@ -19,9 +15,6 @@ const STATS: { key: StatKey; icon: React.ElementType; color: string; labelKey: s
   { key: 'ISSUED', icon: Wallet, color: 'bg-blue-50 text-blue-700', labelKey: 'invoices.stat_to_collect' },
   { key: 'OVERDUE', icon: AlertCircle, color: 'bg-red-50 text-red-700', labelKey: 'invoices.stat_overdue' },
 ]
-
-/** Ce qui reste à encaisser : les factures émises et pas payées (un avoir n'attend aucun paiement). */
-const isToCollect = (invoice: Invoice) => invoice.kind === 'INVOICE' && invoice.status === 'ISSUED'
 
 function InvoiceRow({ invoice, onClick }: { invoice: Invoice; onClick: () => void }) {
   const { t } = useTranslation()
@@ -48,19 +41,21 @@ function InvoiceRow({ invoice, onClick }: { invoice: Invoice; onClick: () => voi
 
 /**
  * Le bloc Factures du tableau de bord (ADR-027, ADR-033) : brouillons, factures à encaisser (avec leur montant) et en
- * retard, puis les factures récentes. Il n'est monté que si l'utilisateur peut lire les factures.
+ * retard, puis les factures récentes. Les comptes viennent de la synthèse du serveur, pas de la liste (limitée à 200) : une
+ * vieille facture en retard compte même quand l'organisation en a des centaines. Il n'est monté que si l'utilisateur peut
+ * lire les factures.
  */
 export function InvoicesDashboardWidget() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { data: invoices, isLoading } = useInvoices()
+  const { data: summary, isLoading } = useInvoicesSummary()
+  const invoices = summary?.recent
 
   const counts: Record<StatKey, number> = {
-    DRAFT: invoices?.filter((i) => i.status === 'DRAFT').length ?? 0,
-    ISSUED: invoices?.filter(isToCollect).length ?? 0,
-    OVERDUE: invoices?.filter((i) => i.overdue).length ?? 0,
+    DRAFT: summary?.drafts ?? 0,
+    ISSUED: summary?.toCollect ?? 0,
+    OVERDUE: summary?.overdue ?? 0,
   }
-  const toCollectCents = (invoices ?? []).filter(isToCollect).reduce((sum, i) => sum + (toCents(i.total) ?? 0n), 0n)
 
   return (
     <section className="space-y-3" aria-label={t('nav.invoices')}>
@@ -89,7 +84,7 @@ export function InvoicesDashboardWidget() {
 
       {!isLoading && counts.ISSUED > 0 && (
         <p className="text-sm text-muted-foreground" data-testid="invoices-to-collect">
-          {t('invoices.to_collect_total', { amount: formatMoney(centsToNumber(toCollectCents)) })}
+          {t('invoices.to_collect_total', { amount: formatMoney(summary?.toCollectTotal) })}
         </p>
       )}
 
@@ -107,7 +102,7 @@ export function InvoicesDashboardWidget() {
         </div>
       ) : invoices && invoices.length > 0 ? (
         <div className="grid gap-2 lg:grid-cols-2">
-          {invoices.slice(0, RECENT_COUNT).map((invoice) => (
+          {invoices.map((invoice) => (
             <InvoiceRow key={invoice.id} invoice={invoice} onClick={() => void navigate(`/factures/${invoice.id}`)} />
           ))}
         </div>

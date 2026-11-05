@@ -83,6 +83,21 @@ export function formFromQuote(quote: Quote): QuoteFormValues {
   }
 }
 
+// Ce qui compte pour savoir si la saisie a changé : tout, sauf les clés de liste React
+const comparable = (values: QuoteFormValues) => ({
+  ...values,
+  client: values.client?.id ?? null,
+  lines: values.lines.map(({ key, ...line }) => {
+    void key
+    return line
+  }),
+})
+
+/** Vrai quand la saisie diffère de ce qu'elle était à l'ouverture (formulaire vide, ou devis/facture chargé). */
+export function isFormDirty(values: QuoteFormValues, baseline: QuoteFormValues): boolean {
+  return JSON.stringify(comparable(values)) !== JSON.stringify(comparable(baseline))
+}
+
 /** Une ligne est envoyable quand elle a un titre, une quantité positive et un prix. */
 export function isLineValid(line: FormLine): boolean {
   const quantity = toMilli(line.quantity)

@@ -237,7 +237,13 @@
     "filters_reset": "Restablecer los ajustes originales",
     "org_vat_exempt_label": "Franquicia en base del IVA",
     "org_vat_exempt_hint": "Microempresa: tus presupuestos y facturas no llevan IVA y muestran la mención «IVA no aplicable, art. 293 B del código tributario francés».",
-    "org_payment_terms_hint": "También sirve para calcular el vencimiento de tus facturas (30 días si no eliges nada)."
+    "org_payment_terms_hint": "También sirve para calcular el vencimiento de tus facturas (30 días si no eliges nada).",
+    "err_siret": "Este SIRET no es válido: 14 cifras, con su clave de control.",
+    "err_vat_number": "Este número de IVA no es válido (ejemplo: FR40303265045).",
+    "err_iban": "Este IBAN no es válido: revisa las cifras, la clave de control no coincide.",
+    "err_bic": "Este BIC no es válido: 8 u 11 caracteres (ejemplo: AGRIFRPP).",
+    "err_email": "Esta dirección de correo no es válida.",
+    "org_invalid": "Corrige los campos con error antes de guardar."
   },
   "common": {
     "back": "Volver",
@@ -275,7 +281,12 @@
     "previous_page": "Página anterior",
     "next_page": "Página siguiente",
     "last_page": "Última página",
-    "module_not_active": "Este módulo no está activado para tu empresa."
+    "module_not_active": "Este módulo no está activado para tu empresa.",
+    "show_more": "Mostrar más",
+    "unsaved_title": "¿Salir sin guardar?",
+    "unsaved_description": "Lo que has escrito no está guardado: si sales de esta página, lo perderás.",
+    "unsaved_leave": "Salir sin guardar",
+    "unsaved_stay": "Seguir en la página"
   },
   "not_found": {
     "title": "Página no encontrada",
@@ -904,7 +915,21 @@
     "action_create_balance_invoice": "Crear la factura del saldo",
     "deposit_created": "Borrador del anticipo creado",
     "deposit_error": "No se pudo crear el anticipo",
-    "deposits_label": "Anticipos"
+    "deposits_label": "Anticipos",
+    "accept_title": "¿Marcar este presupuesto como aceptado?",
+    "accept_description": "Indicas que tu cliente ha aceptado el presupuesto {{reference}} (por teléfono, en papel…). El enlace enviado dejará de funcionar. Podrás deshacerlo mientras no haya obra ni factura que provenga de él.",
+    "accept_confirm": "Marcar como aceptado",
+    "reject_title": "¿Marcar este presupuesto como rechazado?",
+    "reject_description": "Indicas que tu cliente ha rechazado el presupuesto {{reference}}. El enlace enviado dejará de funcionar. Podrás deshacerlo.",
+    "reject_confirm": "Marcar como rechazado",
+    "action_undecide": "Deshacer la decisión",
+    "undecide_title": "¿Deshacer la decisión?",
+    "undecide_description": "El presupuesto {{reference}} vuelve a «enviado». Podrás aceptarlo, rechazarlo o reabrirlo de nuevo para modificarlo.",
+    "undecide_confirm": "Deshacer la decisión",
+    "done_undecide": "Decisión deshecha: el presupuesto vuelve a estar enviado",
+    "hint_decision_locked": "Esta decisión ya no se puede deshacer: el cliente aceptó en línea, o de ella proviene una obra o una factura (elimínalas o anula la factura primero).",
+    "err_accepted_online": "El cliente aceptó este presupuesto en línea: su respuesta no se puede deshacer.",
+    "err_has_follow_up": "De este presupuesto proviene una obra o una factura: elimínalas o anula la factura antes de deshacer la decisión."
   },
   "quote_public": {
     "title": "Presupuesto {{reference}}",

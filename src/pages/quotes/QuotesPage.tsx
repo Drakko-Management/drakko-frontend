@@ -14,6 +14,9 @@ import { formatMoney } from '@/modules/devis/format'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
 import type { QuoteStatus } from '@/types/api'
 
+// Les devis se chargent par 50 ; « Afficher plus » en demande 50 de plus (la liste ne s'arrête jamais en silence)
+const PAGE_SIZE = 50
+
 const FILTERS: (QuoteStatus | 'ALL')[] = ['ALL', 'DRAFT', 'SENT', 'ACCEPTED', 'REJECTED']
 
 const isStatus = (value: string | null): value is QuoteStatus =>
@@ -35,10 +38,18 @@ export function QuotesPage() {
     return () => clearTimeout(timer)
   }, [search])
 
+  // Combien de devis demandés : il repart de 50 dès que l'état ou la recherche change
+  const filterKey = `${status}|${debounced}`
+  const [asked, setAsked] = useState({ filterKey, limit: PAGE_SIZE })
+  const limit = asked.filterKey === filterKey ? asked.limit : PAGE_SIZE
+
   const { data: quotes, isLoading } = useQuotes({
     status: status === 'ALL' ? undefined : status,
     q: debounced || undefined,
+    limit,
   })
+  // Autant que demandé : il y en a peut-être d'autres
+  const hasMore = (quotes?.length ?? 0) >= limit
 
   const canCreate = can('devis', 'create')
   const filtered = status !== 'ALL' || debounced !== ''
@@ -126,6 +137,17 @@ export function QuotesPage() {
           </li>
         ))}
       </ul>
+
+      {hasMore && (
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-[44px] w-full"
+          onClick={() => setAsked({ filterKey, limit: limit + PAGE_SIZE })}
+        >
+          {t('common.show_more')}
+        </Button>
+      )}
 
       {canCreate && <Fab onClick={() => void navigate('/devis/nouveau')} />}
     </div>

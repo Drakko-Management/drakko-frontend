@@ -53,6 +53,8 @@ const API_ERROR_KEYS: Record<string, string> = {
   SERVICE_NOT_FOUND: 'quotes.err_service_not_found',
   QUOTE_NOT_ACCEPTED: 'create_project.err_quote_not_accepted',
   QUOTE_ALREADY_INVOICED: 'invoices.err_quote_invoiced',
+  QUOTE_ACCEPTED_ONLINE: 'quotes.err_accepted_online',
+  QUOTE_HAS_FOLLOW_UP: 'quotes.err_has_follow_up',
   VAT_EXEMPT_RATE: 'quotes.err_vat_exempt',
   INVOICE_NOT_FOUND: 'invoices.not_found',
   INVOICE_EMAIL_FAILED: 'invoices.err_email_failed',

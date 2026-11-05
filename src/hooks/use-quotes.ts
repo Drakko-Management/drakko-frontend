@@ -1,8 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api-client'
 import { openPdf } from '@/lib/open-pdf'
 import { queryClient } from '@/lib/query-client'
-import type { Quote, QuoteStatus } from '@/types/api'
+import type { Quote, QuoteStatus, QuotesSummary } from '@/types/api'
 
 export interface QuoteFilters {
   status?: QuoteStatus
@@ -10,6 +10,8 @@ export interface QuoteFilters {
   q?: string
   /** Seulement les devis dont aucun chantier n'est issu (ADR-032) */
   withoutProject?: boolean
+  /** Combien au plus (200 sans ce paramètre) : « Afficher plus » le fait grandir */
+  limit?: number
 }
 
 /** Une ligne telle que l'API la reçoit : avec `serviceId` la prestation est recopiée, ce qui est envoyé la remplace. */
@@ -31,7 +33,8 @@ export interface QuoteInput {
   lines?: QuoteLineInput[]
 }
 
-export type QuoteAction = 'send' | 'reopen' | 'accept' | 'reject'
+/** `undecide` défait un « accepté » ou un « refusé » donné par erreur : le devis redevient « envoyé » */
+export type QuoteAction = 'send' | 'reopen' | 'accept' | 'reject' | 'undecide'
 
 const refresh = () => queryClient.invalidateQueries({ queryKey: ['quotes'] })
 
@@ -41,11 +44,22 @@ export function useQuotes(filters: QuoteFilters = {}, enabled = true) {
   if (filters.clientId) qs.set('clientId', filters.clientId)
   if (filters.q) qs.set('q', filters.q)
   if (filters.withoutProject) qs.set('withoutProject', 'true')
+  if (filters.limit) qs.set('limit', String(filters.limit))
   const text = qs.toString()
   return useQuery({
     queryKey: ['quotes', 'list', filters],
     queryFn: () => apiRequest<Quote[]>(`/quotes${text ? `?${text}` : ''}`),
     enabled,
+    // « Afficher plus » ou une frappe dans la recherche : la liste reste affichée le temps de la suivante
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Les comptes du tableau de bord : lus en base, jamais déduits de la liste. */
+export function useQuotesSummary() {
+  return useQuery({
+    queryKey: ['quotes', 'summary'],
+    queryFn: () => apiRequest<QuotesSummary>('/quotes/summary'),
   })
 }
 

@@ -237,7 +237,13 @@
     "filters_reset": "Rétablir les réglages d'origine",
     "org_vat_exempt_label": "Franchise en base de TVA",
     "org_vat_exempt_hint": "Micro-entrepreneur : vos devis et factures sont sans TVA et portent la mention « TVA non applicable, art. 293 B du CGI ».",
-    "org_payment_terms_hint": "Sert aussi à calculer l'échéance de vos factures (30 jours si rien n'est choisi)."
+    "org_payment_terms_hint": "Sert aussi à calculer l'échéance de vos factures (30 jours si rien n'est choisi).",
+    "err_siret": "Ce SIRET n'est pas valide : 14 chiffres, clé de contrôle comprise.",
+    "err_vat_number": "Ce numéro de TVA n'est pas valide (exemple : FR40303265045).",
+    "err_iban": "Cet IBAN n'est pas valide : vérifiez les chiffres, la clé de contrôle ne correspond pas.",
+    "err_bic": "Ce BIC n'est pas valide : 8 ou 11 caractères (exemple : AGRIFRPP).",
+    "err_email": "Cette adresse email n'est pas valide.",
+    "org_invalid": "Corrigez les champs en erreur avant d'enregistrer."
   },
   "common": {
     "back": "Retour",
@@ -275,7 +281,12 @@
     "previous_page": "Page précédente",
     "next_page": "Page suivante",
     "last_page": "Dernière page",
-    "module_not_active": "Ce module n'est pas activé pour votre entreprise."
+    "module_not_active": "Ce module n'est pas activé pour votre entreprise.",
+    "show_more": "Afficher plus",
+    "unsaved_title": "Quitter sans enregistrer ?",
+    "unsaved_description": "Ce que vous avez saisi n'est pas enregistré : en quittant cette page, vous le perdez.",
+    "unsaved_leave": "Quitter sans enregistrer",
+    "unsaved_stay": "Rester sur la page"
   },
   "not_found": {
     "title": "Page introuvable",
@@ -904,7 +915,21 @@
     "action_create_balance_invoice": "Créer la facture de solde",
     "deposit_created": "Brouillon d'acompte créé",
     "deposit_error": "Impossible de créer l'acompte",
-    "deposits_label": "Acomptes"
+    "deposits_label": "Acomptes",
+    "accept_title": "Marquer ce devis comme accepté ?",
+    "accept_description": "Vous indiquez que votre client a accepté le devis {{reference}} (par téléphone, sur papier…). Le lien envoyé ne fonctionnera plus. Vous pourrez défaire ce choix tant qu'aucun chantier ni facture n'en est issu.",
+    "accept_confirm": "Marquer comme accepté",
+    "reject_title": "Marquer ce devis comme refusé ?",
+    "reject_description": "Vous indiquez que votre client a refusé le devis {{reference}}. Le lien envoyé ne fonctionnera plus. Vous pourrez défaire ce choix.",
+    "reject_confirm": "Marquer comme refusé",
+    "action_undecide": "Annuler la décision",
+    "undecide_title": "Annuler la décision ?",
+    "undecide_description": "Le devis {{reference}} redevient « envoyé ». Vous pourrez de nouveau l'accepter, le refuser ou le rouvrir pour le modifier.",
+    "undecide_confirm": "Annuler la décision",
+    "done_undecide": "Décision annulée : le devis est de nouveau envoyé",
+    "hint_decision_locked": "Cette décision ne se défait plus : le client a accepté en ligne, ou un chantier ou une facture en est issu (supprimez-les ou annulez la facture d'abord).",
+    "err_accepted_online": "Le client a accepté ce devis en ligne : sa réponse ne se défait pas.",
+    "err_has_follow_up": "Un chantier ou une facture est issu de ce devis : supprimez-les ou annulez la facture avant de défaire la décision."
   },
   "quote_public": {
     "title": "Devis {{reference}}",

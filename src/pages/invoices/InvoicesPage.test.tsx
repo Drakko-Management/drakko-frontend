@@ -98,7 +98,7 @@ describe('InvoicesPage', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Toutes' }))
 
-    expect(lastFilters()).toEqual({ q: undefined })
+    expect(lastFilters()).toEqual({ q: undefined, limit: 50 })
   })
 
   it('l\'onglet vient de l\'adresse (le tableau de bord y renvoie)', () => {
@@ -142,5 +142,40 @@ describe('InvoicesPage', () => {
     renderPage()
 
     expect(screen.queryByRole('button', { name: 'Nouvelle facture' })).not.toBeInTheDocument()
+  })
+
+  describe('« Afficher plus » : la liste ne s\'arrête jamais en silence', () => {
+    const many = (count: number) =>
+      Array.from({ length: count }, (_, i) => issuedInvoice({ id: `i${i}`, reference: `FAC-2026-${String(i).padStart(4, '0')}`, title: `Facture ${i}` }))
+
+    it('moins de factures que demandé : tout est là, pas de bouton', () => {
+      vi.mocked(useInvoices).mockReturnValue({ data: many(49), isLoading: false } as never)
+      renderPage()
+
+      expect(screen.queryByRole('button', { name: 'Afficher plus' })).not.toBeInTheDocument()
+    })
+
+    it('autant de factures que demandé : « Afficher plus » en demande cinquante de plus', async () => {
+      vi.mocked(useInvoices).mockReturnValue({ data: many(50), isLoading: false } as never)
+      renderPage()
+
+      await userEvent.click(screen.getByRole('button', { name: 'Afficher plus' }))
+
+      expect(lastFilters()).toMatchObject({ limit: 100 })
+    })
+
+    it('changer d\'onglet repart de cinquante', async () => {
+      vi.mocked(useInvoices).mockImplementation(((filters: { limit?: number }) => ({
+        data: many(filters.limit ?? 50),
+        isLoading: false,
+      })) as never)
+      renderPage()
+      await userEvent.click(screen.getByRole('button', { name: 'Afficher plus' }))
+      expect(lastFilters()).toMatchObject({ limit: 100 })
+
+      await userEvent.click(screen.getByRole('tab', { name: 'Brouillons' }))
+
+      expect(lastFilters()).toMatchObject({ status: 'DRAFT', limit: 50 })
+    })
   })
 })

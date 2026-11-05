@@ -113,7 +113,7 @@ describe('QuoteDetailPage — les gestes selon l\'état', () => {
     }
   })
 
-  it.each(['ACCEPTED', 'REJECTED'] as const)('%s : seulement le PDF', (status) => {
+  it.each(['ACCEPTED', 'REJECTED'] as const)('%s : le PDF et l\'annulation de la décision, rien d\'autre qui écrive sur le devis', (status) => {
     show(quote({ status, decidedAt: '2026-11-04T10:00:00.000Z' }))
 
     expect(button('Télécharger le PDF')).toBeInTheDocument()
@@ -442,8 +442,6 @@ describe('QuoteDetailPage — envoi par email et réponse du client', () => {
 describe('QuoteDetailPage — actions', () => {
   it.each([
     ['DRAFT', 'Marquer comme envoyé', 'send', 'Devis marqué comme envoyé'],
-    ['SENT', 'Marquer comme accepté', 'accept', 'Devis marqué comme accepté'],
-    ['SENT', 'Marquer comme refusé', 'reject', 'Devis marqué comme refusé'],
     ['SENT', 'Rouvrir pour modifier', 'reopen', 'Devis rouvert, vous pouvez le modifier'],
   ] as const)('%s : « %s » envoie « %s »', async (status, label, action, message) => {
     show(quote({ status }))
@@ -614,6 +612,121 @@ describe('QuoteDetailPage — acompte (ADR-033)', () => {
     show(withDeposits)
 
     expect(screen.queryByTestId('quote-deposits')).not.toBeInTheDocument()
+  })
+})
+
+describe('QuoteDetailPage — décider à la main : confirmer, et pouvoir revenir (ADR-030)', () => {
+  const sent = quote({ status: 'SENT' })
+
+  it.each([
+    ['accept', 'Marquer comme accepté', 'Marquer ce devis comme accepté ?', 'Devis marqué comme accepté'],
+    ['reject', 'Marquer comme refusé', 'Marquer ce devis comme refusé ?', 'Devis marqué comme refusé'],
+  ] as const)('« %s » demande confirmation avant d\'écrire', async (action, label, title, message) => {
+    show(sent)
+
+    await userEvent.click(screen.getByRole('button', { name: label }))
+
+    expect(screen.getByText(title)).toBeInTheDocument()
+    expect(act).not.toHaveBeenCalled()
+    const confirm = screen.getAllByRole('button', { name: label })
+    await userEvent.click(confirm[confirm.length - 1])
+    expect(act).toHaveBeenCalledWith({ id: 'q1', action })
+    expect(toast.success).toHaveBeenCalledWith(message)
+  })
+
+  it('annuler la confirmation n\'écrit rien', async () => {
+    show(sent)
+    await userEvent.click(screen.getByRole('button', { name: 'Marquer comme accepté' }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+
+    expect(act).not.toHaveBeenCalled()
+  })
+
+  it('un refus de l\'API reste affiché et ferme la confirmation', async () => {
+    act.mockRejectedValue(new ApiError(409, 'x', 'QUOTE_INVALID_STATUS'))
+    show(sent)
+    await userEvent.click(screen.getByRole('button', { name: 'Marquer comme accepté' }))
+
+    const confirm = screen.getAllByRole('button', { name: 'Marquer comme accepté' })
+    await userEvent.click(confirm[confirm.length - 1])
+
+    expect(toast.error).toHaveBeenCalled()
+    expect(screen.queryByText('Marquer ce devis comme accepté ?')).not.toBeInTheDocument()
+  })
+
+  describe('annuler la décision', () => {
+    const undo = 'Annuler la décision'
+
+    it.each(['ACCEPTED', 'REJECTED'] as const)('un devis %s qu\'aucune suite ne verrouille propose « Annuler la décision »', (status) => {
+      show(quote({ status, decidedAt: '2026-11-04T10:00:00.000Z' }))
+
+      expect(button(undo)).toBeInTheDocument()
+      expect(screen.queryByTestId('quote-decision-locked')).not.toBeInTheDocument()
+    })
+
+    it('demande confirmation, puis redonne « envoyé » au devis', async () => {
+      show(quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T10:00:00.000Z' }))
+
+      await userEvent.click(button(undo)!)
+      expect(screen.getByText('Annuler la décision ?')).toBeInTheDocument()
+      expect(act).not.toHaveBeenCalled()
+      const confirm = screen.getAllByRole('button', { name: undo })
+      await userEvent.click(confirm[confirm.length - 1])
+
+      expect(act).toHaveBeenCalledWith({ id: 'q1', action: 'undecide' })
+      expect(toast.success).toHaveBeenCalledWith('Décision annulée : le devis est de nouveau envoyé')
+    })
+
+    it.each([
+      ['un chantier en est issu', { project: { id: 'p1', reference: 'CH-1', title: 'T', status: 'IN_PROGRESS' as const } }],
+      ['une facture de solde en est issue', { invoice: { id: 'i1', reference: null, status: 'DRAFT' as const, total: '10.00' } }],
+      ['un acompte en est issu', { deposits: [{ id: 'd1', reference: null, status: 'DRAFT' as const, total: '10.00' }] }],
+      ['le client l\'a accepté en ligne', { acceptance: acceptance({ state: 'ACCEPTED', signerName: 'Léa Martin', respondedAt: '2026-11-04T09:00:00.000Z' }) }],
+    ])('accepté mais %s : pas d\'annulation, et la raison est dite', (_name, patch) => {
+      show(quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T10:00:00.000Z', ...patch }))
+
+      expect(button(undo)).not.toBeInTheDocument()
+      expect(screen.getByTestId('quote-decision-locked')).toHaveTextContent('Cette décision ne se défait plus')
+    })
+
+    it('un refus se défait même quand le client l\'a donné en ligne', () => {
+      show(
+        quote({
+          status: 'REJECTED',
+          decidedAt: '2026-11-04T10:00:00.000Z',
+          acceptance: acceptance({ state: 'REJECTED', respondedAt: '2026-11-04T09:00:00.000Z' }),
+        }),
+      )
+
+      expect(button(undo)).toBeInTheDocument()
+    })
+
+    it('sans le droit de modifier les devis : rien à défaire', () => {
+      useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read'] }) })
+      show(quote({ status: 'REJECTED', decidedAt: '2026-11-04T10:00:00.000Z' }))
+
+      expect(button(undo)).not.toBeInTheDocument()
+    })
+
+    it('un devis envoyé ou brouillon n\'a pas de décision à défaire', () => {
+      show(quote({ status: 'SENT' }))
+
+      expect(button(undo)).not.toBeInTheDocument()
+    })
+
+    it('le refus du serveur (une suite est apparue) est dit avec sa traduction', async () => {
+      act.mockRejectedValue(new ApiError(409, 'x', 'QUOTE_HAS_FOLLOW_UP'))
+      show(quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T10:00:00.000Z' }))
+      await userEvent.click(button(undo)!)
+
+      const confirm = screen.getAllByRole('button', { name: undo })
+      await userEvent.click(confirm[confirm.length - 1])
+
+      expect(toast.error).toHaveBeenCalledWith(
+        'Un chantier ou une facture est issu de ce devis : supprimez-les ou annulez la facture avant de défaire la décision.',
+      )
+    })
   })
 })
 

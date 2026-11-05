@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Banknote, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, Receipt, RotateCcw, Send, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Banknote, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, Receipt, RotateCcw, Send, Trash2, Undo2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
@@ -33,6 +33,8 @@ export function QuoteDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState(false)
   const [depositOpen, setDepositOpen] = useState(false)
+  // Accepter, refuser ou annuler une décision à la main : un clic de trop se confirme avant de partir
+  const [decision, setDecision] = useState<'accept' | 'reject' | 'undecide' | null>(null)
   const [pdfPending, setPdfPending] = useState(false)
 
   if (isLoading) return <Skeleton className="h-72 rounded-xl" />
@@ -57,6 +59,8 @@ export function QuoteDetailPage() {
       toast.success(t(`quotes.done_${next}`))
     } catch (err) {
       toast.error(apiErrorMessage(err, t, 'quotes.action_error'))
+    } finally {
+      setDecision(null)
     }
   }
 
@@ -129,6 +133,12 @@ export function QuoteDetailPage() {
   const busy = action.isPending || emailQuote.isPending
   const buttonClass = 'min-h-[44px]'
   const { status } = quote
+  // Une décision se défait tant que rien n'en découle : ni chantier, ni facture ou acompte, et le client n'a pas accepté
+  // lui-même en ligne (le serveur reste juge)
+  const decisionLocked =
+    status === 'ACCEPTED' &&
+    (Boolean(quote.project) || Boolean(quote.invoice) || quote.deposits.length > 0 || quote.acceptance?.state === 'ACCEPTED')
+  const canUndecide = canUpdate && (status === 'REJECTED' || (status === 'ACCEPTED' && !decisionLocked))
 
   return (
     <div className="space-y-5 pb-8">
@@ -251,6 +261,11 @@ export function QuoteDetailPage() {
 
       <AcceptanceInfo quote={quote} />
 
+      {decisionLocked && canUpdate && (
+        <p className="text-xs text-muted-foreground" data-testid="quote-decision-locked">
+          {t('quotes.hint_decision_locked')}
+        </p>
+      )}
       {status === 'DRAFT' && canUpdate && <p className="text-xs text-muted-foreground">{t('quotes.hint_draft')}</p>}
       {status === 'SENT' && canUpdate && <p className="text-xs text-muted-foreground">{t('quotes.hint_sent')}</p>}
 
@@ -289,11 +304,11 @@ export function QuoteDetailPage() {
                 {t('quotes.action_copy_link')}
               </Button>
             )}
-            <Button type="button" className={buttonClass} disabled={busy} onClick={() => void run('accept')}>
+            <Button type="button" className={buttonClass} disabled={busy} onClick={() => setDecision('accept')}>
               <Check className="h-4 w-4" />
               {t('quotes.action_accept')}
             </Button>
-            <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => void run('reject')}>
+            <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setDecision('reject')}>
               <X className="h-4 w-4" />
               {t('quotes.action_reject')}
             </Button>
@@ -324,6 +339,13 @@ export function QuoteDetailPage() {
           </>
         )}
 
+        {canUndecide && (
+          <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setDecision('undecide')}>
+            <Undo2 className="h-4 w-4" />
+            {t('quotes.action_undecide')}
+          </Button>
+        )}
+
         {status === 'DRAFT' && canDelete && (
           <Button
             type="button"
@@ -348,6 +370,16 @@ export function QuoteDetailPage() {
         confirmLabel={t('quotes.email_confirm')}
         pending={emailQuote.isPending}
         onConfirm={() => void handleEmail()}
+      />
+
+      <ConfirmDialog
+        open={decision !== null}
+        onOpenChange={(open) => !open && setDecision(null)}
+        title={t(`quotes.${decision ?? 'accept'}_title`)}
+        description={t(`quotes.${decision ?? 'accept'}_description`, { reference: quote.reference })}
+        confirmLabel={t(`quotes.${decision ?? 'accept'}_confirm`)}
+        pending={action.isPending}
+        onConfirm={() => decision && void run(decision)}
       />
 
       <DepositDialog
