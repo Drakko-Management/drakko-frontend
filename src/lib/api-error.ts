@@ -57,6 +57,8 @@ const API_ERROR_KEYS: Record<string, string> = {
   QUOTE_HAS_FOLLOW_UP: 'quotes.err_has_follow_up',
   VAT_EXEMPT_RATE: 'quotes.err_vat_exempt',
   INVOICE_NOT_FOUND: 'invoices.not_found',
+  INVOICE_EXPORT_PERIOD_INVALID: 'invoices.err_export_period',
+  INVOICE_EXPORT_TOO_LARGE: 'invoices.err_export_too_large',
   INVOICE_EMAIL_FAILED: 'invoices.err_email_failed',
   INVOICE_DEPOSIT_INVALID: 'invoices.err_deposit_invalid',
   INVOICE_DEPOSIT_TOO_HIGH: 'invoices.err_deposit_too_high',

@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { Plus, Receipt, Search } from 'lucide-react'
+import { Download, Plus, Receipt, Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Fab } from '@/components/common/Fab'
-import { useInvoices, type InvoiceFilters } from '@/hooks/use-invoices'
+import { downloadInvoicesExport, useInvoices, type InvoiceFilters } from '@/hooks/use-invoices'
 import { usePermissions } from '@/hooks/use-permissions'
+import { apiErrorMessage } from '@/lib/api-error'
 import { cn, formatDate, fullName } from '@/lib/utils'
 import { formatMoney } from '@/modules/devis/format'
 import { formatDay } from '@/modules/factures/format'
+import { ExportInvoicesDialog } from '@/modules/factures/ExportInvoicesDialog'
 import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 
 // Les factures se chargent par 50 ; « Afficher plus » en demande 50 de plus (la liste ne s'arrête jamais en silence)
@@ -47,6 +50,22 @@ export function InvoicesPage() {
   const filter: Filter = isFilter(fromUrl) ? fromUrl : 'ALL'
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
+  // L'export comptable : la fenêtre du choix de période, et le fichier en préparation
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+
+  async function handleExport({ from, to }: { from: string; to: string }) {
+    setExporting(true)
+    try {
+      await downloadInvoicesExport(from, to)
+      toast.success(t('invoices.export_done'))
+      setExportOpen(false)
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t, 'invoices.export_error'))
+    } finally {
+      setExporting(false)
+    }
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(search.trim()), 300)
@@ -67,14 +86,20 @@ export function InvoicesPage() {
 
   return (
     <div className="space-y-4 pb-24">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-bold">{t('invoices.title')}</h1>
-        {canCreate && (
-          <Button className="hidden min-h-[44px] md:flex" onClick={() => void navigate('/factures/nouveau')}>
-            <Plus className="mr-1 h-4 w-4" />
-            {t('invoices.new')}
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" className="min-h-[44px]" onClick={() => setExportOpen(true)}>
+            <Download className="mr-1 h-4 w-4" />
+            {t('invoices.export')}
           </Button>
-        )}
+          {canCreate && (
+            <Button className="hidden min-h-[44px] md:flex" onClick={() => void navigate('/factures/nouveau')}>
+              <Plus className="mr-1 h-4 w-4" />
+              {t('invoices.new')}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="relative">
@@ -170,6 +195,8 @@ export function InvoicesPage() {
       )}
 
       {canCreate && <Fab onClick={() => void navigate('/factures/nouveau')} />}
+
+      <ExportInvoicesDialog open={exportOpen} onOpenChange={setExportOpen} pending={exporting} onConfirm={(period) => void handleExport(period)} />
     </div>
   )
 }

@@ -3,8 +3,10 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { apiBlob, apiRequest } from '@/lib/api-client'
+import { downloadFile } from '@/lib/download-file'
 import { queryClient } from '@/lib/query-client'
 import {
+  downloadInvoicesExport,
   openInvoicePdf,
   useCreateInvoice,
   useCreditNote,
@@ -24,6 +26,8 @@ vi.mock('@/lib/api-client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-client')>()
   return { ...actual, apiRequest: vi.fn(), apiBlob: vi.fn() }
 })
+
+vi.mock('@/lib/download-file', () => ({ downloadFile: vi.fn().mockResolvedValue(undefined) }))
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -194,5 +198,16 @@ describe('openInvoicePdf', () => {
 
     expect(tab.close).toHaveBeenCalled()
     open.mockRestore()
+  })
+})
+
+describe('downloadInvoicesExport', () => {
+  it('demande le journal de la période à l\'API et nomme le fichier d\'après elle', async () => {
+    await downloadInvoicesExport('2026-01-01', '2026-03-31')
+
+    expect(downloadFile).toHaveBeenCalledWith(
+      '/invoices/export?from=2026-01-01&to=2026-03-31',
+      'factures-2026-01-01_2026-03-31.csv',
+    )
   })
 })

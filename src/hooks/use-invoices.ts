@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api-client'
+import { downloadFile } from '@/lib/download-file'
 import { openPdf } from '@/lib/open-pdf'
 import { queryClient } from '@/lib/query-client'
 import type { Invoice, InvoiceKind, InvoiceStatus, InvoicesSummary, PaymentMethod } from '@/types/api'
@@ -142,3 +143,10 @@ export function useDeleteInvoice() {
 
 /** Ouvre le PDF d'une facture ou d'un avoir dans un nouvel onglet. */
 export const openInvoicePdf = (id: string): Promise<void> => openPdf(`/invoices/${id}/pdf`)
+
+/**
+ * Télécharge le journal CSV des factures, acomptes et avoirs émis entre deux jours (inclus, « AAAA-MM-JJ »), pour le
+ * comptable. Les brouillons n'y sont pas.
+ */
+export const downloadInvoicesExport = (from: string, to: string): Promise<void> =>
+  downloadFile(`/invoices/export?from=${from}&to=${to}`, `factures-${from}_${to}.csv`)

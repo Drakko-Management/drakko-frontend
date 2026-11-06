@@ -2,9 +2,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { useInvoices } from '@/hooks/use-invoices'
+import { toast } from 'sonner'
+import { downloadInvoicesExport, useInvoices } from '@/hooks/use-invoices'
 import { useAuthStore } from '@/store/auth.store'
 import { makePermissions } from '@/lib/permissions'
+import { ApiError } from '@/lib/api-client'
+import { todayInput } from '@/modules/factures/format'
 import { InvoicesPage } from './InvoicesPage'
 import { creditNote, invoice, issuedInvoice } from '@/test/invoice-fixtures'
 import { plain } from '@/test/quote-fixtures'
@@ -14,7 +17,8 @@ vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router')>()
   return { ...actual, useNavigate: () => mockNavigate }
 })
-vi.mock('@/hooks/use-invoices', () => ({ useInvoices: vi.fn() }))
+vi.mock('@/hooks/use-invoices', () => ({ useInvoices: vi.fn(), downloadInvoicesExport: vi.fn() }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 function renderPage(entry = '/factures') {
   render(
@@ -32,6 +36,7 @@ const lastFilters = () => {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(useInvoices).mockReturnValue({ data: [], isLoading: false } as never)
+  vi.mocked(downloadInvoicesExport).mockResolvedValue(undefined)
   useAuthStore.setState({ role: 'ADMIN', permissions: null, modules: null })
 })
 
@@ -179,5 +184,58 @@ describe('InvoicesPage', () => {
 
       expect(lastFilters()).toMatchObject({ status: 'DRAFT', limit: 50 })
     })
+  })
+})
+
+describe('InvoicesPage — export pour le comptable', () => {
+  const open = async () => userEvent.click(screen.getByRole('button', { name: 'Exporter' }))
+
+  it('« Exporter » ouvre le choix de la période', async () => {
+    renderPage()
+    expect(screen.queryByText('Exporter pour le comptable')).not.toBeInTheDocument()
+
+    await open()
+
+    expect(screen.getByRole('heading', { name: 'Exporter pour le comptable' })).toBeInTheDocument()
+  })
+
+  it('le fichier de la période choisie se télécharge, la fenêtre se ferme et le dit', async () => {
+    renderPage()
+    await open()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Télécharger' }))
+
+    expect(downloadInvoicesExport).toHaveBeenCalledWith(`${todayInput().slice(0, 4)}-01-01`, todayInput())
+    expect(toast.success).toHaveBeenCalledWith('Fichier téléchargé')
+    expect(screen.queryByRole('heading', { name: 'Exporter pour le comptable' })).not.toBeInTheDocument()
+  })
+
+  it('une période trop chargée est dite avec sa traduction, la fenêtre reste ouverte pour la raccourcir', async () => {
+    vi.mocked(downloadInvoicesExport).mockRejectedValue(new ApiError(400, 'x', 'INVOICE_EXPORT_TOO_LARGE'))
+    renderPage()
+    await open()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Télécharger' }))
+
+    expect(toast.error).toHaveBeenCalledWith('Trop de documents sur cette période : choisissez-en une plus courte.')
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'Exporter pour le comptable' })).toBeInTheDocument()
+  })
+
+  it('une autre erreur donne le message de repli, jamais le texte du serveur', async () => {
+    vi.mocked(downloadInvoicesExport).mockRejectedValue(new Error('ECONNRESET'))
+    renderPage()
+    await open()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Télécharger' }))
+
+    expect(toast.error).toHaveBeenCalledWith('Impossible de préparer le fichier. Réessayez.')
+  })
+
+  it('l\'export est proposé à qui peut seulement lire les factures', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ factures: ['read'], clients: ['read'] }) })
+    renderPage()
+
+    expect(screen.getByRole('button', { name: 'Exporter' })).toBeInTheDocument()
   })
 })
