@@ -107,13 +107,16 @@ describe('SettingsEnterprisePage — documents (ADR-033)', () => {
   })
 
   describe('pénalités de retard', () => {
-    const hint = /la loi demande le taux des pénalités et l'indemnité forfaitaire de 40 €/
+    const hint = /L'indemnité de 40 € s'ajoute seule sur les factures des clients professionnels/
+    const warning = /Ce texte parle de l'indemnité de 40 €/
+    const penalties = () => screen.getByLabelText('Pénalités de retard')
 
-    it('avec la Facturation, le champ rappelle ce que la loi demande entre professionnels', () => {
+    it('avec la Facturation, le champ dit que le taux est obligatoire et que les 40 € viennent seuls', () => {
       useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
       renderPage()
 
       expect(screen.getByText(hint)).toBeInTheDocument()
+      expect(screen.getByText(/Laissez vide pour imprimer/)).toBeInTheDocument()
     })
 
     it('sans la Facturation, aucune facture n\'est concernée : pas de rappel', () => {
@@ -121,6 +124,96 @@ describe('SettingsEnterprisePage — documents (ADR-033)', () => {
       renderPage()
 
       expect(screen.queryByText(hint)).not.toBeInTheDocument()
+    })
+
+    it('rien n\'est renvoyé au comptable : le texte n\'est plus à « faire relire »', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+      renderPage()
+
+      expect(screen.queryByText(/comptable/)).not.toBeInTheDocument()
+    })
+
+    it.each(['Pénalités : 3 fois le taux légal, plus 40 € de frais.', 'Indemnité de 40 euros', 'frais 40 EUR'])(
+      'un texte qui écrit déjà l\'indemnité (« %s ») est signalé',
+      async (text) => {
+        useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+        renderPage({ latePaymentPenalties: text })
+
+        expect(screen.getByRole('alert')).toHaveTextContent(warning)
+      },
+    )
+
+    it('l\'avertissement suit la saisie et disparaît quand l\'indemnité est retirée', async () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+      renderPage()
+      expect(screen.queryByText(warning)).not.toBeInTheDocument()
+
+      await userEvent.type(penalties(), 'plus 40 € de frais')
+      expect(screen.getByText(warning)).toBeInTheDocument()
+
+      await userEvent.clear(penalties())
+      await userEvent.type(penalties(), '3 fois le taux légal')
+      expect(screen.queryByText(warning)).not.toBeInTheDocument()
+    })
+
+    it('un nombre qui n\'est pas l\'indemnité (140 €, 400 €) ne déclenche rien', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+      renderPage({ latePaymentPenalties: 'minimum 140 € ou 400 €' })
+
+      expect(screen.queryByText(warning)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('mentions de facture : nature des opérations et TVA sur les débits (ADR-035)', () => {
+    const nature = () => screen.getByLabelText('Nature de vos opérations') as HTMLSelectElement
+    const debits = () => screen.queryByRole('switch', { name: "Option TVA d'après les débits" })
+
+    beforeEach(() => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+    })
+
+    it('par défaut : des prestations de services, sans option sur les débits', () => {
+      renderPage()
+
+      expect(nature().value).toBe('SERVICES')
+      expect(debits()).not.toBeChecked()
+    })
+
+    it('les réglages de l\'organisation sont repris', () => {
+      renderPage({ operationNature: 'BOTH', vatOnDebits: true })
+
+      expect(nature().value).toBe('BOTH')
+      expect(debits()).toBeChecked()
+    })
+
+    it('les deux choix s\'enregistrent', async () => {
+      renderPage()
+
+      await userEvent.selectOptions(nature(), 'GOODS')
+      await userEvent.click(debits()!)
+      await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+      expect(lastPayload()).toMatchObject({ operationNature: 'GOODS', vatOnDebits: true })
+    })
+
+    it('la nature se choisit parmi trois', () => {
+      renderPage()
+
+      expect(Array.from(nature().options).map((option) => option.value)).toEqual(['SERVICES', 'GOODS', 'BOTH'])
+    })
+
+    it('sous franchise de TVA, l\'option sur les débits n\'a pas de sens : pas d\'interrupteur', () => {
+      renderPage({ vatExempt: true, vatOnDebits: true })
+
+      expect(debits()).not.toBeInTheDocument()
+    })
+
+    it('sans la Facturation, rien de tout cela : aucune facture ne l\'imprime', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+      renderPage()
+
+      expect(screen.queryByLabelText('Nature de vos opérations')).not.toBeInTheDocument()
+      expect(debits()).not.toBeInTheDocument()
     })
   })
 

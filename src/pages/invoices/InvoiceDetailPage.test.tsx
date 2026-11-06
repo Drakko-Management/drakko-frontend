@@ -403,49 +403,18 @@ describe('InvoiceDetailPage — émettre', () => {
     expect(toast.success).toHaveBeenCalledWith('Facture émise')
   })
 
-  describe('les pénalités de retard', () => {
-    const NOTICE = /Aucune pénalité de retard n'est saisie dans vos réglages/
+  // Le texte par défaut des pénalités s'imprime quand les réglages n'en ont pas (ADR-035) : plus rien à signaler avant
+  // d'émettre, même sans pénalité saisie
+  it.each([[undefined], [''], [' ']])('sans pénalité dans les réglages (%j), la confirmation n\'avertit de rien', async (latePaymentPenalties) => {
+    vi.mocked(useOrganization).mockReturnValue({ data: { ...COMPLETE_ORG, latePaymentPenalties } } as never)
+    show(invoice())
 
-    it('aucune dans les réglages : la confirmation le dit, sans empêcher d\'émettre', async () => {
-      show(invoice())
+    await userEvent.click(button('Émettre la facture')!)
 
-      await userEvent.click(button('Émettre la facture')!)
-
-      expect(screen.getByText(NOTICE)).toBeInTheDocument()
-      expect(screen.getByText(/indemnité forfaitaire de 40 €/)).toBeInTheDocument()
-      await userEvent.click(screen.getByRole('button', { name: 'Émettre' }))
-      expect(issue).toHaveBeenCalledWith('i1')
-    })
-
-    it.each([[' '], [''], [undefined]])('un texte vide (%j) vaut aucun', async (latePaymentPenalties) => {
-      vi.mocked(useOrganization).mockReturnValue({ data: { ...COMPLETE_ORG, latePaymentPenalties } } as never)
-      show(invoice())
-
-      await userEvent.click(button('Émettre la facture')!)
-
-      expect(screen.getByText(NOTICE)).toBeInTheDocument()
-    })
-
-    it('saisies dans les réglages : rien à signaler', async () => {
-      vi.mocked(useOrganization).mockReturnValue({
-        data: { ...COMPLETE_ORG, latePaymentPenalties: '3× le taux légal. Indemnité de recouvrement : 40 €.' },
-      } as never)
-      show(invoice())
-
-      await userEvent.click(button('Émettre la facture')!)
-
-      expect(screen.getByText('Émettre cette facture ?')).toBeInTheDocument()
-      expect(screen.queryByText(NOTICE)).not.toBeInTheDocument()
-    })
-
-    it('réglages pas encore chargés : on ne dit rien de faux', async () => {
-      vi.mocked(useOrganization).mockReturnValue({ data: undefined } as never)
-      show(invoice())
-
-      await userEvent.click(button('Émettre la facture')!)
-
-      expect(screen.queryByText(NOTICE)).not.toBeInTheDocument()
-    })
+    expect(screen.getByText('Émettre cette facture ?')).toBeInTheDocument()
+    expect(screen.queryByText(/pénalité/i)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Émettre' }))
+    expect(issue).toHaveBeenCalledWith('i1')
   })
 
   it('annuler la confirmation n\'émet rien', async () => {

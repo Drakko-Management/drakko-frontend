@@ -25,6 +25,7 @@ import {
   normalizeSiret,
   normalizeVatNumber,
 } from '@/lib/identifiers'
+import type { OperationNature } from '@/types/api'
 import { SettingsSubHeader } from './SettingsSubHeader'
 
 type OrgFormState = {
@@ -65,6 +66,8 @@ type OrgFormState = {
   reportPrefix: string
   defaultVatRate: string
   vatExempt: boolean
+  vatOnDebits: boolean
+  operationNature: OperationNature
   defaultPaymentTerms: string
   latePaymentPenalties: string
 }
@@ -79,8 +82,13 @@ const EMPTY: OrgFormState = {
   primaryColor: '#1a7a33',
   projectPrefix: 'CH', autoProjectReference: false,
   quotePrefix: 'DEV', invoicePrefix: 'FAC', reportPrefix: 'RAP',
-  defaultVatRate: '10', vatExempt: false, defaultPaymentTerms: '', latePaymentPenalties: '',
+  defaultVatRate: '10', vatExempt: false, vatOnDebits: false, operationNature: 'SERVICES',
+  defaultPaymentTerms: '', latePaymentPenalties: '',
 }
+
+// Un texte de pénalités qui écrit déjà l'indemnité de 40 € (« 40 € », « 40 euros »…) : Drakko l'ajoute seul pour les
+// clients professionnels, et elle ne se réclame pas à un particulier (ADR-035)
+const MENTIONS_RECOVERY_INDEMNITY = /\b40\s*(?:€|euros?\b|eur\b)/i
 
 // Un jour saisi (AAAA-MM-JJ) déjà passé ; le jour même compte encore. Une saisie vide ou qui n'est pas un jour : non.
 function isPastDay(value: string): boolean {
@@ -192,6 +200,8 @@ export function SettingsEnterprisePage() {
       reportPrefix:        org.reportPrefix ?? 'RAP',
       defaultVatRate:      String(org.defaultVatRate ?? 10),
       vatExempt:           org.vatExempt ?? false,
+      vatOnDebits:         org.vatOnDebits ?? false,
+      operationNature:     org.operationNature ?? 'SERVICES',
       defaultPaymentTerms: org.defaultPaymentTerms ?? '',
       latePaymentPenalties:org.latePaymentPenalties ?? '',
     })
@@ -253,6 +263,8 @@ export function SettingsEnterprisePage() {
       reportPrefix:        form.reportPrefix || undefined,
       defaultVatRate:      form.defaultVatRate ? parseFloat(form.defaultVatRate) : undefined,
       vatExempt:           form.vatExempt,
+      vatOnDebits:         form.vatOnDebits,
+      operationNature:     form.operationNature,
       defaultPaymentTerms: textOrNull(form.defaultPaymentTerms),
       latePaymentPenalties:textOrNull(form.latePaymentPenalties),
       primaryColor:        form.primaryColor || undefined,
@@ -540,6 +552,29 @@ export function SettingsEnterprisePage() {
                 />
               </div>
               )}
+              {hasInvoices && !form.vatExempt && (
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{t('settings.org_vat_on_debits_label')}</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.org_vat_on_debits_hint')}</p>
+                </div>
+                <Switch
+                  checked={form.vatOnDebits}
+                  onCheckedChange={(v: boolean) => setForm((p) => ({ ...p, vatOnDebits: v }))}
+                  aria-label={t('settings.org_vat_on_debits_label')}
+                />
+              </div>
+              )}
+              {hasInvoices && (
+              <Field label={t('settings.org_operation_nature')} htmlFor="org-operation-nature">
+                <select id="org-operation-nature" value={form.operationNature} onChange={f('operationNature')} className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <option value="SERVICES">{t('settings.operation_services')}</option>
+                  <option value="GOODS">{t('settings.operation_goods')}</option>
+                  <option value="BOTH">{t('settings.operation_both')}</option>
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">{t('settings.org_operation_nature_hint')}</p>
+              </Field>
+              )}
               <Field label={t('settings.org_default_vat')}>
                 <select value={form.vatExempt ? '0' : form.defaultVatRate} onChange={f('defaultVatRate')} disabled={form.vatExempt} className="flex min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <option value="0">0 %</option>
@@ -559,9 +594,12 @@ export function SettingsEnterprisePage() {
                 </select>
                 {hasInvoices && <p className="mt-1 text-xs text-muted-foreground">{t('settings.org_payment_terms_hint')}</p>}
               </Field>
-              <Field label={t('settings.org_late_penalties')}>
-                <Input className={inputCls} value={form.latePaymentPenalties} onChange={f('latePaymentPenalties')} maxLength={200} placeholder={t('settings.org_late_penalties_placeholder')} />
+              <Field label={t('settings.org_late_penalties')} htmlFor="org-late-penalties">
+                <Input id="org-late-penalties" className={inputCls} value={form.latePaymentPenalties} onChange={f('latePaymentPenalties')} maxLength={200} placeholder={t('settings.org_late_penalties_placeholder')} />
                 {hasInvoices && <p className="mt-1 text-xs text-muted-foreground">{t('settings.org_late_penalties_hint')}</p>}
+                {hasInvoices && MENTIONS_RECOVERY_INDEMNITY.test(form.latePaymentPenalties) && (
+                  <p role="alert" className="mt-1 text-xs text-destructive">{t('settings.org_late_penalties_40_warning')}</p>
+                )}
               </Field>
             </Card>
 

@@ -15,6 +15,9 @@ export interface Role {
   updatedAt: string
 }
 
+/** Ce que l'entreprise vend, tel que la facture le dit : prestations de services (travaux compris), livraisons de biens, ou les deux */
+export type OperationNature = 'SERVICES' | 'GOODS' | 'BOTH'
+
 export interface Organization {
   id: string
   name: string
@@ -68,6 +71,10 @@ export interface Organization {
   defaultVatRate?: number
   /** Franchise en base de TVA : devis et factures à 0 % avec la mention légale (ADR-033) */
   vatExempt?: boolean
+  /** Option « paiement de la taxe d'après les débits », imprimée sur les factures (ADR-035) */
+  vatOnDebits?: boolean
+  /** Nature des opérations, imprimée sur les factures (ADR-035) */
+  operationNature?: OperationNature
   defaultPaymentTerms?: string
   latePaymentPenalties?: string
   documentFooter?: string
