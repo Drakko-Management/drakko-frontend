@@ -192,21 +192,21 @@ describe('InvoiceDetailPage — contenu', () => {
   })
 
   it('tirée d\'un devis : un lien vers lui', () => {
-    show(issuedInvoice({ quote: { id: 'q1', reference: 'DEV-2026-0001' } }))
+    show(issuedInvoice({ quote: { id: 'q1', reference: 'DEV-2026-0001', status: 'ACCEPTED', decidedAt: '2026-10-01T10:00:00.000Z' } }))
 
     expect(screen.getByRole('link', { name: 'DEV-2026-0001' })).toHaveAttribute('href', '/devis/q1')
   })
 
   it('sans le droit de lire les devis, le devis n\'est pas un lien', () => {
     useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ factures: ['read'] }) })
-    show(issuedInvoice({ quote: { id: 'q1', reference: 'DEV-2026-0001' } }))
+    show(issuedInvoice({ quote: { id: 'q1', reference: 'DEV-2026-0001', status: 'ACCEPTED', decidedAt: '2026-10-01T10:00:00.000Z' } }))
 
     expect(screen.queryByTestId('invoice-quote')).not.toBeInTheDocument()
   })
 
   it('« Devis absent » (module Devis coupé) : le devis d\'origine ne se montre pas, même pour l\'administrateur', () => {
     useAuthStore.setState({ role: 'ADMIN', modules: ['factures'] })
-    show(issuedInvoice({ quote: { id: 'q1', reference: 'DEV-2026-0001' } }))
+    show(issuedInvoice({ quote: { id: 'q1', reference: 'DEV-2026-0001', status: 'ACCEPTED', decidedAt: '2026-10-01T10:00:00.000Z' } }))
 
     expect(screen.queryByTestId('invoice-quote')).not.toBeInTheDocument()
   })
@@ -482,6 +482,59 @@ describe('InvoiceDetailPage — émettre', () => {
   })
 })
 
+describe('InvoiceDetailPage — les sept jours d\'un acompte de particulier (ADR-036)', () => {
+  const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString()
+  const depositOf = (decidedAt: string, client: Partial<Invoice['client']> = {}) => ({
+    deposit: true as const,
+    quoteId: 'q1',
+    quote: { id: 'q1', reference: 'DEV-2026-0001', status: 'ACCEPTED' as const, decidedAt },
+    client: { ...invoice().client, ...client },
+  })
+
+  it('émettre l\'acompte d\'un devis accepté il y a deux jours : la confirmation le dit, sans empêcher d\'émettre', async () => {
+    show(invoice(depositOf(daysAgo(2))))
+
+    await userEvent.click(button('Émettre la facture')!)
+
+    expect(screen.getByText(/aucun paiement ne peut être demandé avant le/)).toBeInTheDocument()
+    expect(screen.getByText(/N'envoyez pas la facture avant/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Émettre' }))
+    expect(issue).toHaveBeenCalledWith('i1')
+  })
+
+  it('envoyer l\'acompte par email : la confirmation le dit aussi', async () => {
+    show(issuedInvoice(depositOf(daysAgo(2))))
+
+    await userEvent.click(button('Envoyer par email')!)
+
+    expect(screen.getByText(/on ne peut pas inviter un particulier à payer avant le/)).toBeInTheDocument()
+  })
+
+  it('devis accepté il y a dix jours : rien à signaler', async () => {
+    show(invoice(depositOf(daysAgo(10))))
+
+    await userEvent.click(button('Émettre la facture')!)
+
+    expect(screen.queryByText(/aucun paiement ne peut être demandé/)).not.toBeInTheDocument()
+  })
+
+  it('un client professionnel : rien, même accepté hier', async () => {
+    show(invoice(depositOf(daysAgo(1), { kind: 'PROFESSIONAL', companyName: 'Martin Paysage SARL' })))
+
+    await userEvent.click(button('Émettre la facture')!)
+
+    expect(screen.queryByText(/aucun paiement ne peut être demandé/)).not.toBeInTheDocument()
+  })
+
+  it('une facture ordinaire tirée d\'un devis récent : rien (seul un acompte est un paiement avant les travaux)', async () => {
+    show(invoice({ quoteId: 'q1', quote: { id: 'q1', reference: 'DEV-2026-0001', status: 'ACCEPTED', decidedAt: daysAgo(1) } }))
+
+    await userEvent.click(button('Émettre la facture')!)
+
+    expect(screen.queryByText(/aucun paiement ne peut être demandé/)).not.toBeInTheDocument()
+  })
+})
+
 describe('InvoiceDetailPage — envoyer par email', () => {
   it('demande confirmation en disant à qui part le PDF, puis envoie', async () => {
     show(issuedInvoice())
@@ -704,7 +757,7 @@ describe('InvoiceDetailPage — acompte et facture de solde (ADR-033)', () => {
     invoice({
       deposit: true,
       quoteId: 'q1',
-      quote: { id: 'q1', reference: 'DEV-2026-0001' },
+      quote: { id: 'q1', reference: 'DEV-2026-0001', status: 'ACCEPTED', decidedAt: '2026-10-01T10:00:00.000Z' },
       lines: [depositLine],
       subtotal: '69.00',
       vatAmount: '13.80',

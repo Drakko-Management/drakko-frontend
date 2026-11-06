@@ -27,6 +27,7 @@ import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import { centsOf, centsToNumber } from '@/modules/devis/totals'
 import { formatDay } from '@/modules/factures/format'
 import { missingIdentity } from '@/modules/factures/identity'
+import { firstPaymentDay } from '@/modules/factures/payment-wait'
 import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 import { PayInvoiceDialog } from '@/modules/factures/PayInvoiceDialog'
 import { paymentDays } from '@/modules/factures/payment-terms'
@@ -69,6 +70,11 @@ export function InvoiceDetailPage() {
   const canDelete = can('factures', 'delete')
   const missing = missingIdentity(org, invoice.vatExempt)
   const name = invoice.reference ?? t('invoices.draft_name')
+  // L'acompte d'un particulier ne se demande pas dans les sept jours du devis : on le dit avant d'émettre et d'envoyer
+  const depositWait =
+    invoice.deposit && invoice.quote
+      ? firstPaymentDay({ kind: invoice.client.kind, status: invoice.quote.status, decidedAt: invoice.quote.decidedAt })
+      : null
   // Sur une facture de solde, les lignes qui déduisent un acompte ne sont pas des prestations : elles se lisent dans les totaux
   const works = invoice.lines.filter((line) => !line.depositInvoiceId)
   const deductions = invoice.lines.filter((line) => line.depositInvoiceId)
@@ -406,7 +412,11 @@ export function InvoiceDetailPage() {
         open={dialog === 'issue'}
         onOpenChange={(open) => !open && setDialog(null)}
         title={t('invoices.issue_title')}
-        description={t('invoices.issue_description', { days: paymentDays(org?.defaultPaymentTerms) })}
+        description={
+          t('invoices.issue_description', { days: paymentDays(org?.defaultPaymentTerms) }) +
+          // Un avis, pas un blocage : l'acompte d'un particulier ne se demande pas dans les sept jours du devis (ADR-036)
+          (depositWait ? ` ${t('invoices.deposit_wait_issue', { date: formatDay(depositWait) })}` : '')
+        }
         confirmLabel={t('invoices.issue_confirm')}
         pending={issue.isPending}
         onConfirm={() => void handleIssue()}
@@ -426,10 +436,12 @@ export function InvoiceDetailPage() {
         open={dialog === 'email'}
         onOpenChange={(open) => !open && setDialog(null)}
         title={t(invoice.emailedAt ? 'invoices.email_again_title' : 'invoices.email_title')}
-        description={t(invoice.emailedAt ? 'invoices.email_again_description' : 'invoices.email_description', {
-          reference: name,
-          email: invoice.client.email,
-        })}
+        description={
+          t(invoice.emailedAt ? 'invoices.email_again_description' : 'invoices.email_description', {
+            reference: name,
+            email: invoice.client.email,
+          }) + (depositWait ? ` ${t('invoices.deposit_wait_email', { date: formatDay(depositWait) })}` : '')
+        }
         confirmLabel={t('invoices.email_confirm')}
         pending={emailInvoice.isPending}
         onConfirm={() => void handleEmail()}

@@ -62,7 +62,7 @@ describe('EditInvoicePage', () => {
   })
 
   it('un brouillon tiré d\'un devis se modifie comme un autre (facturer une partie, ajuster une quantité)', async () => {
-    show(invoice({ quoteId: 'q1', quote: { id: 'q1', reference: 'DEV-2026-0001' }, lines: [invoiceLine({ serviceId: 's1' })] }))
+    show(invoice({ quoteId: 'q1', quote: { id: 'q1', reference: 'DEV-2026-0001', status: 'ACCEPTED', decidedAt: '2026-10-01T10:00:00.000Z' }, lines: [invoiceLine({ serviceId: 's1' })] }))
 
     await userEvent.clear(screen.getByLabelText('Quantité'))
     await userEvent.type(screen.getByLabelText('Quantité'), '4')

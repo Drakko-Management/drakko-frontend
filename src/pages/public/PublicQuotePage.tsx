@@ -118,6 +118,12 @@ export function PublicQuotePage() {
       {data.state === 'OPEN' && !rejecting && (
         <form onSubmit={(e) => void handleAccept(e)} className="space-y-4 rounded-xl border bg-card p-4" noValidate>
           <h2 className="font-semibold">{t('quote_public.accept_title')}</h2>
+          {/* Un particulier : le droit de rétractation se dit avant d'accepter, les textes officiels sont dans le PDF (ADR-036) */}
+          {quote.clientKind !== 'PROFESSIONAL' && (
+            <p className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground" data-testid="public-quote-withdrawal">
+              {t('quote_public.withdrawal_notice')}
+            </p>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="signer-name">{t('quote_public.name_label')}</Label>
             <Input

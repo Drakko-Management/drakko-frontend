@@ -99,6 +99,39 @@ describe('PublicQuotePage — un lien ouvert', () => {
   })
 })
 
+describe('PublicQuotePage — le droit de rétractation d\'un particulier (ADR-036)', () => {
+  const notice = () => screen.queryByTestId('public-quote-withdrawal')
+  const withClient = (clientKind: 'INDIVIDUAL' | 'PROFESSIONAL', over: Partial<PublicQuote> = {}) => {
+    const base = publicQuote(over)
+    return { ...base, quote: base.quote && { ...base.quote, clientKind } }
+  }
+
+  it('un particulier lit, avant d\'accepter, qu\'il a quatorze jours et où sont les textes officiels', () => {
+    show(withClient('INDIVIDUAL'))
+
+    expect(notice()).toHaveTextContent(/quatorze jours pour vous rétracter sans donner de motif/)
+    expect(notice()).toHaveTextContent(/PDF du devis/)
+  })
+
+  it('un professionnel : rien', () => {
+    show(withClient('PROFESSIONAL'))
+
+    expect(notice()).not.toBeInTheDocument()
+  })
+
+  it('dans la langue de l\'entreprise', () => {
+    show(withClient('INDIVIDUAL', { language: 'de' }))
+
+    expect(notice()).toHaveTextContent(/vierzehn Tagen ohne Angabe von Gründen widerrufen/)
+  })
+
+  it('un devis déjà accepté ou refusé n\'a plus de formulaire : rien', () => {
+    show(withClient('INDIVIDUAL', { state: 'ACCEPTED', answer: { respondedAt: '2026-11-04T09:00:00.000Z', signerName: 'Léa Martin', comment: null } }))
+
+    expect(notice()).not.toBeInTheDocument()
+  })
+})
+
 describe('PublicQuotePage — accepter', () => {
   const submit = () => screen.getByRole('button', { name: 'Accepter le devis' })
 

@@ -17,6 +17,7 @@ import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import { centsOf } from '@/modules/devis/totals'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
 import { DepositDialog } from '@/modules/factures/DepositDialog'
+import { firstPaymentDay } from '@/modules/factures/payment-wait'
 import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 import type { Quote } from '@/types/api'
 
@@ -411,6 +412,7 @@ export function QuoteDetailPage() {
         alreadyBilled={quote.deposits.reduce((sum, deposit) => sum + centsOf(deposit.subtotal), 0n)}
         vatRate={quote.vatRate}
         vatExempt={quote.vatExempt}
+        waitUntil={firstPaymentDay({ kind: quote.client.kind, status: quote.status, decidedAt: quote.decidedAt })}
         pending={createInvoice.isPending}
         onConfirm={(deposit) => void handleCreateDeposit(deposit)}
       />

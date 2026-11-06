@@ -615,6 +615,39 @@ describe('QuoteDetailPage — acompte (ADR-033)', () => {
     expect(makeInvoice).not.toHaveBeenCalled()
   })
 
+  describe('les sept jours d\'un particulier (ADR-036)', () => {
+    const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString()
+    const openDeposit = async (q: Quote) => {
+      show(q)
+      await userEvent.click(button('Facture d\'acompte')!)
+    }
+
+    it('accepté il y a deux jours par un particulier : l\'avertissement, sans blocage', async () => {
+      await openDeposit(quote({ status: 'ACCEPTED', decidedAt: daysAgo(2) }))
+
+      expect(screen.getByTestId('deposit-wait')).toHaveTextContent(/aucun paiement|interdit en principe de demander un paiement/)
+      expect(screen.getByRole('button', { name: 'Créer l\'acompte' })).toBeEnabled()
+    })
+
+    it('accepté il y a dix jours : rien à signaler', async () => {
+      await openDeposit(quote({ status: 'ACCEPTED', decidedAt: daysAgo(10) }))
+
+      expect(screen.queryByTestId('deposit-wait')).not.toBeInTheDocument()
+    })
+
+    it('un client professionnel : rien, même accepté hier', async () => {
+      await openDeposit(
+        quote({
+          status: 'ACCEPTED',
+          decidedAt: daysAgo(1),
+          client: { ...quote().client, kind: 'PROFESSIONAL', companyName: 'Martin Paysage SARL' },
+        }),
+      )
+
+      expect(screen.queryByTestId('deposit-wait')).not.toBeInTheDocument()
+    })
+  })
+
   it('crée le brouillon d\'acompte depuis le devis et l\'ouvre', async () => {
     show(accepted)
     await userEvent.click(button('Facture d\'acompte')!)

@@ -471,8 +471,8 @@ export interface Invoice {
   total: string
   /** Facture émise dont l'échéance est passée */
   overdue: boolean
-  /** Le devis dont la facture est tirée */
-  quote: { id: string; reference: string } | null
+  /** Le devis dont la facture est tirée ; son état et sa date d'acceptation servent à l'avertissement des sept jours d'un acompte (ADR-036) */
+  quote: { id: string; reference: string; status: QuoteStatus; decidedAt: string | null } | null
   /** Pour un avoir : la facture qu'il annule */
   creditedInvoice: { id: string; reference: string | null } | null
   /** Pour une facture annulée : son avoir */
@@ -512,6 +512,8 @@ export interface PublicQuote {
     /** Devis sous franchise de TVA : la mention légale remplace la ligne de TVA (ADR-033) */
     vatExempt: boolean
     clientName: string
+    /** Un particulier voit une phrase sur son droit de rétractation (ADR-036) ; rien d'autre du client */
+    clientKind: ClientKind
     lines: {
       title: string
       description: string | null

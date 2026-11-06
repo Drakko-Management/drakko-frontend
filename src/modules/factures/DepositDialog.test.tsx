@@ -216,3 +216,22 @@ describe('DepositDialog', () => {
     expect(onConfirm).not.toHaveBeenCalled()
   })
 })
+
+describe('DepositDialog — les sept jours d\'un particulier (ADR-036)', () => {
+  it('un jour d\'attente est dit, avec la date, et n\'empêche pas de créer l\'acompte', async () => {
+    const { onConfirm } = open({ waitUntil: '2026-11-12' })
+
+    const notice = screen.getByTestId('deposit-wait')
+    expect(notice).toHaveTextContent(/avant le 12 nov\. 2026/)
+    expect(notice).toHaveTextContent(/dépannage ou une réparation urgents/)
+    expect(create()).toBeEnabled()
+    await userEvent.click(create())
+    expect(onConfirm).toHaveBeenCalledWith({ percent: 30 })
+  })
+
+  it.each([[undefined], [null]])('sans attente (%s), aucun avertissement', (waitUntil) => {
+    open({ waitUntil })
+
+    expect(screen.queryByTestId('deposit-wait')).not.toBeInTheDocument()
+  })
+})

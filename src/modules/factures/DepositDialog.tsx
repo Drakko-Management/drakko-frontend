@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { InvoiceInput } from '@/hooks/use-invoices'
+import { formatDay } from '@/lib/utils'
 import { formatMoney } from '@/modules/devis/format'
 import { centsToNumber, percentOfCents, toCents, vatOfCents } from '@/modules/devis/totals'
 
@@ -30,6 +31,8 @@ interface Props {
   /** Le taux de TVA du devis (« 20 », « 0 » sous franchise), pour l'aperçu */
   vatRate: string
   vatExempt: boolean
+  /** Le premier jour où l'on peut demander un paiement à ce client (« 2026-11-11 »), quand il faut encore attendre (ADR-036) */
+  waitUntil?: string | null
   pending?: boolean
   onConfirm: (deposit: NonNullable<InvoiceInput['deposit']>) => void
 }
@@ -48,6 +51,7 @@ export function DepositDialog({
   alreadyBilled = 0n,
   vatRate,
   vatExempt,
+  waitUntil = null,
   pending = false,
   onConfirm,
 }: Props) {
@@ -148,6 +152,15 @@ export function DepositDialog({
           <p className="min-h-5 text-sm font-medium" data-testid="deposit-preview" aria-live="polite">
             {preview}
           </p>
+          {waitUntil && (
+            <p
+              className="rounded-md border border-orange-300 bg-orange-50 p-3 text-sm text-orange-900"
+              role="note"
+              data-testid="deposit-wait"
+            >
+              {t('invoices.deposit_wait', { date: formatDay(waitUntil) })}
+            </p>
+          )}
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>{t('common.cancel')}</AlertDialogCancel>

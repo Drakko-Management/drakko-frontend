@@ -73,6 +73,7 @@ export function publicQuote(over: Partial<PublicQuote> = {}): PublicQuote {
       vatRate: '10',
       vatExempt: false,
       clientName: 'Léa Martin',
+      clientKind: 'INDIVIDUAL',
       lines: [
         {
           title: 'Taille de haie',
