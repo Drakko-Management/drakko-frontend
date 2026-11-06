@@ -132,6 +132,24 @@ export function QuoteFormFields({
         </p>
       )}
       {vatExempt && <p className="-mt-3 text-xs text-muted-foreground">{t('quotes.vat_exempt_note')}</p>}
+      {kind === 'invoice' && (
+        <div className="space-y-1.5">
+          <Label htmlFor="invoice-service-date">{t('invoices.form_service_date')}</Label>
+          <Input
+            id="invoice-service-date"
+            type="date"
+            className="min-h-[44px] sm:max-w-[50%]"
+            value={values.serviceDate}
+            min={DATE_INPUT_MIN}
+            max={DATE_INPUT_MAX}
+            onChange={(e) => set('serviceDate', e.target.value)}
+            aria-describedby="invoice-service-date-hint"
+          />
+          <p id="invoice-service-date-hint" className="text-xs text-muted-foreground">
+            {t('invoices.form_service_date_hint')}
+          </p>
+        </div>
+      )}
 
       <section className="space-y-3" aria-label={t('quotes.form_lines')}>
         <h2 className="text-sm font-semibold">{t('quotes.form_lines')}</h2>

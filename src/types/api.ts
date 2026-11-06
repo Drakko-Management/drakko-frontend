@@ -426,6 +426,8 @@ export interface Invoice {
   /** Jours sans heure, à minuit UTC ; posés à l'émission (l'échéance peut être choisie avant) */
   issueDate: string | null
   dueDate: string | null
+  /** Le jour de la prestation, quand la personne l'a saisi : s'imprime sur la facture, jamais sur un avoir ni un acompte */
+  serviceDate: string | null
   paidAt: string | null
   paymentMethod: PaymentMethod | null
   quoteId: string | null

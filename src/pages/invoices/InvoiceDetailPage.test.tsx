@@ -111,6 +111,30 @@ describe('InvoiceDetailPage — contenu', () => {
     expect(screen.getByTestId('invoice-due')).toHaveTextContent('Échéance le 4 déc. 2026')
   })
 
+  describe('le jour de la prestation', () => {
+    it('une facture qui le porte le dit', () => {
+      show(issuedInvoice({ serviceDate: '2026-10-28T00:00:00.000Z' }))
+
+      expect(screen.getByTestId('invoice-service-date')).toHaveTextContent('Prestation réalisée le 28 oct. 2026')
+    })
+
+    it('un brouillon aussi : on vérifie avant d\'émettre', () => {
+      show(invoice({ serviceDate: '2026-10-28T00:00:00.000Z' }))
+
+      expect(screen.getByTestId('invoice-service-date')).toBeInTheDocument()
+    })
+
+    it.each([
+      ['sans jour saisi', issuedInvoice()],
+      ['un avoir', creditNote({ serviceDate: '2026-10-28T00:00:00.000Z' })],
+      ['un acompte', issuedInvoice({ deposit: true, serviceDate: '2026-10-28T00:00:00.000Z' })],
+    ])('%s : aucune ligne', (_name, shown) => {
+      show(shown)
+
+      expect(screen.queryByTestId('invoice-service-date')).not.toBeInTheDocument()
+    })
+  })
+
   it('en retard : l\'échéance le dit', () => {
     show(issuedInvoice({ overdue: true, dueDate: '2026-11-01T00:00:00.000Z' }))
 
@@ -298,6 +322,51 @@ describe('InvoiceDetailPage — émettre', () => {
 
     expect(issue).toHaveBeenCalledWith('i1')
     expect(toast.success).toHaveBeenCalledWith('Facture émise')
+  })
+
+  describe('les pénalités de retard', () => {
+    const NOTICE = /Aucune pénalité de retard n'est saisie dans vos réglages/
+
+    it('aucune dans les réglages : la confirmation le dit, sans empêcher d\'émettre', async () => {
+      show(invoice())
+
+      await userEvent.click(button('Émettre la facture')!)
+
+      expect(screen.getByText(NOTICE)).toBeInTheDocument()
+      expect(screen.getByText(/indemnité forfaitaire de 40 €/)).toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: 'Émettre' }))
+      expect(issue).toHaveBeenCalledWith('i1')
+    })
+
+    it.each([[' '], [''], [undefined]])('un texte vide (%j) vaut aucun', async (latePaymentPenalties) => {
+      vi.mocked(useOrganization).mockReturnValue({ data: { ...COMPLETE_ORG, latePaymentPenalties } } as never)
+      show(invoice())
+
+      await userEvent.click(button('Émettre la facture')!)
+
+      expect(screen.getByText(NOTICE)).toBeInTheDocument()
+    })
+
+    it('saisies dans les réglages : rien à signaler', async () => {
+      vi.mocked(useOrganization).mockReturnValue({
+        data: { ...COMPLETE_ORG, latePaymentPenalties: '3× le taux légal. Indemnité de recouvrement : 40 €.' },
+      } as never)
+      show(invoice())
+
+      await userEvent.click(button('Émettre la facture')!)
+
+      expect(screen.getByText('Émettre cette facture ?')).toBeInTheDocument()
+      expect(screen.queryByText(NOTICE)).not.toBeInTheDocument()
+    })
+
+    it('réglages pas encore chargés : on ne dit rien de faux', async () => {
+      vi.mocked(useOrganization).mockReturnValue({ data: undefined } as never)
+      show(invoice())
+
+      await userEvent.click(button('Émettre la facture')!)
+
+      expect(screen.queryByText(NOTICE)).not.toBeInTheDocument()
+    })
   })
 
   it('annuler la confirmation n\'émet rien', async () => {

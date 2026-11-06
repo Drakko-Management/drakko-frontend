@@ -68,6 +68,8 @@ export function InvoiceDetailPage() {
   const canCreate = can('factures', 'create')
   const canDelete = can('factures', 'delete')
   const missing = missingIdentity(org, invoice.vatExempt)
+  // Les réglages n'ont aucune pénalité de retard : la facture partira sans (on le dit avant d'émettre)
+  const noPenalties = !!org && !org.latePaymentPenalties?.trim()
   const name = invoice.reference ?? t('invoices.draft_name')
   // Sur une facture de solde, les lignes qui déduisent un acompte ne sont pas des prestations : elles se lisent dans les totaux
   const works = invoice.lines.filter((line) => !line.depositInvoiceId)
@@ -222,6 +224,11 @@ export function InvoiceDetailPage() {
           invoice.issueDate && (
             <p className="text-xs text-muted-foreground">{t('invoices.issued_on', { date: formatDay(invoice.issueDate) })}</p>
           )
+        )}
+        {invoice.serviceDate && !isCreditNote && !invoice.deposit && (
+          <p className="text-xs text-muted-foreground" data-testid="invoice-service-date">
+            {t('invoices.service_on', { date: formatDay(invoice.serviceDate) })}
+          </p>
         )}
         {invoice.dueDate && !isCreditNote && (
           <p
@@ -392,7 +399,11 @@ export function InvoiceDetailPage() {
         open={dialog === 'issue'}
         onOpenChange={(open) => !open && setDialog(null)}
         title={t('invoices.issue_title')}
-        description={t('invoices.issue_description', { days: paymentDays(org?.defaultPaymentTerms) })}
+        description={
+          t('invoices.issue_description', { days: paymentDays(org?.defaultPaymentTerms) }) +
+          // Un avis, pas un blocage : la loi ne les demande qu'entre professionnels, et l'entreprise sait à qui elle facture
+          (noPenalties ? ` ${t('invoices.issue_no_penalties')}` : '')
+        }
         confirmLabel={t('invoices.issue_confirm')}
         pending={issue.isPending}
         onConfirm={() => void handleIssue()}

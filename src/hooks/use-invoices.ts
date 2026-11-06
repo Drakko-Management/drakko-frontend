@@ -29,6 +29,8 @@ export interface InvoiceInput {
   comment?: string | null
   vatRate?: number
   dueDate?: string | null
+  /** Le jour de la prestation, quand il diffère de l'émission (facultatif) */
+  serviceDate?: string | null
   lines?: QuoteLineInput[]
 }
 

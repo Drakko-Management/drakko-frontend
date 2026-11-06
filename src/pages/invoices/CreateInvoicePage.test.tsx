@@ -115,10 +115,22 @@ describe('CreateInvoicePage', () => {
       title: 'Haie du fond',
       comment: null,
       dueDate: '2026-12-15',
+      serviceDate: null,
       lines: [{ serviceId: 's1', title: 'Taille de haie', description: 'Haie vive', unit: 'ml', quantity: 1, unitPrice: 12.5 }],
     })
     expect(toast.success).toHaveBeenCalledWith('Brouillon de facture créé')
     expect(mockNavigate).toHaveBeenCalledWith('/factures/i1', { replace: true })
+  })
+
+  it('le jour de la prestation est facultatif : il part quand il est saisi, à null sinon', async () => {
+    renderPage()
+    await pickClient()
+    expect(screen.getByLabelText('Prestation réalisée le')).toHaveValue('')
+    await userEvent.type(screen.getByLabelText('Prestation réalisée le'), '2026-10-28')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le brouillon' }))
+
+    expect(create.mock.calls[0][0].serviceDate).toBe('2026-10-28')
   })
 
   it('sans échéance choisie, l\'API la calculera : dueDate part à null', async () => {

@@ -106,6 +106,24 @@ describe('SettingsEnterprisePage — documents (ADR-033)', () => {
     expect(screen.queryByText(/Imprimés sur vos factures à régler/)).not.toBeInTheDocument()
   })
 
+  describe('pénalités de retard', () => {
+    const hint = /la loi demande le taux des pénalités et l'indemnité forfaitaire de 40 €/
+
+    it('avec la Facturation, le champ rappelle ce que la loi demande entre professionnels', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+      renderPage()
+
+      expect(screen.getByText(hint)).toBeInTheDocument()
+    })
+
+    it('sans la Facturation, aucune facture n\'est concernée : pas de rappel', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis'] })
+      renderPage()
+
+      expect(screen.queryByText(hint)).not.toBeInTheDocument()
+    })
+  })
+
   describe('assurance décennale', () => {
     const localDay = (offsetDays: number) => {
       const d = new Date()

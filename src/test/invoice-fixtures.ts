@@ -32,6 +32,7 @@ export function invoice(over: Partial<Invoice> = {}): Invoice {
     vatExempt: false,
     issueDate: null,
     dueDate: null,
+    serviceDate: null,
     paidAt: null,
     paymentMethod: null,
     quoteId: null,

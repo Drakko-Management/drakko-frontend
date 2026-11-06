@@ -21,6 +21,8 @@ export interface QuoteFormValues {
   title: string
   /** Fin de validité d'un devis, échéance d'une facture (« 2026-12-31 », vide = non renseigné) */
   date: string
+  /** Le jour de la prestation, sur une facture seulement (« 2026-11-20 », vide = non renseigné) ; toujours vide pour un devis */
+  serviceDate: string
   /** Vide : le taux par défaut de l'organisation */
   vatRate: string
   comment: string
@@ -31,6 +33,7 @@ export const EMPTY_QUOTE_FORM: QuoteFormValues = {
   client: null,
   title: '',
   date: '',
+  serviceDate: '',
   vatRate: '',
   comment: '',
   lines: [],
@@ -77,6 +80,7 @@ export function formFromQuote(quote: Quote): QuoteFormValues {
     client: quote.client,
     title: quote.title ?? '',
     date: quote.validUntil ? quote.validUntil.slice(0, 10) : '',
+    serviceDate: '',
     vatRate: String(parseFloat(quote.vatRate)),
     comment: quote.comment ?? '',
     lines: formLinesFrom(quote.lines),

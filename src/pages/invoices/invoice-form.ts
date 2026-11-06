@@ -10,6 +10,7 @@ export function formFromInvoice(invoice: Invoice): QuoteFormValues {
     client: invoice.client,
     title: invoice.title ?? '',
     date: invoice.dueDate ? invoice.dueDate.slice(0, 10) : '',
+    serviceDate: invoice.serviceDate ? invoice.serviceDate.slice(0, 10) : '',
     vatRate: String(parseFloat(invoice.vatRate)),
     comment: invoice.comment ?? '',
     // Les lignes qui déduisent un acompte ne s'éditent pas : l'API les garde, le formulaire les montre à part
@@ -26,6 +27,7 @@ export function toInvoiceInput(values: QuoteFormValues): InvoiceInput {
     // Sous franchise de TVA le formulaire ne propose pas de taux : l'API met 0
     ...(values.vatRate.trim() !== '' ? { vatRate: decimal(values.vatRate) } : {}),
     dueDate: values.date || null,
+    serviceDate: values.serviceDate || null,
     lines: toLineInputs(values.lines),
   }
 }

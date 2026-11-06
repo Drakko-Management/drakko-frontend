@@ -561,6 +561,7 @@ export function SettingsEnterprisePage() {
               </Field>
               <Field label={t('settings.org_late_penalties')}>
                 <Input className={inputCls} value={form.latePaymentPenalties} onChange={f('latePaymentPenalties')} maxLength={200} placeholder={t('settings.org_late_penalties_placeholder')} />
+                {hasInvoices && <p className="mt-1 text-xs text-muted-foreground">{t('settings.org_late_penalties_hint')}</p>}
               </Field>
             </Card>
 

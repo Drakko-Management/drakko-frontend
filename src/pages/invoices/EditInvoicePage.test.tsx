@@ -75,6 +75,7 @@ describe('EditInvoicePage', () => {
       comment: null,
       vatRate: 10,
       dueDate: null,
+      serviceDate: null,
       lines: [{ serviceId: 's1', title: 'Taille de haie', description: 'Haie vive', unit: 'ml', quantity: 4, unitPrice: 12.5 }],
     })
     expect(toast.success).toHaveBeenCalledWith('Facture enregistrée')
@@ -88,6 +89,42 @@ describe('EditInvoicePage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     expect(update.mock.calls[0][0].dueDate).toBeNull()
+  })
+
+  describe('le jour de la prestation', () => {
+    it('s\'ouvre rempli, facultatif et expliqué', () => {
+      show(invoice({ serviceDate: '2026-10-28T00:00:00.000Z' }))
+
+      expect(screen.getByLabelText('Prestation réalisée le')).toHaveValue('2026-10-28')
+      expect(screen.getByText(/Facultatif\. À renseigner si la prestation n'a pas eu lieu le jour de l'émission/)).toBeInTheDocument()
+    })
+
+    it('un brouillon sans jour de prestation a le champ vide, et il repart à null', async () => {
+      show(invoice())
+      expect(screen.getByLabelText('Prestation réalisée le')).toHaveValue('')
+
+      await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+      expect(update.mock.calls[0][0].serviceDate).toBeNull()
+    })
+
+    it('se saisit, se change et se vide', async () => {
+      show(invoice({ serviceDate: '2026-10-28T00:00:00.000Z' }))
+
+      await userEvent.clear(screen.getByLabelText('Prestation réalisée le'))
+      await userEvent.type(screen.getByLabelText('Prestation réalisée le'), '2026-11-02')
+      await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+      expect(update.mock.calls[0][0].serviceDate).toBe('2026-11-02')
+    })
+
+    it('vidé, il part à null : l\'API l\'efface', async () => {
+      show(invoice({ serviceDate: '2026-10-28T00:00:00.000Z' }))
+
+      await userEvent.clear(screen.getByLabelText('Prestation réalisée le'))
+      await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+      expect(update.mock.calls[0][0].serviceDate).toBeNull()
+    })
   })
 
   it('sous franchise de TVA : le taux est verrouillé à 0', () => {
