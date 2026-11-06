@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Loader2, Search, X, Check, UserPlus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useClients } from '@/hooks/use-clients'
-import { fullName, cn } from '@/lib/utils'
+import { clientName, fullName, cn } from '@/lib/utils'
 import type { Client } from '@/types/api'
 
 /**
@@ -64,7 +64,7 @@ export function ClientSearch({
     return (
       <div className="flex min-h-[44px] items-center gap-3 rounded-md border border-input bg-background px-3">
         <Check className="h-4 w-4 shrink-0 text-primary" />
-        <span className="flex-1 text-sm font-medium">{fullName(value)}</span>
+        <span className="flex-1 text-sm font-medium">{clientName(value)}</span>
         <button type="button" onClick={clear} className="text-muted-foreground hover:text-foreground">
           <X className="h-4 w-4" />
         </button>
@@ -138,7 +138,10 @@ export function ClientSearch({
                 className="w-full px-3 py-2.5 text-left text-sm hover:bg-muted active:bg-muted"
                 onMouseDown={(e) => { e.preventDefault(); select(client) }}
               >
-                <span className="font-medium">{fullName(client)}</span>
+                <span className="font-medium">{clientName(client)}</span>
+                {client.kind === 'PROFESSIONAL' && (
+                  <span className="ml-2 text-xs text-muted-foreground">{fullName(client)}</span>
+                )}
                 {client.email && (
                   <span className="ml-2 text-xs text-muted-foreground">{client.email}</span>
                 )}

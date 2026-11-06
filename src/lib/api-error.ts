@@ -15,6 +15,7 @@ const API_ERROR_KEYS: Record<string, string> = {
   OWNER_REQUIRED: 'users.owner_required',
   OWNER_TARGET_INVALID: 'users.owner_target_invalid',
   CLIENT_NOT_FOUND: 'create_project.client_not_found',
+  CLIENT_COMPANY_REQUIRED: 'create_client.company_required',
   PROJECT_LOCKED: 'project.locked_error',
   INVALID_RESET_TOKEN: 'password_reset.invalid_link',
   CURRENT_PASSWORD_INVALID: 'password_change.current_invalid',

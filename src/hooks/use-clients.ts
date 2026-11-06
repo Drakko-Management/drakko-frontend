@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
-import type { Client, Paginated } from '@/types/api'
+import type { Client, ClientKind, Paginated } from '@/types/api'
 
 export type ClientSort = 'name' | 'recent' | 'updated'
 
@@ -36,7 +36,15 @@ export function useClient(id: string) {
   })
 }
 
-interface CreateClientInput {
+// Le genre et l'entreprise du client (voir `components/clients/client-company.ts`) : `null` efface, jamais `undefined`
+interface CompanyInput {
+  kind?: ClientKind
+  companyName?: string | null
+  siren?: string | null
+  vatNumber?: string | null
+}
+
+interface CreateClientInput extends CompanyInput {
   firstName: string
   lastName: string
   email: string
@@ -56,7 +64,7 @@ export function useCreateClient() {
   })
 }
 
-interface UpdateClientInput {
+interface UpdateClientInput extends CompanyInput {
   firstName?: string
   lastName?: string
   email?: string

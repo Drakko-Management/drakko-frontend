@@ -583,7 +583,18 @@
     "notes_placeholder": "Zusätzliche Informationen…",
     "submit": "Kunden erstellen",
     "success": "Kunde erstellt",
-    "error": "Erstellungsfehler"
+    "error": "Erstellungsfehler",
+    "kind_label": "Kundentyp",
+    "kind_individual": "Privatperson",
+    "kind_professional": "Unternehmen",
+    "kind_hint": "Eine Privatperson ist ein Verbraucher. Ein Unternehmen ist eine Firma, eine Eigentümergemeinschaft, ein Verein … : Seine SIREN steht auf der Rechnung.",
+    "company_name": "Firmenname",
+    "company_placeholder": "Firma, Verein, Hausverwaltung …",
+    "siren": "SIREN",
+    "siren_hint": "Neun Ziffern. Sie können die SIRET eingeben: Es wird nur die SIREN gespeichert.",
+    "vat_number": "Innergemeinschaftliche USt-IdNr.",
+    "company_required": "Ein Unternehmenskunde braucht einen Firmennamen.",
+    "err_siren": "Diese SIREN ist ungültig: neun Ziffern, einschließlich Prüfziffer."
   },
   "users": {
     "title": "Benutzer",

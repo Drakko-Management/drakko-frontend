@@ -36,6 +36,10 @@ const CLIENT: Client = {
   phone: '0600000000',
   address: null,
   notes: null,
+  kind: 'INDIVIDUAL',
+  companyName: null,
+  siren: null,
+  vatNumber: null,
   active: true,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
@@ -173,6 +177,24 @@ describe('ClientsPage — liste', () => {
     renderClients()
     // Email + phone sont dans le même <p> : "pierre@test.com · 0600000000"
     expect(screen.getByText(/pierre@test\.com/)).toBeInTheDocument()
+  })
+
+  it('un client professionnel porte sa dénomination en titre, le contact en dessous', () => {
+    const pro: Client = {
+      ...CLIENT,
+      id: 'client-pro',
+      kind: 'PROFESSIONAL',
+      companyName: 'Syndic Les Lilas',
+      siren: '732829320',
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(useClients).mockReturnValue({ data: paginated([CLIENT, pro]), isLoading: false } as any)
+    renderClients()
+
+    expect(screen.getByText('Syndic Les Lilas')).toBeInTheDocument()
+    // le contact du professionnel est nommé sous la dénomination ; le particulier garde son nom en titre
+    expect(screen.getByText(/Pierre Durand · pierre@test\.com/)).toBeInTheDocument()
+    expect(screen.getAllByText('Pierre Durand')).toHaveLength(1)
   })
 
   it('affiche 4 skeletons pendant le chargement', () => {

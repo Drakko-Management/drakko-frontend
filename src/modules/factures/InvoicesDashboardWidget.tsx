@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertCircle, FilePen, Wallet } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useInvoicesSummary } from '@/hooks/use-invoices'
-import { fullName } from '@/lib/utils'
+import { clientName } from '@/lib/utils'
 import { formatMoney } from '@/modules/devis/format'
 import type { Invoice } from '@/types/api'
 import { InvoiceStatusBadge } from './InvoiceStatusBadge'
@@ -28,7 +28,7 @@ function InvoiceRow({ invoice, onClick }: { invoice: Invoice; onClick: () => voi
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{invoice.title || name}</p>
         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {invoice.title ? `${name} · ${fullName(invoice.client)}` : fullName(invoice.client)}
+          {invoice.title ? `${name} · ${clientName(invoice.client)}` : clientName(invoice.client)}
         </p>
         <div className="mt-1 flex items-center justify-between gap-2">
           <p className="text-sm font-medium">{formatMoney(invoice.total)}</p>

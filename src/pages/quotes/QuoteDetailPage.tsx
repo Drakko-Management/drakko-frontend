@@ -12,7 +12,7 @@ import { useCreateInvoice, type InvoiceInput } from '@/hooks/use-invoices'
 import { useDeleteQuote, useEmailQuote, useQuote, useQuoteAction, openQuotePdf, type QuoteAction } from '@/hooks/use-quotes'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
-import { formatDate, formatDay, fullName } from '@/lib/utils'
+import { formatDate, formatDay, clientName } from '@/lib/utils'
 import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import { centsOf } from '@/modules/devis/totals'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
@@ -161,10 +161,10 @@ export function QuoteDetailPage() {
           <span className="text-muted-foreground">{t('quotes.client')} : </span>
           {can('clients', 'read') ? (
             <Link to={`/clients/${quote.client.id}`} className="text-primary">
-              {fullName(quote.client)}
+              {clientName(quote.client)}
             </Link>
           ) : (
-            fullName(quote.client)
+            clientName(quote.client)
           )}
         </p>
         {quote.project && can('chantiers', 'read') && (

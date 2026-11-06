@@ -61,6 +61,10 @@ const DUPONT: Client = {
   phone: null,
   address: '3 rue Neuve, 69000 Lyon',
   notes: null,
+  kind: 'INDIVIDUAL',
+  companyName: null,
+  siren: null,
+  vatNumber: null,
   active: true,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
@@ -353,7 +357,7 @@ describe('CreateProjectPage — depuis un devis accepté', () => {
     title: 'Terrasse bois',
     total: '1650.00',
     clientId: 'client-dupont',
-    client: { id: 'client-dupont', firstName: 'Paul', lastName: 'Dupont', email: 'paul@dupont.fr', phone: null, address: '3 rue Neuve, 69000 Lyon' },
+    client: { id: 'client-dupont', firstName: 'Paul', lastName: 'Dupont', email: 'paul@dupont.fr', phone: null, address: '3 rue Neuve, 69000 Lyon', kind: 'INDIVIDUAL', companyName: null },
   })
   const quoteChoice = () => screen.getByRole('combobox', { name: "Partir d'un devis accepté" })
   const pickQuote = () => userEvent.selectOptions(quoteChoice(), 'q-ok')
@@ -473,7 +477,7 @@ describe('CreateProjectPage — depuis un devis accepté', () => {
       title: 'Haie',
       total: '300.00',
       clientId: 'client-new',
-      client: { id: 'client-new', firstName: 'Zzz', lastName: 'inconnu', email: 'zzz@test.fr', phone: null, address: '8 allée des Tilleuls, 38000 Grenoble' },
+      client: { id: 'client-new', firstName: 'Zzz', lastName: 'inconnu', email: 'zzz@test.fr', phone: null, address: '8 allée des Tilleuls, 38000 Grenoble', kind: 'INDIVIDUAL', companyName: null },
     })
     mockUseQuotes.mockReturnValue({ data: [dupontQuote, other] })
     renderPage()

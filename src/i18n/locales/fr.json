@@ -583,7 +583,18 @@
     "notes_placeholder": "Informations complémentaires…",
     "submit": "Créer le client",
     "success": "Client créé",
-    "error": "Erreur lors de la création"
+    "error": "Erreur lors de la création",
+    "kind_label": "Type de client",
+    "kind_individual": "Particulier",
+    "kind_professional": "Professionnel",
+    "kind_hint": "Un particulier est un consommateur. Un professionnel est une entreprise, une copropriété, une association… : son SIREN figure sur la facture.",
+    "company_name": "Dénomination",
+    "company_placeholder": "Raison sociale, syndic, association…",
+    "siren": "SIREN",
+    "siren_hint": "9 chiffres. Vous pouvez saisir le SIRET : seul le SIREN est gardé.",
+    "vat_number": "N° de TVA intracommunautaire",
+    "company_required": "La dénomination d'un client professionnel est obligatoire.",
+    "err_siren": "Ce SIREN n'est pas valide : 9 chiffres, clé de contrôle comprise."
   },
   "users": {
     "title": "Utilisateurs",

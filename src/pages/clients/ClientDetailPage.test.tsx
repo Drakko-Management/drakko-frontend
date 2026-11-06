@@ -36,6 +36,10 @@ const CLIENT: Client = {
   phone: '0600000000',
   address: '12 rue des Lilas, 69000 Lyon',
   notes: 'Portail vert',
+  kind: 'INDIVIDUAL',
+  companyName: null,
+  siren: null,
+  vatNumber: null,
   active: true,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
@@ -96,6 +100,118 @@ describe('ClientDetailPage — formulaire directement modifiable', () => {
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     expect(save).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Pierre', phone: '', notes: '' }))
+  })
+})
+
+const PRO: Client = {
+  ...CLIENT,
+  kind: 'PROFESSIONAL',
+  companyName: 'Syndic Les Lilas',
+  siren: '732829320',
+  vatNumber: 'FR40303265045',
+}
+
+describe('ClientDetailPage — particulier ou professionnel', () => {
+  it('un particulier n\'a pas de champs d\'entreprise', () => {
+    renderPage()
+    expect(screen.getByRole('radio', { name: 'Particulier' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.queryByLabelText(/Dénomination/)).not.toBeInTheDocument()
+  })
+
+  it('un professionnel s\'ouvre avec sa dénomination en titre et ses champs remplis', () => {
+    vi.mocked(useClient).mockReturnValue({ data: PRO, isLoading: false } as never)
+    renderPage()
+
+    expect(screen.getByRole('heading', { name: 'Syndic Les Lilas' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Professionnel' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByLabelText(/Dénomination/)).toHaveValue('Syndic Les Lilas')
+    expect(screen.getByLabelText('SIREN')).toHaveValue('732829320')
+    expect(screen.getByLabelText(/TVA/)).toHaveValue('FR40303265045')
+  })
+
+  it('passer un particulier en professionnel enregistre sa dénomination', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('radio', { name: 'Professionnel' }))
+    await user.type(screen.getByLabelText(/Dénomination/), 'SCI Les Lilas')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'PROFESSIONAL', companyName: 'SCI Les Lilas', siren: null, vatNumber: null }),
+    )
+  })
+
+  it('refuse d\'enregistrer un professionnel sans dénomination', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('radio', { name: 'Professionnel' }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(save).not.toHaveBeenCalled()
+    expect(await screen.findByText('La dénomination d\'un client professionnel est obligatoire.')).toBeInTheDocument()
+  })
+
+  it('refuse un SIREN faux et en dit la raison', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: PRO, isLoading: false } as never)
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.clear(screen.getByLabelText('SIREN'))
+    await user.type(screen.getByLabelText('SIREN'), '732829321')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(save).not.toHaveBeenCalled()
+    expect(await screen.findByText(/SIREN n'est pas valide/)).toBeInTheDocument()
+  })
+
+  it('vider le SIREN l\'efface (null), la dénomination et la TVA restent', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: PRO, isLoading: false } as never)
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.clear(screen.getByLabelText('SIREN'))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'PROFESSIONAL',
+        companyName: 'Syndic Les Lilas',
+        siren: null,
+        vatNumber: 'FR40303265045',
+      }),
+    )
+  })
+
+  it('repasser un professionnel en particulier efface son entreprise', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: PRO, isLoading: false } as never)
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('radio', { name: 'Particulier' }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'INDIVIDUAL', companyName: null, siren: null, vatNumber: null }),
+    )
+  })
+
+  it('lecture seule : l\'entreprise s\'affiche, le SIREN par groupes de trois', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ clients: ['read'] }) })
+    vi.mocked(useClient).mockReturnValue({ data: PRO, isLoading: false } as never)
+    renderPage()
+
+    const company = screen.getByTestId('client-company')
+    expect(within(company).getByText('Syndic Les Lilas')).toBeInTheDocument()
+    expect(within(company).getByText(/732 829 320/)).toBeInTheDocument()
+    expect(within(company).getByText(/FR40303265045/)).toBeInTheDocument()
+  })
+
+  it('lecture seule d\'un particulier : pas de bloc entreprise', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ clients: ['read'] }) })
+    renderPage()
+    expect(screen.queryByTestId('client-company')).not.toBeInTheDocument()
   })
 })
 

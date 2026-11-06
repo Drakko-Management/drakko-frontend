@@ -43,7 +43,7 @@ export function invoice(over: Partial<Invoice> = {}): Invoice {
     emailedTo: null,
     createdAt: '2026-11-04T10:00:00.000Z',
     updatedAt: '2026-11-04T10:00:00.000Z',
-    client: { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test', phone: null, address: '1 rue des Lilas' },
+    client: { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test', phone: null, address: '1 rue des Lilas', kind: 'INDIVIDUAL', companyName: null },
     lines: [invoiceLine()],
     subtotal: '125.00',
     vatAmount: '12.50',

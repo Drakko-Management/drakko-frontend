@@ -583,7 +583,18 @@
     "notes_placeholder": "Información adicional…",
     "submit": "Crear cliente",
     "success": "Cliente creado",
-    "error": "Error al crear"
+    "error": "Error al crear",
+    "kind_label": "Tipo de cliente",
+    "kind_individual": "Particular",
+    "kind_professional": "Profesional",
+    "kind_hint": "Un particular es un consumidor. Un profesional es una empresa, una comunidad de propietarios, una asociación… : su SIREN figura en la factura.",
+    "company_name": "Razón social",
+    "company_placeholder": "Empresa, asociación, administrador de fincas…",
+    "siren": "SIREN",
+    "siren_hint": "Nueve dígitos. Puedes escribir el SIRET: solo se guarda el SIREN.",
+    "vat_number": "N.º de IVA intracomunitario",
+    "company_required": "Un cliente profesional necesita una razón social.",
+    "err_siren": "Este SIREN no es válido: nueve dígitos, con su clave de control."
   },
   "users": {
     "title": "Usuarios",

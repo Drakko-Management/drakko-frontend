@@ -32,7 +32,7 @@ export function quote(over: Partial<Quote> = {}): Quote {
     decidedAt: null,
     createdAt: '2026-11-03T10:00:00.000Z',
     updatedAt: '2026-11-03T10:00:00.000Z',
-    client: { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test', phone: null, address: '1 rue des Lilas' },
+    client: { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test', phone: null, address: '1 rue des Lilas', kind: 'INDIVIDUAL', companyName: null },
     lines: [quoteLine()],
     subtotal: '125.00',
     vatAmount: '12.50',

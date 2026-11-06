@@ -114,6 +114,8 @@ export interface User {
   updatedAt: string
 }
 
+export type ClientKind = 'INDIVIDUAL' | 'PROFESSIONAL'
+
 export interface Client {
   id: string
   firstName: string
@@ -122,6 +124,11 @@ export interface Client {
   phone: string | null
   address: string | null
   notes: string | null
+  /** Particulier ou professionnel : un professionnel porte une dénomination, un SIREN et une TVA (facultatifs) */
+  kind: ClientKind
+  companyName: string | null
+  siren: string | null
+  vatNumber: string | null
   active: boolean
   createdAt: string
   updatedAt: string
@@ -340,7 +347,7 @@ export interface Quote {
   decidedAt: string | null
   createdAt: string
   updatedAt: string
-  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address'>
+  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address' | 'kind' | 'companyName'>
   lines: QuoteLine[]
   /** Calculés par l'API depuis les lignes : jamais stockés */
   subtotal: string
@@ -449,7 +456,7 @@ export interface Invoice {
   emailedTo: string | null
   createdAt: string
   updatedAt: string
-  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address'>
+  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'email' | 'phone' | 'address' | 'kind' | 'companyName'>
   lines: InvoiceLine[]
   /** Calculés par l'API depuis les lignes : jamais stockés */
   subtotal: string

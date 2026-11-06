@@ -22,7 +22,7 @@ import {
 import { useOrganization } from '@/hooks/use-organization'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
-import { formatDate, fullName } from '@/lib/utils'
+import { formatDate, clientName } from '@/lib/utils'
 import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import { centsOf, centsToNumber } from '@/modules/devis/totals'
 import { formatDay } from '@/modules/factures/format'
@@ -180,10 +180,10 @@ export function InvoiceDetailPage() {
           <span className="text-muted-foreground">{t('quotes.client')} : </span>
           {can('clients', 'read') ? (
             <Link to={`/clients/${invoice.client.id}`} className="text-primary">
-              {fullName(invoice.client)}
+              {clientName(invoice.client)}
             </Link>
           ) : (
-            fullName(invoice.client)
+            clientName(invoice.client)
           )}
         </p>
         {invoice.quote && can('devis', 'read') && (

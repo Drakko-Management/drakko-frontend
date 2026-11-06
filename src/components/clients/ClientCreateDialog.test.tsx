@@ -32,6 +32,10 @@ const CREATED: Client = {
   phone: null,
   address: '3 rue Neuve, 69000 Lyon',
   notes: null,
+  kind: 'INDIVIDUAL',
+  companyName: null,
+  siren: null,
+  vatNumber: null,
   active: true,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
@@ -122,6 +126,10 @@ describe('ClientCreateDialog', () => {
       phone: undefined,
       address: '3 rue Neuve, 69000 Lyon',
       notes: undefined,
+      kind: 'INDIVIDUAL',
+      companyName: null,
+      siren: null,
+      vatNumber: null,
     })
     expect(toast.success).toHaveBeenCalledWith('Client créé')
     expect(onCreated).toHaveBeenCalledWith(CREATED)

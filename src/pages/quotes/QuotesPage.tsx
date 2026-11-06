@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { Fab } from '@/components/common/Fab'
 import { useQuotes } from '@/hooks/use-quotes'
 import { usePermissions } from '@/hooks/use-permissions'
-import { cn, formatDate, fullName } from '@/lib/utils'
+import { cn, formatDate, clientName } from '@/lib/utils'
 import { formatMoney } from '@/modules/devis/format'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
 import type { QuoteStatus } from '@/types/api'
@@ -130,7 +130,7 @@ export function QuotesPage() {
               </div>
               {/* Sans objet, le numéro fait le titre : on ne le répète pas dessous */}
               <p className="truncate text-xs text-muted-foreground">
-                {quote.title ? `${quote.reference} · ${fullName(quote.client)}` : fullName(quote.client)}
+                {quote.title ? `${quote.reference} · ${clientName(quote.client)}` : clientName(quote.client)}
               </p>
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs text-muted-foreground">{formatDate(quote.sentAt ?? quote.createdAt)}</p>

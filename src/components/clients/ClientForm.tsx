@@ -11,8 +11,10 @@ import { useCreateClient } from '@/hooks/use-clients'
 import { buildAddress } from '@/lib/utils'
 import { formatPhone } from '@/lib/phone'
 import type { Client } from '@/types/api'
+import { ClientCompanyFields } from './ClientCompanyFields'
+import { companyErrors, companyPayload, EMPTY_COMPANY, type CompanyField, type CompanyValues } from './client-company'
 
-export interface ClientFormValues {
+export interface ClientFormValues extends CompanyValues {
   firstName: string
   lastName: string
   email: string
@@ -24,6 +26,7 @@ export interface ClientFormValues {
 }
 
 const EMPTY: ClientFormValues = {
+  ...EMPTY_COMPANY,
   firstName: '',
   lastName: '',
   email: '',
@@ -33,6 +36,9 @@ const EMPTY: ClientFormValues = {
   city: '',
   notes: '',
 }
+
+// Ordre des champs de l'entreprise à l'écran : l'erreur la plus haute reçoit le curseur
+const COMPANY_FIELDS: CompanyField[] = ['companyName', 'siren', 'vatNumber']
 
 interface ClientFormProps {
   /** Valeurs de départ (ex. le nom tapé dans la recherche d'un client) */
@@ -47,6 +53,8 @@ export function ClientForm({ initial, autoFocus = false, onCreated }: ClientForm
   const { t } = useTranslation()
   const createClient = useCreateClient()
   const [form, setForm] = useState<ClientFormValues>({ ...EMPTY, ...initial })
+  // Vrai après un envoi refusé pour une faute de l'entreprise : toutes ses erreurs s'affichent
+  const [attempted, setAttempted] = useState(false)
   const firstNameRef = useRef<HTMLInputElement>(null)
   const lastNameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
@@ -70,6 +78,14 @@ export function ClientForm({ initial, autoFocus = false, onCreated }: ClientForm
       toast.error(t('create_client.required_error'))
       return
     }
+    const errors = companyErrors(form)
+    const firstError = COMPANY_FIELDS.find((field) => errors[field])
+    if (firstError) {
+      setAttempted(true)
+      toast.error(t('settings.org_invalid'))
+      window.setTimeout(() => document.getElementById(`client-${firstError}`)?.focus(), 0)
+      return
+    }
     try {
       const client = await createClient.mutateAsync({
         firstName: form.firstName.trim(),
@@ -78,6 +94,7 @@ export function ClientForm({ initial, autoFocus = false, onCreated }: ClientForm
         phone: form.phone.trim() || undefined,
         address,
         notes: form.notes.trim() || undefined,
+        ...companyPayload(form),
       })
       toast.success(t('create_client.success'))
       onCreated(client)
@@ -88,6 +105,13 @@ export function ClientForm({ initial, autoFocus = false, onCreated }: ClientForm
 
   return (
     <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
+      <ClientCompanyFields
+        values={form}
+        onChange={(values) => setForm((f) => ({ ...f, ...values }))}
+        attempted={attempted}
+        focusOnSwitch
+      />
+
       <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2" data-tutorial="client-name">
         <div className="space-y-2">
           <Label htmlFor="firstName">{t('common.first_name')} *</Label>

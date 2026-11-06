@@ -15,7 +15,7 @@ import type { ClientSort } from '@/hooks/use-clients'
 import { usePermissions } from '@/hooks/use-permissions'
 import { useAuthStore } from '@/store/auth.store'
 import { apiErrorMessage } from '@/lib/api-error'
-import { fullName } from '@/lib/utils'
+import { clientName, fullName } from '@/lib/utils'
 import type { Client } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
@@ -153,8 +153,9 @@ export function ClientsPage() {
                     {client.firstName[0]}{client.lastName[0]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold">{fullName(client)}</p>
+                    <p className="font-semibold">{clientName(client)}</p>
                     <p className="truncate text-xs text-muted-foreground">
+                      {client.kind === 'PROFESSIONAL' && `${fullName(client)} · `}
                       {client.email}
                       {client.phone && ` · ${client.phone}`}
                     </p>

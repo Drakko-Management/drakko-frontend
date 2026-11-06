@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import i18n from 'i18next'
-import { formatDate, formatCurrency, fullName, initials, avatarColor, toDateInput, dateRangeBounds, DATE_INPUT_MIN, DATE_INPUT_MAX } from './utils'
+import { formatDate, formatCurrency, fullName, clientName, initials, avatarColor, toDateInput, dateRangeBounds, DATE_INPUT_MIN, DATE_INPUT_MAX } from './utils'
 
 // ── toDateInput ────────────────────────────────────────────────────────────
 
@@ -159,6 +159,22 @@ describe('fullName', () => {
 
   it('gère les prénoms composés', () => {
     expect(fullName({ firstName: 'Jean-Pierre', lastName: 'Martin' })).toBe('Jean-Pierre Martin')
+  })
+})
+
+// ── clientName ─────────────────────────────────────────────────────────────
+
+describe('clientName', () => {
+  const contact = { firstName: 'Jean', lastName: 'Martin' }
+
+  it('un professionnel est nommé par sa dénomination', () => {
+    expect(clientName({ ...contact, companyName: 'Syndic Les Lilas' })).toBe('Syndic Les Lilas')
+  })
+
+  it('un particulier, ou une dénomination absente ou blanche, garde prénom et nom', () => {
+    expect(clientName(contact)).toBe('Jean Martin')
+    expect(clientName({ ...contact, companyName: null })).toBe('Jean Martin')
+    expect(clientName({ ...contact, companyName: '   ' })).toBe('Jean Martin')
   })
 })
 

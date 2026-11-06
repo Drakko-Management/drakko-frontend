@@ -16,14 +16,22 @@ import { useOrganization } from '@/hooks/use-organization'
 import { usePermissions } from '@/hooks/use-permissions'
 import { useQuote, useQuotes } from '@/hooks/use-quotes'
 import { apiErrorMessage } from '@/lib/api-error'
-import { buildAddress, parseAddress, dateRangeBounds, fullName } from '@/lib/utils'
+import { buildAddress, parseAddress, dateRangeBounds, clientName } from '@/lib/utils'
 import { formatMoney } from '@/modules/devis/format'
 import type { Client, Quote } from '@/types/api'
 import { TutorialHelpButton } from '@/tutorials/TutorialHelpButton'
 
 // Le devis ne porte que les coordonnées du client : de quoi remplir le champ client, pas sa fiche complète
 function clientOfQuote(quote: Quote): Client {
-  return { ...quote.client, notes: null, active: true, createdAt: quote.createdAt, updatedAt: quote.updatedAt }
+  return {
+    ...quote.client,
+    siren: null,
+    vatNumber: null,
+    notes: null,
+    active: true,
+    createdAt: quote.createdAt,
+    updatedAt: quote.updatedAt,
+  }
 }
 
 export function CreateProjectPage() {
@@ -203,7 +211,7 @@ export function CreateProjectPage() {
                   <option value="">{t('create_project.from_quote_placeholder')}</option>
                   {quoteChoices?.map((q) => (
                     <option key={q.id} value={q.id}>
-                      {`${q.reference} · ${fullName(q.client)}${q.title ? ` · ${q.title}` : ''} · ${formatMoney(q.total)}`}
+                      {`${q.reference} · ${clientName(q.client)}${q.title ? ` · ${q.title}` : ''} · ${formatMoney(q.total)}`}
                     </option>
                   ))}
                 </select>

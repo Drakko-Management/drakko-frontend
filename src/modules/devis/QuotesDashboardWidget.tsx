@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { FilePen, Send, CheckCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useQuotesSummary } from '@/hooks/use-quotes'
-import { fullName } from '@/lib/utils'
+import { clientName } from '@/lib/utils'
 import type { Quote, QuoteStatus } from '@/types/api'
 import { formatMoney } from './format'
 import { QuoteStatusBadge } from './QuoteStatusBadge'
@@ -24,7 +24,7 @@ function QuoteRow({ quote, onClick }: { quote: Quote; onClick: () => void }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{quote.title || quote.reference}</p>
         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {quote.title ? `${quote.reference} · ${fullName(quote.client)}` : fullName(quote.client)}
+          {quote.title ? `${quote.reference} · ${clientName(quote.client)}` : clientName(quote.client)}
         </p>
         <div className="mt-1 flex items-center justify-between gap-2">
           <p className="text-sm font-medium">{formatMoney(quote.total)}</p>

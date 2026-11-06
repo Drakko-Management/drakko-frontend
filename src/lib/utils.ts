@@ -54,6 +54,11 @@ export function fullName(user: { firstName: string; lastName: string }): string 
   return `${user.firstName} ${user.lastName}`
 }
 
+/** Le nom d'un client à l'écran : la dénomination d'un professionnel, sinon prénom et nom. */
+export function clientName(client: { firstName: string; lastName: string; companyName?: string | null }): string {
+  return client.companyName?.trim() || fullName(client)
+}
+
 export function initials(user: { firstName: string; lastName: string }): string {
   return `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
 }

@@ -32,6 +32,16 @@ export function isValidSiret(value: string): boolean {
   return luhn(value)
 }
 
+/** SIREN d'un client professionnel : 9 chiffres, clé de Luhn. Un SIRET valide est ramené à ses 9 premiers chiffres. */
+export const normalizeSiren = (value: string): string => {
+  const digits = withoutSpaces(value)
+  return isValidSiret(digits) ? digits.slice(0, 9) : digits
+}
+
+export function isValidSiren(value: string): boolean {
+  return /^\d{9}$/.test(value) && luhn(value)
+}
+
 // Longueur de l'IBAN par pays d'Europe ; un autre pays est accepté de 15 à 34 caractères, la clé modulo 97 restant juge.
 const IBAN_LENGTHS: Record<string, number> = {
   AD: 24, AT: 20, BE: 16, BG: 22, CH: 21, CY: 28, CZ: 24, DE: 22, DK: 18, EE: 20, ES: 24, FI: 18, FR: 27, GB: 22, GR: 27,

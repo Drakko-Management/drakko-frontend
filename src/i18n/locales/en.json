@@ -583,7 +583,18 @@
     "notes_placeholder": "Additional information…",
     "submit": "Create client",
     "success": "Client created",
-    "error": "Creation error"
+    "error": "Creation error",
+    "kind_label": "Client type",
+    "kind_individual": "Individual",
+    "kind_professional": "Business",
+    "kind_hint": "An individual is a consumer. A business is a company, a homeowners' association, a charity… : its SIREN appears on the invoice.",
+    "company_name": "Company name",
+    "company_placeholder": "Company, association, property manager…",
+    "siren": "SIREN",
+    "siren_hint": "Nine digits. You can enter the SIRET: only the SIREN is kept.",
+    "vat_number": "EU VAT number",
+    "company_required": "A business client needs a company name.",
+    "err_siren": "This SIREN is not valid: nine digits, check digit included."
   },
   "users": {
     "title": "Users",

@@ -3,10 +3,12 @@ import {
   isValidBic,
   isValidEmail,
   isValidIban,
+  isValidSiren,
   isValidSiret,
   isValidVatNumber,
   normalizeBic,
   normalizeIban,
+  normalizeSiren,
   normalizeSiret,
   normalizeVatNumber,
 } from './identifiers'
@@ -33,6 +35,27 @@ describe('SIRET', () => {
 
   it('normalise : espaces retirés', () => {
     expect(normalizeSiret(' 732 829 320 00074 ')).toBe('73282932000074')
+  })
+})
+
+describe('SIREN (client professionnel)', () => {
+  it.each(['732829320', '552081317', '784671695'])('%s est valide', (siren) => {
+    expect(isValidSiren(siren)).toBe(true)
+  })
+
+  it.each(['732829321', '73282932', '73282932000074', '73282932A', ''])('refuse « %s »', (siren) => {
+    expect(isValidSiren(siren)).toBe(false)
+  })
+
+  it('normalise : espaces retirés, SIRET valide ramené à son SIREN', () => {
+    expect(normalizeSiren(' 732 829 320 ')).toBe('732829320')
+    expect(normalizeSiren('732 829 320 00074')).toBe('732829320')
+    expect(isValidSiren(normalizeSiren('73282932000074'))).toBe(true)
+  })
+
+  it('un SIRET faux reste tel quel, donc refusé', () => {
+    expect(normalizeSiren('73282932000075')).toBe('73282932000075')
+    expect(isValidSiren(normalizeSiren('73282932000075'))).toBe(false)
   })
 })
 

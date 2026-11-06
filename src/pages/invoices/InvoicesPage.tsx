@@ -11,7 +11,7 @@ import { Fab } from '@/components/common/Fab'
 import { downloadInvoicesExport, useInvoices, type InvoiceFilters } from '@/hooks/use-invoices'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
-import { cn, formatDate, fullName } from '@/lib/utils'
+import { cn, formatDate, clientName } from '@/lib/utils'
 import { formatMoney } from '@/modules/devis/format'
 import { formatDay } from '@/modules/factures/format'
 import { ExportInvoicesDialog } from '@/modules/factures/ExportInvoicesDialog'
@@ -165,7 +165,7 @@ export function InvoicesPage() {
                 </div>
                 {/* Sans objet, le numéro fait le titre : on ne le répète pas dessous */}
                 <p className="truncate text-xs text-muted-foreground">
-                  {invoice.title ? `${name} · ${fullName(invoice.client)}` : fullName(invoice.client)}
+                  {invoice.title ? `${name} · ${clientName(invoice.client)}` : clientName(invoice.client)}
                 </p>
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs text-muted-foreground">

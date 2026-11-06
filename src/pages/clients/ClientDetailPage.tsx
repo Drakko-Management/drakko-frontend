@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Mail, Phone, MapPin, FileText, Loader2, MessageSquare, Plus } from 'lucide-react'
+import { ArrowLeft, Building2, Mail, Phone, MapPin, FileText, Loader2, MessageSquare, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,15 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { AddressAutocomplete } from '@/components/common/AddressAutocomplete'
 import { EditPageTitle } from '@/components/common/EditPageTitle'
 import { RecordActions } from '@/components/common/RecordActions'
+import { ClientCompanyFields } from '@/components/clients/ClientCompanyFields'
+import {
+  companyErrors,
+  companyPayload,
+  companyValuesOf,
+  formatSiren,
+  type CompanyField,
+  type CompanyValues,
+} from '@/components/clients/client-company'
 import { useClient, useUpdateClient, useSetClientActive, useDeleteClient } from '@/hooks/use-clients'
 import type { Client } from '@/types/api'
 import { useProjects } from '@/hooks/use-projects'
@@ -23,10 +32,13 @@ import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 import { formatMoney } from '@/modules/devis/format'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
-import { fullName, formatDate, buildAddress, parseAddress } from '@/lib/utils'
+import { clientName, formatDate, buildAddress, parseAddress } from '@/lib/utils'
 import { formatPhone } from '@/lib/phone'
 
-type ClientForm = {
+// Ordre des champs de l'entreprise à l'écran : l'erreur la plus haute reçoit le curseur
+const COMPANY_FIELDS: CompanyField[] = ['companyName', 'siren', 'vatNumber']
+
+type ClientForm = CompanyValues & {
   firstName: string
   lastName: string
   email: string
@@ -40,6 +52,7 @@ type ClientForm = {
 function toForm(client: Client): ClientForm {
   const { street, postalCode, city } = parseAddress(client.address ?? '')
   return {
+    ...companyValuesOf(client),
     firstName: client.firstName,
     lastName: client.lastName,
     email: client.email,
@@ -110,10 +123,20 @@ function ClientView({ client }: { client: Client }) {
   const canInvoice = client.active && can('factures', 'create')
   const initial = toForm(client)
   const [form, setForm] = useState<ClientForm>(initial)
+  // Vrai après un enregistrement refusé pour une faute de l'entreprise : toutes ses erreurs s'affichent
+  const [attempted, setAttempted] = useState(false)
   // « Enregistrer » ne s'active que si la fiche a changé
   const dirty = (Object.keys(initial) as (keyof ClientForm)[]).some((k) => form[k].trim() !== initial[k].trim())
 
   async function handleSave() {
+    const errors = companyErrors(form)
+    const firstError = COMPANY_FIELDS.find((field) => errors[field])
+    if (firstError) {
+      setAttempted(true)
+      toast.error(t('settings.org_invalid'))
+      window.setTimeout(() => document.getElementById(`client-${firstError}`)?.focus(), 0)
+      return
+    }
     try {
       await updateClient.mutateAsync({
         firstName: form.firstName.trim(),
@@ -122,6 +145,7 @@ function ClientView({ client }: { client: Client }) {
         phone: form.phone.trim(),
         address: buildAddress(form.street, form.postalCode, form.city),
         notes: form.notes.trim(),
+        ...companyPayload(form),
       })
       toast.success(t('client_detail.updated'))
     } catch {
@@ -157,7 +181,7 @@ function ClientView({ client }: { client: Client }) {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <EditPageTitle kind={t('clients.edit_title')} name={fullName(client)} />
+        <EditPageTitle kind={t('clients.edit_title')} name={clientName(client)} />
         <div className="ml-auto flex items-center gap-2">
           <RecordActions
             active={client.active}
@@ -204,6 +228,11 @@ function ClientView({ client }: { client: Client }) {
 
       {canEdit ? (
         <Card className="space-y-4 p-4">
+          <ClientCompanyFields
+            values={form}
+            onChange={(values) => setForm((f) => ({ ...f, ...values }))}
+            attempted={attempted}
+          />
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>{t('common.first_name')}</Label>
@@ -290,6 +319,24 @@ function ClientView({ client }: { client: Client }) {
         </Card>
       ) : (
         <Card className="divide-y">
+          {client.kind === 'PROFESSIONAL' && (
+            <div className="flex items-start gap-3 p-4" data-testid="client-company">
+              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <div className="text-sm">
+                <p className="font-medium">{client.companyName}</p>
+                {client.siren && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('create_client.siren')} {formatSiren(client.siren)}
+                  </p>
+                )}
+                {client.vatNumber && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('create_client.vat_number')} {client.vatNumber}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           {client.address && (
             <div className="flex items-center gap-3 p-4 min-h-[56px]">
               <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
