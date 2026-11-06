@@ -400,6 +400,7 @@ export function QuoteDetailPage() {
         onOpenChange={setDepositOpen}
         quoteReference={quote.reference}
         quoteSubtotal={centsOf(quote.subtotal)}
+        alreadyBilled={quote.deposits.reduce((sum, deposit) => sum + centsOf(deposit.subtotal), 0n)}
         vatRate={quote.vatRate}
         vatExempt={quote.vatExempt}
         pending={createInvoice.isPending}

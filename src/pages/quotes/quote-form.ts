@@ -102,10 +102,45 @@ export function isFormDirty(values: QuoteFormValues, baseline: QuoteFormValues):
   return JSON.stringify(comparable(values)) !== JSON.stringify(comparable(baseline))
 }
 
-/** Une ligne est envoyable quand elle a un titre, une quantité positive et un prix. */
+// Les plafonds de l'API (`MAX_QUOTE_LINES`, `MAX_INVOICE_LINES`, `DocumentLineDto`) : le formulaire les dit avant qu'elle
+// ne refuse, au lieu d'un échec générique à l'envoi
+export const MAX_LINES = 100
+export const MAX_QUANTITY = 1_000_000
+export const MAX_UNIT_PRICE = 99_999_999
+const MAX_MILLI = BigInt(MAX_QUANTITY) * 1000n
+const MAX_CENTS = BigInt(MAX_UNIT_PRICE) * 100n
+
+/** La quantité saisie dépasse le plafond de l'API. */
+export function quantityTooLarge(line: FormLine): boolean {
+  const quantity = toMilli(line.quantity)
+  return quantity !== null && quantity > MAX_MILLI
+}
+
+/** Le prix saisi dépasse le plafond de l'API. */
+export function priceTooLarge(line: FormLine): boolean {
+  const price = toCents(line.unitPrice)
+  return price !== null && price > MAX_CENTS
+}
+
+/** Une ligne est envoyable quand elle a un titre, une quantité positive et un prix, sous les plafonds de l'API. */
 export function isLineValid(line: FormLine): boolean {
   const quantity = toMilli(line.quantity)
-  return line.title.trim() !== '' && quantity !== null && quantity > 0n && toCents(line.unitPrice) !== null
+  return (
+    line.title.trim() !== '' &&
+    quantity !== null &&
+    quantity > 0n &&
+    toCents(line.unitPrice) !== null &&
+    !quantityTooLarge(line) &&
+    !priceTooLarge(line)
+  )
+}
+
+/** L'identifiant du premier champ à corriger d'une ligne (désignation, puis quantité, puis prix). */
+export function firstLineProblemId(line: FormLine): string {
+  if (line.title.trim() === '') return `${line.key}-title`
+  const quantity = toMilli(line.quantity)
+  if (quantity === null || quantity <= 0n || quantityTooLarge(line)) return `${line.key}-qty`
+  return `${line.key}-price`
 }
 
 export const decimal = (value: string) => parseFloat(value.trim().replace(',', '.'))

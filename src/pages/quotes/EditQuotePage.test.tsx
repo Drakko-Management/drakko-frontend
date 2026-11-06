@@ -94,6 +94,36 @@ describe('EditQuotePage', () => {
     expect(screen.queryByRole('button', { name: 'Enregistrer' })).not.toBeInTheDocument()
   })
 
+  describe('le maximum de 100 lignes', () => {
+    const lines = (count: number) =>
+      Array.from({ length: count }, (_, i) => quoteLine({ id: `l${i}`, snapshotTitle: `Prestation ${i}`, order: i }))
+
+    it('à 99 lignes, on peut encore en ajouter une', () => {
+      show(quote({ lines: lines(99) }))
+
+      expect(screen.getByRole('button', { name: 'Ligne libre' })).toBeEnabled()
+      expect(screen.queryByTestId('lines-max')).not.toBeInTheDocument()
+    })
+
+    it('à 100 lignes, les deux ajouts sont bloqués et une phrase dit pourquoi', () => {
+      vi.mocked(useServices).mockReturnValue({ data: [{ id: 's1', title: 'Taille', unit: 'ml', defaultPrice: 10, active: true }] } as never)
+      show(quote({ lines: lines(100) }))
+
+      expect(screen.getByRole('button', { name: 'Ligne libre' })).toBeDisabled()
+      expect(screen.getByLabelText('Ajouter une prestation')).toBeDisabled()
+      expect(screen.getByTestId('lines-max')).toHaveTextContent('Le maximum de 100 lignes est atteint.')
+    })
+
+    it('supprimer une ligne rouvre l\'ajout', async () => {
+      show(quote({ lines: lines(100) }))
+
+      await userEvent.click(screen.getAllByRole('button', { name: 'Supprimer la ligne' })[0])
+
+      expect(screen.getByRole('button', { name: 'Ligne libre' })).toBeEnabled()
+      expect(screen.queryByTestId('lines-max')).not.toBeInTheDocument()
+    })
+  })
+
   it('un devis introuvable renvoie à la liste', () => {
     show(undefined)
 

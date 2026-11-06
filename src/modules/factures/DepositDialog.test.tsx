@@ -100,6 +100,84 @@ describe('DepositDialog', () => {
     expect(create()).toBeDisabled()
   })
 
+  describe('acomptes déjà demandés', () => {
+    // Devis de 230,00 HT dont 100,00 HT sont déjà demandés : il reste 130,00, moins un centime pour garder un solde
+    const ALREADY = 10000n
+
+    it('sans acompte déjà demandé, aucune phrase', () => {
+      open()
+
+      expect(screen.queryByTestId('deposit-already')).not.toBeInTheDocument()
+    })
+
+    it('dit ce qui est déjà demandé et ce qu\'on peut encore demander', () => {
+      open({ alreadyBilled: ALREADY })
+
+      expect(plain(screen.getByTestId('deposit-already').textContent)).toBe(
+        'Déjà demandé en acompte : 100,00 € HT. Vous pouvez encore demander 129,99 € HT au plus : il faut garder un solde à facturer.',
+      )
+    })
+
+    it('un acompte qui ne laisse pas de solde est refusé avant l\'API, avec le maximum possible', async () => {
+      const { onConfirm } = open({ alreadyBilled: ALREADY })
+
+      await userEvent.click(screen.getByRole('button', { name: 'En montant hors taxe' }))
+      await userEvent.type(screen.getByLabelText('Montant hors taxe (€)'), '130')
+
+      expect(plain(screen.getByTestId('deposit-too-high').textContent)).toBe(
+        'Cet acompte est trop élevé : 129,99 € HT au plus, pour garder un solde à facturer.',
+      )
+      expect(create()).toBeDisabled()
+      await userEvent.type(screen.getByLabelText('Montant hors taxe (€)'), '{Enter}')
+      expect(onConfirm).not.toHaveBeenCalled()
+    })
+
+    it('le plus haut acompte possible passe, au centime près', async () => {
+      const { onConfirm } = open({ alreadyBilled: ALREADY })
+
+      await userEvent.click(screen.getByRole('button', { name: 'En montant hors taxe' }))
+      await userEvent.type(screen.getByLabelText('Montant hors taxe (€)'), '129,99')
+
+      expect(screen.queryByTestId('deposit-too-high')).not.toBeInTheDocument()
+      await userEvent.click(create())
+      expect(onConfirm).toHaveBeenCalledWith({ amount: 129.99 })
+    })
+
+    it('en pourcentage aussi : 60 % de 230,00 dépassent ce qui reste, 50 % passent', async () => {
+      open({ alreadyBilled: ALREADY })
+
+      await userEvent.clear(screen.getByLabelText('Pourcentage (%)'))
+      await userEvent.type(screen.getByLabelText('Pourcentage (%)'), '60')
+      expect(screen.getByTestId('deposit-too-high')).toBeInTheDocument()
+      expect(create()).toBeDisabled()
+
+      await userEvent.clear(screen.getByLabelText('Pourcentage (%)'))
+      await userEvent.type(screen.getByLabelText('Pourcentage (%)'), '50')
+      expect(screen.queryByTestId('deposit-too-high')).not.toBeInTheDocument()
+      expect(create()).toBeEnabled()
+    })
+
+    it('plus rien à demander : le dit, et aucun acompte n\'est possible', () => {
+      open({ alreadyBilled: 22999n })
+
+      expect(screen.getByTestId('deposit-already')).toHaveTextContent('Plus aucun acompte n\'est possible')
+      expect(screen.getByTestId('deposit-too-high')).toHaveTextContent('Plus aucun acompte n\'est possible')
+      expect(create()).toBeDisabled()
+    })
+
+    it('même sans acompte déjà demandé, un montant qui couvre tout le devis est refusé', async () => {
+      open()
+
+      await userEvent.click(screen.getByRole('button', { name: 'En montant hors taxe' }))
+      await userEvent.type(screen.getByLabelText('Montant hors taxe (€)'), '230')
+
+      expect(plain(screen.getByTestId('deposit-too-high').textContent)).toBe(
+        'Cet acompte est trop élevé : 229,99 € HT au plus, pour garder un solde à facturer.',
+      )
+      expect(create()).toBeDisabled()
+    })
+  })
+
   it('sous franchise de TVA, pas de TTC : la mention le dit', () => {
     open({ vatExempt: true, vatRate: '0' })
 

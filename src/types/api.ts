@@ -363,6 +363,8 @@ export interface QuoteInvoice {
   id: string
   reference: string | null
   status: InvoiceStatus
+  /** Total hors taxe, calculé par l'API : ce que la règle « il doit rester un solde » compte pour un acompte */
+  subtotal: string
   /** Total TTC, calculé par l'API */
   total: string
 }

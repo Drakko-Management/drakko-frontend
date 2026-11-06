@@ -25,6 +25,8 @@ interface Props {
   quoteReference: string
   /** Le total hors taxe du devis, en centimes : la base du pourcentage */
   quoteSubtotal: bigint
+  /** Ce que les acomptes déjà demandés (non annulés, brouillons compris) totalisent hors taxe, en centimes */
+  alreadyBilled?: bigint
   /** Le taux de TVA du devis (« 20 », « 0 » sous franchise), pour l'aperçu */
   vatRate: string
   vatExempt: boolean
@@ -38,7 +40,17 @@ const DEFAULT_PERCENT = '30'
  * « Facture d'acompte » (ADR-033) : une part du devis, en pourcentage ou en montant hors taxe. L'aperçu montre ce que le client
  * paiera ; l'API reste juge (plafond des acomptes, régime de TVA).
  */
-export function DepositDialog({ open, onOpenChange, quoteReference, quoteSubtotal, vatRate, vatExempt, pending = false, onConfirm }: Props) {
+export function DepositDialog({
+  open,
+  onOpenChange,
+  quoteReference,
+  quoteSubtotal,
+  alreadyBilled = 0n,
+  vatRate,
+  vatExempt,
+  pending = false,
+  onConfirm,
+}: Props) {
   const { t } = useTranslation()
   const [mode, setMode] = useState<Mode>('percent')
   const [value, setValue] = useState(DEFAULT_PERCENT)
@@ -60,7 +72,10 @@ export function DepositDialog({ open, onOpenChange, quoteReference, quoteSubtota
   const cents = value.trim() === '' ? null : mode === 'percent' ? percentOfCents(quoteSubtotal, value) : toCents(value)
   const percentCents = mode === 'percent' ? toCents(value) : null
   const percentOk = mode !== 'percent' || (percentCents !== null && percentCents > 0n && percentCents < 10000n)
-  const valid = cents !== null && cents > 0n && percentOk
+  // Les acomptes ne couvrent jamais tout le devis : il doit rester un solde à facturer (l'API le refuse aussi, au centime près)
+  const maxCents = quoteSubtotal - alreadyBilled - 1n
+  const tooHigh = cents !== null && cents > maxCents
+  const valid = cents !== null && cents > 0n && percentOk && !tooHigh
 
   function submit() {
     if (!valid) return
@@ -115,6 +130,21 @@ export function DepositDialog({ open, onOpenChange, quoteReference, quoteSubtota
               }}
             />
           </div>
+          {alreadyBilled > 0n && (
+            <p className="text-xs text-muted-foreground" data-testid="deposit-already">
+              {maxCents > 0n
+                ? t('invoices.deposit_already', {
+                    already: formatMoney(centsToNumber(alreadyBilled)),
+                    max: formatMoney(centsToNumber(maxCents)),
+                  })
+                : t('invoices.deposit_none_left')}
+            </p>
+          )}
+          {tooHigh && (
+            <p className="text-sm text-destructive" role="alert" data-testid="deposit-too-high">
+              {maxCents > 0n ? t('invoices.deposit_too_high', { max: formatMoney(centsToNumber(maxCents)) }) : t('invoices.deposit_none_left')}
+            </p>
+          )}
           <p className="min-h-5 text-sm font-medium" data-testid="deposit-preview" aria-live="polite">
             {preview}
           </p>

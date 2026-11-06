@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,9 +10,23 @@ import { ClientSearch } from '@/components/clients/ClientSearch'
 import { useServices } from '@/hooks/use-services'
 import { cn, DATE_INPUT_MAX, DATE_INPUT_MIN, todayInput } from '@/lib/utils'
 import { centsToNumber, computeBalanceTotals, toCents } from '@/modules/devis/totals'
-import { formatMoney } from '@/modules/devis/format'
+import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import type { Client } from '@/types/api'
-import { FREE_LINE, decimal, isLineValid, lineFromService, newKey, type FormLine, type QuoteFormValues } from './quote-form'
+import {
+  FREE_LINE,
+  MAX_LINES,
+  MAX_QUANTITY,
+  MAX_UNIT_PRICE,
+  decimal,
+  firstLineProblemId,
+  isLineValid,
+  lineFromService,
+  newKey,
+  priceTooLarge,
+  quantityTooLarge,
+  type FormLine,
+  type QuoteFormValues,
+} from './quote-form'
 
 interface Props {
   /** Le formulaire sert aux devis et aux factures (ADR-033) : seul le champ de date et le régime de TVA changent. */
@@ -47,6 +61,9 @@ export function QuoteFormFields({
   const { t } = useTranslation()
   const { data: services } = useServices(true)
   const [attempted, setAttempted] = useState(false)
+  // Combien de fois l'envoi a été refusé par le formulaire : chaque refus ramène à la première erreur
+  const [rejections, setRejections] = useState(0)
+  const formRef = useRef<HTMLFormElement>(null)
   // Texte tapé dans la recherche quand la fenêtre de création de client est ouverte (null = fermée)
   const [newClientName, setNewClientName] = useState<string | null>(null)
 
@@ -67,13 +84,29 @@ export function QuoteFormFields({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setAttempted(true)
-    if (!values.client || invalidLines.length > 0 || rateInvalid) return
+    if (!values.client || invalidLines.length > 0 || rateInvalid) {
+      setRejections((n) => n + 1)
+      return
+    }
     onSubmit()
   }
 
+  // Sur mobile, le bouton est tout en bas et la première erreur peut être hors de l'écran : sans ce saut, rien ne bouge
+  // et on ne sait pas pourquoi l'envoi n'a pas eu lieu. `data-form-error` porte l'identifiant du champ à corriger.
+  useEffect(() => {
+    if (rejections === 0) return
+    const target = formRef.current?.querySelector<HTMLElement>('[data-form-error]')
+    if (!target) return
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const field = target.getAttribute('data-form-error')
+    if (field) document.getElementById(field)?.focus({ preventScroll: true })
+  }, [rejections])
+
+  const atMaxLines = values.lines.length >= MAX_LINES
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-      <div className="space-y-1.5">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-5" noValidate>
+      <div className="space-y-1.5" data-form-error={clientMissing ? 'client-search' : undefined}>
         <Label htmlFor="client-search">{t('quotes.form_client')}</Label>
         <ClientSearch
           value={values.client as Client | null}
@@ -125,6 +158,7 @@ export function QuoteFormFields({
             disabled={vatExempt}
             onChange={(e) => set('vatRate', e.target.value)}
             aria-invalid={rateInvalid}
+            data-form-error={rateInvalid ? 'quote-vat' : undefined}
           />
         </div>
       </div>
@@ -166,14 +200,18 @@ export function QuoteFormFields({
         {values.lines.map((line, index) => {
           const total = totals.lines[index]
           const invalid = attempted && !isLineValid(line)
+          const qtyTooLarge = quantityTooLarge(line)
+          const priceTooBig = priceTooLarge(line)
           return (
             <div
               key={line.key}
               className={cn('space-y-2 rounded-xl border bg-card p-3', invalid && 'border-destructive')}
               data-testid="quote-line"
+              data-form-error={invalid ? firstLineProblemId(line) : undefined}
             >
               <div className="flex items-start gap-2">
                 <Input
+                  id={`${line.key}-title`}
                   aria-label={t('quotes.form_line_title')}
                   className="min-h-[44px] font-medium"
                   maxLength={200}
@@ -207,10 +245,17 @@ export function QuoteFormFields({
                   <Input
                     id={`${line.key}-qty`}
                     inputMode="decimal"
-                    className="min-h-[44px]"
+                    className={cn('min-h-[44px]', qtyTooLarge && 'border-destructive')}
                     value={line.quantity}
                     onChange={(e) => setLine(line.key, { quantity: e.target.value })}
+                    aria-invalid={qtyTooLarge || undefined}
+                    aria-describedby={qtyTooLarge ? `${line.key}-qty-max` : undefined}
                   />
+                  {qtyTooLarge && (
+                    <p id={`${line.key}-qty-max`} className="text-xs text-destructive" data-testid="quantity-max">
+                      {t('quotes.form_quantity_max', { max: formatQuantity(MAX_QUANTITY) })}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground" htmlFor={`${line.key}-unit`}>
@@ -231,10 +276,17 @@ export function QuoteFormFields({
                   <Input
                     id={`${line.key}-price`}
                     inputMode="decimal"
-                    className="min-h-[44px]"
+                    className={cn('min-h-[44px]', priceTooBig && 'border-destructive')}
                     value={line.unitPrice}
                     onChange={(e) => setLine(line.key, { unitPrice: e.target.value })}
+                    aria-invalid={priceTooBig || undefined}
+                    aria-describedby={priceTooBig ? `${line.key}-price-max` : undefined}
                   />
+                  {priceTooBig && (
+                    <p id={`${line.key}-price-max`} className="text-xs text-destructive" data-testid="price-max">
+                      {t('quotes.form_price_max', { max: formatMoney(MAX_UNIT_PRICE) })}
+                    </p>
+                  )}
                 </div>
               </div>
               <p className="text-right text-sm font-medium" data-testid="quote-line-total">
@@ -251,6 +303,7 @@ export function QuoteFormFields({
             <select
               aria-label={t('quotes.form_add_service')}
               className="h-11 min-w-0 flex-1 rounded-xl border bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              disabled={atMaxLines}
               value=""
               onChange={(e) => {
                 const service = services.find((s) => s.id === e.target.value)
@@ -269,12 +322,18 @@ export function QuoteFormFields({
             type="button"
             variant="outline"
             className="min-h-[44px]"
+            disabled={atMaxLines}
             onClick={() => set('lines', [...values.lines, { ...FREE_LINE, key: newKey() }])}
           >
             <Plus className="h-4 w-4" />
             {t('quotes.form_add_free_line')}
           </Button>
         </div>
+        {atMaxLines && (
+          <p className="text-xs text-muted-foreground" data-testid="lines-max">
+            {t('quotes.form_lines_max', { max: MAX_LINES })}
+          </p>
+        )}
       </section>
 
       <div className="space-y-1.5">

@@ -257,7 +257,7 @@ describe('QuoteDetailPage — facture tirée du devis (ADR-033)', () => {
   const accepted = quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T09:00:00.000Z' })
   const invoiced = quote({
     status: 'ACCEPTED',
-    invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED', total: '137.50' },
+    invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED', subtotal: '125.00', total: '137.50' },
   })
   const createLabel = 'Créer la facture'
 
@@ -285,7 +285,7 @@ describe('QuoteDetailPage — facture tirée du devis (ADR-033)', () => {
   })
 
   it('une facture encore brouillon n\'a pas de numéro : le lien dit « Brouillon »', () => {
-    show(quote({ status: 'ACCEPTED', invoice: { id: 'i1', reference: null, status: 'DRAFT', total: '137.50' } }))
+    show(quote({ status: 'ACCEPTED', invoice: { id: 'i1', reference: null, status: 'DRAFT', subtotal: '125.00', total: '137.50' } }))
 
     expect(screen.getByTestId('quote-invoice')).toHaveTextContent('Facture : Brouillon')
   })
@@ -295,7 +295,7 @@ describe('QuoteDetailPage — facture tirée du devis (ADR-033)', () => {
       quote({
         status: 'ACCEPTED',
         project: { id: 'p1', reference: 'CH-2026-001', title: 'Terrasse bois', status: 'IN_PROGRESS' },
-        invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED', total: '137.50' },
+        invoice: { id: 'i1', reference: 'FAC-2026-0001', status: 'ISSUED', subtotal: '125.00', total: '137.50' },
       }),
     )
 
@@ -560,8 +560,8 @@ describe('QuoteDetailPage — acompte (ADR-033)', () => {
   const withDeposits = quote({
     status: 'ACCEPTED',
     deposits: [
-      { id: 'd1', reference: 'FAC-2026-0001', status: 'PAID', total: '82.80' },
-      { id: 'd2', reference: null, status: 'DRAFT', total: '60.00' },
+      { id: 'd1', reference: 'FAC-2026-0001', status: 'PAID', subtotal: '69.00', total: '82.80' },
+      { id: 'd2', reference: null, status: 'DRAFT', subtotal: '50.00', total: '60.00' },
     ],
   })
 
@@ -624,12 +624,27 @@ describe('QuoteDetailPage — acompte (ADR-033)', () => {
     expect(button('Facture d\'acompte')).toBeInTheDocument()
   })
 
+  it('la fenêtre d\'acompte connaît les acomptes déjà demandés : ils comptent hors taxe, et le plafond suit', async () => {
+    show(withDeposits)
+
+    await userEvent.click(button('Facture d\'acompte')!)
+
+    // Devis de 125,00 HT, dont 69,00 + 50,00 déjà demandés : il reste 6,00, donc 5,99 au plus
+    expect(plain(screen.getByTestId('deposit-already').textContent)).toBe(
+      'Déjà demandé en acompte : 119,00 € HT. Vous pouvez encore demander 5,99 € HT au plus : il faut garder un solde à facturer.',
+    )
+    // Les 30 % proposés (37,50) dépassent : le bouton est bloqué avant d'appeler l'API
+    expect(screen.getByTestId('deposit-too-high')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Créer l\'acompte' })).toBeDisabled()
+    expect(makeInvoice).not.toHaveBeenCalled()
+  })
+
   it('une fois la facture de solde créée, plus d\'acompte ni de second solde', () => {
     show(
       quote({
         status: 'ACCEPTED',
         deposits: withDeposits.deposits,
-        invoice: { id: 'i9', reference: null, status: 'DRAFT', total: '193.20' },
+        invoice: { id: 'i9', reference: null, status: 'DRAFT', subtotal: '161.00', total: '193.20' },
       }),
     )
 
@@ -734,8 +749,8 @@ describe('QuoteDetailPage — décider à la main : confirmer, et pouvoir reveni
 
     it.each([
       ['un chantier en est issu', { project: { id: 'p1', reference: 'CH-1', title: 'T', status: 'IN_PROGRESS' as const } }],
-      ['une facture de solde en est issue', { invoice: { id: 'i1', reference: null, status: 'DRAFT' as const, total: '10.00' } }],
-      ['un acompte en est issu', { deposits: [{ id: 'd1', reference: null, status: 'DRAFT' as const, total: '10.00' }] }],
+      ['une facture de solde en est issue', { invoice: { id: 'i1', reference: null, status: 'DRAFT' as const, subtotal: '10.00', total: '10.00' } }],
+      ['un acompte en est issu', { deposits: [{ id: 'd1', reference: null, status: 'DRAFT' as const, subtotal: '10.00', total: '10.00' }] }],
       ['le client l\'a accepté en ligne', { acceptance: acceptance({ state: 'ACCEPTED', signerName: 'Léa Martin', respondedAt: '2026-11-04T09:00:00.000Z' }) }],
     ])('accepté mais %s : pas d\'annulation, et la raison est dite', (_name, patch) => {
       show(quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T10:00:00.000Z', ...patch }))

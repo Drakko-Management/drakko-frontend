@@ -50,6 +50,118 @@ async function pickClient() {
   await userEvent.click(await screen.findByText('Léa Martin'))
 }
 
+describe('CreateQuotePage — plafonds de l\'API et première erreur', () => {
+  async function addFreeLine(title = 'Pose', quantity = '1', price = '100') {
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+    const lines = screen.getAllByTestId('quote-line')
+    const line = lines[lines.length - 1]
+    await userEvent.type(within(line).getByLabelText('Désignation'), title)
+    await userEvent.clear(within(line).getByLabelText('Quantité'))
+    await userEvent.type(within(line).getByLabelText('Quantité'), quantity)
+    await userEvent.type(within(line).getByLabelText('Prix unitaire HT (€)'), price)
+    return line
+  }
+  const scroll = vi.fn()
+
+  beforeEach(() => {
+    scroll.mockClear()
+    Element.prototype.scrollIntoView = scroll
+  })
+
+  it('une quantité au-delà du plafond est dite tout de suite, et bloque l\'envoi', async () => {
+    renderPage()
+    await pickClient()
+    const line = await addFreeLine('Pose', '1000001')
+
+    expect(within(line).getByTestId('quantity-max')).toHaveTextContent('Quantité : 1 000 000 au plus.')
+    expect(within(line).getByLabelText('Quantité')).toHaveAttribute('aria-invalid', 'true')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+    expect(create).not.toHaveBeenCalled()
+  })
+
+  it('le plafond lui-même est permis, une décimale de trop non (comme l\'API)', async () => {
+    renderPage()
+    await pickClient()
+    const line = await addFreeLine('Pose', '1000000')
+    expect(within(line).queryByTestId('quantity-max')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create.mock.calls[0][0].lines[0].quantity).toBe(1000000)
+  })
+
+  it('un prix au-delà du plafond est dit tout de suite, et bloque l\'envoi', async () => {
+    renderPage()
+    await pickClient()
+    const line = await addFreeLine('Pose', '1', '100000000')
+
+    expect(within(line).getByTestId('price-max')).toHaveTextContent('Prix : 99 999 999,00 € au plus.')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+    expect(create).not.toHaveBeenCalled()
+  })
+
+  it('le prix au plafond passe', async () => {
+    renderPage()
+    await pickClient()
+    const line = await addFreeLine('Pose', '1', '99999999')
+    expect(within(line).queryByTestId('price-max')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+    expect(create).toHaveBeenCalledTimes(1)
+  })
+
+  it('sans client, un envoi refusé ramène à l\'erreur du haut et place le curseur dans la recherche', async () => {
+    renderPage()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(scroll).toHaveBeenCalledTimes(1)
+    expect(scroll.mock.contexts[0]).toBe(document.getElementById('client-search')?.closest('[data-form-error]'))
+    expect(document.activeElement).toBe(document.getElementById('client-search'))
+  })
+
+  it('une ligne incomplète : le saut va à sa désignation', async () => {
+    renderPage()
+    await pickClient()
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    const line = screen.getByTestId('quote-line')
+    expect(scroll.mock.contexts[0]).toBe(line)
+    expect(document.activeElement).toBe(within(line).getByLabelText('Désignation'))
+  })
+
+  it('plusieurs erreurs : la première dans l\'ordre de la page, ici le client', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(document.activeElement).toBe(document.getElementById('client-search'))
+  })
+
+  it('chaque refus ramène à l\'erreur, pas seulement le premier', async () => {
+    renderPage()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(scroll).toHaveBeenCalledTimes(2)
+  })
+
+  it('un formulaire valide ne saute nulle part', async () => {
+    renderPage()
+    await pickClient()
+    await addFreeLine()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(scroll).not.toHaveBeenCalled()
+  })
+})
+
 describe('CreateQuotePage — date de validité passée', () => {
   const PAST = 'Cette date est passée : le devis ne pourra pas être envoyé tant qu\'elle n\'est pas prolongée.'
   // La veille du jour d'aujourd'hui, comme le formulaire le compte
