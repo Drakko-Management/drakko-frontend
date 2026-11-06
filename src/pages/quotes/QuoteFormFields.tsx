@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ClientCreateDialog } from '@/components/clients/ClientCreateDialog'
 import { ClientSearch } from '@/components/clients/ClientSearch'
 import { useServices } from '@/hooks/use-services'
-import { cn, DATE_INPUT_MAX, DATE_INPUT_MIN } from '@/lib/utils'
+import { cn, DATE_INPUT_MAX, DATE_INPUT_MIN, todayInput } from '@/lib/utils'
 import { centsToNumber, computeBalanceTotals, toCents } from '@/modules/devis/totals'
 import { formatMoney } from '@/modules/devis/format'
 import type { Client } from '@/types/api'
@@ -59,6 +59,8 @@ export function QuoteFormFields({
   const totals = computeBalanceTotals(values.lines, rate, deducted)
   const invalidLines = values.lines.filter((line) => !isLineValid(line))
   const rateInvalid = !vatExempt && values.vatRate.trim() !== '' && (toCents(values.vatRate) === null || decimal(values.vatRate) > 100)
+  // Une validité déjà passée n'est pas refusée à la saisie (on peut reprendre un vieux devis), mais le devis ne partira pas
+  const validityPast = kind === 'quote' && values.date !== '' && values.date < todayInput()
   const clientMissing = attempted && !values.client
   const linesInvalid = attempted && invalidLines.length > 0
 
@@ -109,7 +111,7 @@ export function QuoteFormFields({
             min={DATE_INPUT_MIN}
             max={DATE_INPUT_MAX}
             onChange={(e) => set('date', e.target.value)}
-            aria-describedby={kind === 'invoice' ? 'quote-date-hint' : undefined}
+            aria-describedby={kind === 'invoice' ? 'quote-date-hint' : validityPast ? 'quote-date-past' : undefined}
           />
         </div>
         <div className="space-y-1.5">
@@ -126,6 +128,11 @@ export function QuoteFormFields({
           />
         </div>
       </div>
+      {validityPast && (
+        <p id="quote-date-past" role="status" className="-mt-3 text-xs text-amber-800" data-testid="valid-until-past">
+          {t('quotes.form_valid_until_past')}
+        </p>
+      )}
       {kind === 'invoice' && values.date === '' && dueDays !== undefined && (
         <p id="quote-date-hint" className="-mt-3 text-xs text-muted-foreground">
           {t('invoices.form_due_date_hint', { days: dueDays })}

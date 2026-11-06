@@ -113,6 +113,60 @@ describe('QuoteDetailPage — les gestes selon l\'état', () => {
     }
   })
 
+  describe('devis expiré (validité passée)', () => {
+    const expired = (over: Partial<Quote> = {}) =>
+      quote({ status: 'SENT', sentAt: '2026-11-03T10:00:00.000Z', validUntil: '2026-11-10T00:00:00.000Z', expired: true, ...over })
+
+    it('la pastille dit « Expiré » et la date de validité est mise en avant', () => {
+      show(expired())
+
+      expect(screen.getByText('Expiré', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.queryByText('Envoyé', { selector: 'span' })).not.toBeInTheDocument()
+      expect(screen.getByTestId('quote-valid-until')).toHaveTextContent('Valable jusqu\'au 10 nov. 2026')
+      expect(screen.getByTestId('quote-valid-until')).toHaveClass('text-amber-800')
+    })
+
+    it('une phrase dit quoi faire : rouvrir pour prolonger, ou décider à la main', () => {
+      show(expired())
+
+      expect(screen.getByTestId('quote-expired-hint')).toHaveTextContent(/Rouvrez-le pour la prolonger/)
+      expect(screen.queryByText(/Votre client répond par le lien reçu/)).not.toBeInTheDocument()
+    })
+
+    it('pas de « Renvoyer par email » (le serveur le refuserait), mais on peut encore décider ou rouvrir', () => {
+      show(expired())
+
+      expect(button('Renvoyer par email')).not.toBeInTheDocument()
+      for (const name of ['Télécharger le PDF', 'Marquer comme accepté', 'Marquer comme refusé', 'Rouvrir pour modifier']) {
+        expect(button(name)).toBeInTheDocument()
+      }
+    })
+
+    it('un devis envoyé encore valable garde son bouton, sa phrase et sa pastille « Envoyé »', () => {
+      show(quote({ status: 'SENT', sentAt: '2026-11-03T10:00:00.000Z', validUntil: '2099-12-31T00:00:00.000Z', expired: false }))
+
+      expect(screen.getByText('Envoyé', { selector: 'span' })).toBeInTheDocument()
+      expect(button('Renvoyer par email')).toBeInTheDocument()
+      expect(screen.getByText(/Votre client répond par le lien reçu/)).toBeInTheDocument()
+      expect(screen.queryByTestId('quote-expired-hint')).not.toBeInTheDocument()
+      expect(screen.getByTestId('quote-valid-until')).not.toHaveClass('text-amber-800')
+    })
+
+    it('lecture seule : la pastille le dit, aucune consigne de geste', () => {
+      useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read'] }) })
+      show(expired())
+
+      expect(screen.getByText('Expiré', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.queryByTestId('quote-expired-hint')).not.toBeInTheDocument()
+    })
+
+    it('la date de validité est un jour : lue en UTC, jamais la veille', () => {
+      show(quote({ status: 'SENT', validUntil: '2026-12-01T00:00:00.000Z' }))
+
+      expect(screen.getByTestId('quote-valid-until')).toHaveTextContent('Valable jusqu\'au 1 déc. 2026')
+    })
+  })
+
   it.each(['ACCEPTED', 'REJECTED'] as const)('%s : le PDF et l\'annulation de la décision, rien d\'autre qui écrive sur le devis', (status) => {
     show(quote({ status, decidedAt: '2026-11-04T10:00:00.000Z' }))
 

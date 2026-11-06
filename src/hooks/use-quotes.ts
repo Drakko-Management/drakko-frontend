@@ -10,6 +10,8 @@ export interface QuoteFilters {
   q?: string
   /** Seulement les devis dont aucun chantier n'est issu (ADR-032) */
   withoutProject?: boolean
+  /** Seulement les devis envoyés dont la validité est passée */
+  expired?: boolean
   /** Combien au plus (200 sans ce paramètre) : « Afficher plus » le fait grandir */
   limit?: number
 }
@@ -44,6 +46,7 @@ export function useQuotes(filters: QuoteFilters = {}, enabled = true) {
   if (filters.clientId) qs.set('clientId', filters.clientId)
   if (filters.q) qs.set('q', filters.q)
   if (filters.withoutProject) qs.set('withoutProject', 'true')
+  if (filters.expired) qs.set('expired', 'true')
   if (filters.limit) qs.set('limit', String(filters.limit))
   const text = qs.toString()
   return useQuery({

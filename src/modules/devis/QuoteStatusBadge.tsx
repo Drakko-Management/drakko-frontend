@@ -9,17 +9,30 @@ const STATUS_CLASSES: Record<QuoteStatus, string> = {
   REJECTED: 'bg-red-50 text-red-700 border border-red-200',
 }
 
-export function QuoteStatusBadge({ status, className }: { status: QuoteStatus; className?: string }) {
+// Un devis envoyé dont la validité est passée n'est plus « envoyé » aux yeux du lecteur : il attend une décision
+const EXPIRED_CLASSES = 'bg-amber-50 text-amber-800 border border-amber-200'
+
+export function QuoteStatusBadge({
+  status,
+  expired = false,
+  className,
+}: {
+  status: QuoteStatus
+  /** `Quote.expired` : seul un devis envoyé peut l'être */
+  expired?: boolean
+  className?: string
+}) {
   const { t } = useTranslation()
+  const shownExpired = expired && status === 'SENT'
   return (
     <span
       className={cn(
         'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium',
-        STATUS_CLASSES[status],
+        shownExpired ? EXPIRED_CLASSES : STATUS_CLASSES[status],
         className,
       )}
     >
-      {t(`quotes.status_${status}`)}
+      {t(shownExpired ? 'quotes.status_EXPIRED' : `quotes.status_${status}`)}
     </span>
   )
 }

@@ -8,6 +8,7 @@ import { useServices } from '@/hooks/use-services'
 import { useClients } from '@/hooks/use-clients'
 import { useOrganization } from '@/hooks/use-organization'
 import { ApiError } from '@/lib/api-client'
+import { todayInput } from '@/lib/utils'
 import { CreateQuotePage } from './CreateQuotePage'
 import { plain, quote } from '@/test/quote-fixtures'
 
@@ -48,6 +49,54 @@ async function pickClient() {
   await userEvent.click(screen.getByPlaceholderText('Rechercher un client…'))
   await userEvent.click(await screen.findByText('Léa Martin'))
 }
+
+describe('CreateQuotePage — date de validité passée', () => {
+  const PAST = 'Cette date est passée : le devis ne pourra pas être envoyé tant qu\'elle n\'est pas prolongée.'
+  // La veille du jour d'aujourd'hui, comme le formulaire le compte
+  const yesterday = () => new Date(new Date(`${todayInput()}T00:00:00.000Z`).getTime() - 86_400_000).toISOString().slice(0, 10)
+  const tomorrow = () => new Date(new Date(`${todayInput()}T00:00:00.000Z`).getTime() + 86_400_000).toISOString().slice(0, 10)
+
+  it('aucune date : rien à dire', () => {
+    renderPage()
+
+    expect(screen.queryByText(PAST)).not.toBeInTheDocument()
+  })
+
+  it('une date passée est signalée, sans empêcher d\'enregistrer le brouillon', async () => {
+    renderPage()
+    await pickClient()
+
+    await userEvent.type(screen.getByLabelText('Valable jusqu\'au'), yesterday())
+
+    expect(screen.getByTestId('valid-until-past')).toHaveTextContent(PAST)
+    expect(screen.getByLabelText('Valable jusqu\'au')).toHaveAccessibleDescription(PAST)
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+    expect(create.mock.calls[0][0].validUntil).toBe(yesterday())
+  })
+
+  it.each([
+    ['aujourd\'hui (le dernier jour compte)', () => todayInput()],
+    ['demain', tomorrow],
+  ])('%s : rien à dire', async (_name, day) => {
+    renderPage()
+
+    await userEvent.type(screen.getByLabelText('Valable jusqu\'au'), day())
+
+    expect(screen.queryByText(PAST)).not.toBeInTheDocument()
+  })
+
+  it('l\'avertissement suit la saisie : il disparaît quand la date est prolongée', async () => {
+    renderPage()
+    const input = screen.getByLabelText('Valable jusqu\'au')
+
+    await userEvent.type(input, yesterday())
+    expect(screen.getByText(PAST)).toBeInTheDocument()
+
+    await userEvent.clear(input)
+    await userEvent.type(input, tomorrow())
+    expect(screen.queryByText(PAST)).not.toBeInTheDocument()
+  })
+})
 
 describe('CreateQuotePage', () => {
   it('une prestation ajoutée se recopie dans la ligne, avec son prix par défaut, et les totaux suivent', async () => {

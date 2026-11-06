@@ -61,6 +61,59 @@ describe('QuotesPage', () => {
     expect(screen.getByRole('tab', { name: 'Envoyé' })).toHaveAttribute('aria-selected', 'true')
   })
 
+  describe('devis expirés', () => {
+    it('« Expiré » est un onglet à part, entre « Envoyé » et « Accepté »', () => {
+      renderAt()
+
+      expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+        'Tous',
+        'Brouillon',
+        'Envoyé',
+        'Expiré',
+        'Accepté',
+        'Refusé',
+      ])
+    })
+
+    it('l\'adresse ?status=EXPIRED demande les envoyés dont la validité est passée, pas un état', () => {
+      renderAt('/devis?status=EXPIRED')
+
+      expect(screen.getByRole('tab', { name: 'Expiré' })).toHaveAttribute('aria-selected', 'true')
+      expect(useQuotes).toHaveBeenLastCalledWith({ status: undefined, expired: true, q: undefined, limit: 50 })
+    })
+
+    it('choisir l\'onglet relance la liste, un autre l\'enlève', async () => {
+      renderAt()
+
+      await userEvent.click(screen.getByRole('tab', { name: 'Expiré' }))
+      expect(useQuotes).toHaveBeenLastCalledWith({ status: undefined, expired: true, q: undefined, limit: 50 })
+
+      await userEvent.click(screen.getByRole('tab', { name: 'Envoyé' }))
+      expect(useQuotes).toHaveBeenLastCalledWith({ status: 'SENT', expired: undefined, q: undefined, limit: 50 })
+    })
+
+    it('un devis expiré porte la pastille « Expiré » au lieu d\'« Envoyé »', () => {
+      vi.mocked(useQuotes).mockReturnValue({
+        data: [
+          quote({ id: 'q3', reference: 'DEV-2026-0003', title: 'Vieux devis', status: 'SENT', expired: true }),
+          quote({ id: 'q2', reference: 'DEV-2026-0002', title: 'Terrasse', status: 'SENT', expired: false }),
+        ],
+        isLoading: false,
+      } as never)
+      renderAt()
+
+      expect(screen.getByText('Expiré', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.getAllByText('Envoyé', { selector: 'span' })).toHaveLength(1)
+    })
+
+    it('aucun devis expiré : le dit sans inviter à créer', () => {
+      vi.mocked(useQuotes).mockReturnValue({ data: [], isLoading: false } as never)
+      renderAt('/devis?status=EXPIRED')
+
+      expect(screen.getByText('Aucun devis ne correspond')).toBeInTheDocument()
+    })
+  })
+
   it('une adresse avec un état inconnu retombe sur « Tous »', () => {
     renderAt('/devis?status=NIMPORTE')
 

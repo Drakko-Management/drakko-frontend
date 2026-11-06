@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { publicQuotePdfUrl, useAcceptPublicQuote, usePublicQuote, useRejectPublicQuote } from '@/hooks/use-public-quote'
 import { apiErrorMessage } from '@/lib/api-error'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatDay } from '@/lib/utils'
 import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import type { PublicQuote } from '@/types/api'
 
@@ -97,7 +97,7 @@ export function PublicQuotePage() {
         {quote.title && <p className="font-medium">{quote.title}</p>}
         <p className="text-sm text-muted-foreground">{t('quote_public.for_client', { name: quote.clientName })}</p>
         {quote.validUntil && (
-          <p className="text-xs text-muted-foreground">{t('quote_public.valid_until', { date: formatDate(quote.validUntil, lang) })}</p>
+          <p className="text-xs text-muted-foreground">{t('quote_public.valid_until', { date: formatDay(quote.validUntil, lang) })}</p>
         )}
       </header>
 

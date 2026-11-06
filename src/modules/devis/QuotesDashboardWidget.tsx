@@ -28,7 +28,7 @@ function QuoteRow({ quote, onClick }: { quote: Quote; onClick: () => void }) {
         </p>
         <div className="mt-1 flex items-center justify-between gap-2">
           <p className="text-sm font-medium">{formatMoney(quote.total)}</p>
-          <QuoteStatusBadge status={quote.status} />
+          <QuoteStatusBadge status={quote.status} expired={quote.expired} />
         </div>
       </div>
     </button>
@@ -73,6 +73,17 @@ export function QuotesDashboardWidget() {
           </button>
         ))}
       </div>
+
+      {(summary?.expired ?? 0) > 0 && (
+        <button
+          type="button"
+          data-testid="quotes-expired"
+          onClick={() => void navigate('/devis?status=EXPIRED')}
+          className="w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-sm text-amber-800 active:bg-amber-100"
+        >
+          {t('quotes.stat_expired', { count: summary?.expired ?? 0 })}
+        </button>
+      )}
 
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">{t('quotes.recent')}</h2>

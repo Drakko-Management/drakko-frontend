@@ -284,7 +284,7 @@ function ClientView({ client }: { client: Client }) {
                   <p className="truncate text-sm font-medium">{quote.title || quote.reference}</p>
                   <p className="text-xs text-muted-foreground">{quote.reference} · {formatMoney(quote.total)}</p>
                 </div>
-                <QuoteStatusBadge status={quote.status} />
+                <QuoteStatusBadge status={quote.status} expired={quote.expired} />
               </button>
             ))}
           </div>

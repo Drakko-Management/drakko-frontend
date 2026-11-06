@@ -12,7 +12,7 @@ import { useCreateInvoice, type InvoiceInput } from '@/hooks/use-invoices'
 import { useDeleteQuote, useEmailQuote, useQuote, useQuoteAction, openQuotePdf, type QuoteAction } from '@/hooks/use-quotes'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
-import { formatDate, fullName } from '@/lib/utils'
+import { formatDate, formatDay, fullName } from '@/lib/utils'
 import { formatMoney, formatQuantity } from '@/modules/devis/format'
 import { centsOf } from '@/modules/devis/totals'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
@@ -152,7 +152,7 @@ export function QuoteDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <EditPageTitle kind={t('quotes.kind')} name={quote.reference} />
-        <QuoteStatusBadge status={status} className="ml-auto" />
+        <QuoteStatusBadge status={status} expired={quote.expired} className="ml-auto" />
       </div>
 
       <section className="space-y-1 rounded-xl border bg-card p-4">
@@ -207,7 +207,12 @@ export function QuoteDetailPage() {
           </p>
         )}
         {quote.validUntil && (
-          <p className="text-xs text-muted-foreground">{t('quotes.valid_until', { date: formatDate(quote.validUntil) })}</p>
+          <p
+            className={quote.expired ? 'text-xs font-medium text-amber-800' : 'text-xs text-muted-foreground'}
+            data-testid="quote-valid-until"
+          >
+            {t('quotes.valid_until', { date: formatDay(quote.validUntil) })}
+          </p>
         )}
       </section>
 
@@ -267,7 +272,12 @@ export function QuoteDetailPage() {
         </p>
       )}
       {status === 'DRAFT' && canUpdate && <p className="text-xs text-muted-foreground">{t('quotes.hint_draft')}</p>}
-      {status === 'SENT' && canUpdate && <p className="text-xs text-muted-foreground">{t('quotes.hint_sent')}</p>}
+      {status === 'SENT' && canUpdate && !quote.expired && <p className="text-xs text-muted-foreground">{t('quotes.hint_sent')}</p>}
+      {quote.expired && canUpdate && (
+        <p className="text-xs text-amber-800" data-testid="quote-expired-hint">
+          {t('quotes.hint_expired')}
+        </p>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" className={buttonClass} disabled={pdfPending} onClick={() => void handlePdf()}>
@@ -294,10 +304,13 @@ export function QuoteDetailPage() {
 
         {status === 'SENT' && canUpdate && (
           <>
-            <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setConfirmEmail(true)}>
-              <Mail className="h-4 w-4" />
-              {t('quotes.action_email_again')}
-            </Button>
+            {/* Un devis expiré ne se renvoie pas tel quel : le serveur le refuse, on ne propose pas un bouton qui échoue */}
+            {!quote.expired && (
+              <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setConfirmEmail(true)}>
+                <Mail className="h-4 w-4" />
+                {t('quotes.action_email_again')}
+              </Button>
+            )}
             {quote.acceptance?.url && (
               <Button type="button" variant="outline" className={buttonClass} onClick={() => void handleCopyLink(quote.acceptance?.url ?? '')}>
                 <Copy className="h-4 w-4" />
@@ -411,15 +424,15 @@ function AcceptanceInfo({ quote }: { quote: Quote }) {
   const { t } = useTranslation()
   const a = quote.acceptance
   if (!a) return null
-  // Le dernier jour de validité, pas le minuit qui le suit (la date du lien)
-  const until = quote.validUntil ?? a.expiresAt
+  // Le dernier jour de validité (un jour sans heure, lu en UTC), pas le minuit qui le suit (la date du lien)
+  const until = quote.validUntil ? formatDay(quote.validUntil) : formatDate(a.expiresAt)
   const email = a.sentTo ?? ''
 
   let text: string | null = null
-  if (a.state === 'OPEN') text = t('quotes.acceptance_open', { email, date: formatDate(a.sentAt), until: formatDate(until) })
+  if (a.state === 'OPEN') text = t('quotes.acceptance_open', { email, date: formatDate(a.sentAt), until })
   else if (a.state === 'ACCEPTED') text = t('quotes.acceptance_accepted', { name: a.signerName ?? '', date: formatDate(a.respondedAt) })
   else if (a.state === 'REJECTED') text = t('quotes.acceptance_rejected', { date: formatDate(a.respondedAt) })
-  else if (a.state === 'EXPIRED') text = t('quotes.acceptance_expired', { email, date: formatDate(until) })
+  else if (a.state === 'EXPIRED') text = t('quotes.acceptance_expired', { email, date: until })
   // Un devis décidé à la main a déjà sa ligne de date : seul un brouillon rouvert doit dire que le lien est mort
   else if (quote.status === 'DRAFT') text = t('quotes.acceptance_withdrawn')
   if (!text) return null

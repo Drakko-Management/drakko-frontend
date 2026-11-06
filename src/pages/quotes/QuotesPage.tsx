@@ -17,10 +17,12 @@ import type { QuoteStatus } from '@/types/api'
 // Les devis se chargent par 50 ; « Afficher plus » en demande 50 de plus (la liste ne s'arrête jamais en silence)
 const PAGE_SIZE = 50
 
-const FILTERS: (QuoteStatus | 'ALL')[] = ['ALL', 'DRAFT', 'SENT', 'ACCEPTED', 'REJECTED']
+// « Expirés » n'est pas un état : ce sont des devis envoyés dont la validité est passée (l'API les calcule)
+type Filter = QuoteStatus | 'EXPIRED' | 'ALL'
+const FILTERS: Filter[] = ['ALL', 'DRAFT', 'SENT', 'EXPIRED', 'ACCEPTED', 'REJECTED']
 
-const isStatus = (value: string | null): value is QuoteStatus =>
-  value === 'DRAFT' || value === 'SENT' || value === 'ACCEPTED' || value === 'REJECTED'
+const isFilter = (value: string | null): value is Exclude<Filter, 'ALL'> =>
+  value === 'DRAFT' || value === 'SENT' || value === 'EXPIRED' || value === 'ACCEPTED' || value === 'REJECTED'
 
 export function QuotesPage() {
   const { t } = useTranslation()
@@ -29,7 +31,7 @@ export function QuotesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   // L'état choisi vit dans l'adresse (?status=SENT) : le tableau de bord y renvoie, et le retour arrière le retrouve
   const fromUrl = searchParams.get('status')
-  const status: QuoteStatus | 'ALL' = isStatus(fromUrl) ? fromUrl : 'ALL'
+  const status: Filter = isFilter(fromUrl) ? fromUrl : 'ALL'
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
 
@@ -44,7 +46,8 @@ export function QuotesPage() {
   const limit = asked.filterKey === filterKey ? asked.limit : PAGE_SIZE
 
   const { data: quotes, isLoading } = useQuotes({
-    status: status === 'ALL' ? undefined : status,
+    status: status === 'ALL' || status === 'EXPIRED' ? undefined : status,
+    expired: status === 'EXPIRED' || undefined,
     q: debounced || undefined,
     limit,
   })
@@ -123,7 +126,7 @@ export function QuotesPage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="min-w-0 truncate font-semibold">{quote.title || quote.reference}</p>
-                <QuoteStatusBadge status={quote.status} />
+                <QuoteStatusBadge status={quote.status} expired={quote.expired} />
               </div>
               {/* Sans objet, le numéro fait le titre : on ne le répète pas dessous */}
               <p className="truncate text-xs text-muted-foreground">

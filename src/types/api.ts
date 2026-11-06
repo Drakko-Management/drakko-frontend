@@ -334,6 +334,7 @@ export interface Quote {
   vatRate: string
   /** Devis établi sous franchise de TVA : taux 0 et mention légale (ADR-033) */
   vatExempt: boolean
+  /** Dernier jour de validité, jour sans heure à minuit UTC (à lire avec `formatDay`) */
   validUntil: string | null
   sentAt: string | null
   decidedAt: string | null
@@ -345,6 +346,8 @@ export interface Quote {
   subtotal: string
   vatAmount: string
   total: string
+  /** Devis envoyé, resté sans réponse, dont le dernier jour de validité est passé : calculé par l'API, jamais stocké */
+  expired: boolean
   /** Le dernier lien envoyé au client, ou null si le devis n'a jamais été envoyé par Drakko */
   acceptance: QuoteAcceptance | null
   /** Le chantier créé depuis ce devis, s'il existe (ADR-032) : un devis ne donne qu'un chantier */
@@ -367,7 +370,10 @@ export interface QuoteInvoice {
 /** Les comptes du bloc Devis du tableau de bord, lus en base (pas dans la liste, qui s'arrête à 200) */
 export interface QuotesSummary {
   drafts: number
+  /** Tous les devis envoyés, expirés compris */
   sent: number
+  /** Parmi eux, ceux dont la validité est passée et que personne n'a décidés */
+  expired: number
   accepted: number
   /** Les cinq devis les plus récents */
   recent: Quote[]

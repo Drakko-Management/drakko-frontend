@@ -17,6 +17,7 @@ vi.mock('@/hooks/use-quotes', () => ({ useQuotesSummary: vi.fn() }))
 const SUMMARY: QuotesSummary = {
   drafts: 2,
   sent: 1,
+  expired: 0,
   accepted: 1,
   recent: [
     quote({ id: 'a', status: 'DRAFT', reference: 'DEV-2026-0004' }),
@@ -73,6 +74,47 @@ describe('QuotesDashboardWidget', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/devis')
   })
 
+  describe('devis expirés', () => {
+    it('aucun expiré : aucune ligne d\'alerte', () => {
+      renderWidget()
+
+      expect(screen.queryByTestId('quotes-expired')).not.toBeInTheDocument()
+    })
+
+    it('un seul, puis plusieurs : le compte vient de la synthèse, au singulier ou au pluriel', () => {
+      renderWidget({ ...SUMMARY, expired: 1 })
+      expect(screen.getByTestId('quotes-expired')).toHaveTextContent('1 devis envoyé a dépassé sa date de validité')
+    })
+
+    it('plusieurs : au pluriel', () => {
+      renderWidget({ ...SUMMARY, expired: 7 })
+
+      expect(screen.getByTestId('quotes-expired')).toHaveTextContent('7 devis envoyés ont dépassé leur date de validité')
+    })
+
+    it('un clic ouvre la liste des expirés', async () => {
+      renderWidget({ ...SUMMARY, expired: 2 })
+
+      await userEvent.click(screen.getByTestId('quotes-expired'))
+
+      expect(mockNavigate).toHaveBeenCalledWith('/devis?status=EXPIRED')
+    })
+
+    it('un devis récent expiré le dit, un envoyé encore valable reste « Envoyé »', () => {
+      renderWidget({
+        ...SUMMARY,
+        recent: [
+          quote({ id: 'x', status: 'SENT', expired: true, reference: 'DEV-2026-0009' }),
+          quote({ id: 'y', status: 'SENT', expired: false, reference: 'DEV-2026-0008' }),
+        ],
+      })
+
+      const region = within(screen.getByRole('region', { name: 'Devis' }))
+      expect(region.getByText('Expiré')).toBeInTheDocument()
+      expect(region.getByText('Envoyé', { selector: 'span' })).toBeInTheDocument()
+    })
+  })
+
   it('un devis récent ouvre sa fiche', async () => {
     renderWidget()
 
@@ -82,7 +124,7 @@ describe('QuotesDashboardWidget', () => {
   })
 
   it('sans devis : le dit', () => {
-    renderWidget({ drafts: 0, sent: 0, accepted: 0, recent: [] })
+    renderWidget({ drafts: 0, sent: 0, expired: 0, accepted: 0, recent: [] })
 
     expect(screen.getByText('Aucun devis pour le moment')).toBeInTheDocument()
   })
