@@ -33,7 +33,7 @@ beforeEach(() => {
   vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 10 } } as never)
 })
 
-function open(path: '/factures/nouveau' | '/factures/nouveau?client=c1' | '/factures/i1/modifier') {
+function open(path: '/factures/nouveau' | '/factures/nouveau?client=c1' | '/factures/nouveau?duplicate=i1' | '/factures/i1/modifier') {
   const router = createMemoryRouter(
     [
       { path: '/factures', element: <p>Liste des factures</p> },
@@ -71,6 +71,25 @@ describe('formulaire de création d\'une facture', () => {
 
     expect(await screen.findByText('Fiche du client')).toBeInTheDocument()
     expect(screen.queryByText('Quitter sans enregistrer ?')).not.toBeInTheDocument()
+  })
+
+  it('la copie d\'une facture n\'est pas une saisie : ouverte et pas touchée, elle se quitte sans rien demander', async () => {
+    open('/factures/nouveau?duplicate=i1')
+    expect(screen.getByLabelText('Objet du devis')).toHaveValue('Haie du fond')
+
+    await userEvent.click(back())
+
+    expect(await screen.findByText('Fiche de la facture')).toBeInTheDocument()
+    expect(screen.queryByText('Quitter sans enregistrer ?')).not.toBeInTheDocument()
+  })
+
+  it('une copie modifiée demande confirmation avant de quitter', async () => {
+    open('/factures/nouveau?duplicate=i1')
+    await userEvent.type(screen.getByLabelText('Objet du devis'), ' bis')
+
+    await userEvent.click(back())
+
+    expect(await screen.findByText('Quitter sans enregistrer ?')).toBeInTheDocument()
   })
 
   it('une saisie non enregistrée demande confirmation avant de quitter', async () => {

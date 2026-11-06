@@ -3,14 +3,14 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { toast } from 'sonner'
-import { useCreateQuote } from '@/hooks/use-quotes'
+import { useCreateQuote, useQuote } from '@/hooks/use-quotes'
 import { useServices } from '@/hooks/use-services'
 import { useClient, useClients } from '@/hooks/use-clients'
 import { useOrganization } from '@/hooks/use-organization'
 import { ApiError } from '@/lib/api-client'
 import { todayInput } from '@/lib/utils'
 import { CreateQuotePage } from './CreateQuotePage'
-import { plain, quote } from '@/test/quote-fixtures'
+import { plain, quote, quoteLine } from '@/test/quote-fixtures'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router', async (importOriginal) => {
@@ -18,7 +18,7 @@ vi.mock('react-router', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
-vi.mock('@/hooks/use-quotes', () => ({ useCreateQuote: vi.fn() }))
+vi.mock('@/hooks/use-quotes', () => ({ useCreateQuote: vi.fn(), useQuote: vi.fn() }))
 vi.mock('@/hooks/use-services', () => ({ useServices: vi.fn() }))
 vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn(), useClient: vi.fn() }))
 vi.mock('@/hooks/use-organization', () => ({ useOrganization: vi.fn() }))
@@ -35,6 +35,7 @@ beforeEach(() => {
   vi.mocked(useServices).mockReturnValue({ data: [SERVICE] } as never)
   vi.mocked(useClients).mockReturnValue({ data: { data: [CLIENT] }, isFetching: false } as never)
   vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
+  vi.mocked(useQuote).mockReturnValue({ data: undefined, isLoading: false } as never)
   vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 10 } } as never)
 })
 
@@ -125,6 +126,132 @@ describe('CreateQuotePage — client venu de la fiche client', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Retour' }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/devis')
+  })
+})
+
+describe('CreateQuotePage — copie d\'un devis (« Dupliquer »)', () => {
+  const FULL_CLIENT = { ...CLIENT, phone: null, address: null, notes: null, active: true }
+  // Un devis d'hier : validité passée, deux lignes dont une venue d'une prestation, un commentaire, un taux réduit
+  const SOURCE = quote({
+    id: 'q7',
+    status: 'SENT',
+    validUntil: '2026-09-30T00:00:00.000Z',
+    vatRate: '5.5',
+    comment: 'Accès par le portail',
+    lines: [
+      quoteLine({ serviceId: 's1' }),
+      quoteLine({ id: 'l2', snapshotTitle: 'Déplacement', snapshotDescription: null, snapshotUnit: null, quantity: '1', unitPrice: '40' }),
+    ],
+  })
+
+  beforeEach(() => {
+    vi.mocked(useQuote).mockReturnValue({ data: SOURCE, isLoading: false } as never)
+    vi.mocked(useClient).mockReturnValue({ data: FULL_CLIENT, isLoading: false } as never)
+  })
+
+  it('le formulaire s\'ouvre rempli : client, objet, taux, commentaire et lignes, avec un avis de copie', () => {
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    expect(useQuote).toHaveBeenCalledWith('q7')
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+    expect(screen.getByLabelText('Objet du devis')).toHaveValue('Haie du fond')
+    expect(screen.getByLabelText('TVA (%)')).toHaveValue('5.5')
+    expect(screen.getByLabelText('Commentaire')).toHaveValue('Accès par le portail')
+    expect(screen.getAllByTestId('quote-line')).toHaveLength(2)
+    expect(screen.getByTestId('duplicate-hint')).toHaveTextContent('Copie d\'un devis existant')
+  })
+
+  it('la date de validité n\'est pas reprise : celle du devis d\'origine est peut-être passée', () => {
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    expect(screen.getByLabelText('Valable jusqu\'au')).toHaveValue('')
+    expect(screen.queryByText(/Cette date est passée/)).not.toBeInTheDocument()
+  })
+
+  it('« Créer le devis » envoie la copie telle quelle, sans validité : un nouveau devis, pas une modification', async () => {
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create.mock.calls[0][0]).toEqual({
+      clientId: 'c1',
+      title: 'Haie du fond',
+      comment: 'Accès par le portail',
+      vatRate: 5.5,
+      validUntil: null,
+      lines: [
+        { serviceId: 's1', title: 'Taille de haie', description: 'Haie vive', unit: 'ml', quantity: 10, unitPrice: 12.5 },
+        { title: 'Déplacement', quantity: 1, unitPrice: 40 },
+      ],
+    })
+    expect(mockNavigate).toHaveBeenCalledWith('/devis/q1', { replace: true })
+  })
+
+  it('un devis établi sous franchise de TVA ne fait pas reprendre son taux 0 : celui de l\'organisation s\'applique', async () => {
+    vi.mocked(useQuote).mockReturnValue({ data: { ...SOURCE, vatExempt: true, vatRate: '0' }, isLoading: false } as never)
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    expect(screen.getByLabelText('TVA (%)')).toHaveValue('')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create.mock.calls[0][0]).not.toHaveProperty('vatRate')
+  })
+
+  it('un client désactivé n\'est pas repris (on ne l\'a plus dans les formulaires), les lignes si', () => {
+    vi.mocked(useClient).mockReturnValue({ data: { ...FULL_CLIENT, active: false }, isLoading: false } as never)
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+    expect(screen.getAllByTestId('quote-line')).toHaveLength(2)
+  })
+
+  it('si la relecture du client échoue, la copie garde celui du devis plutôt que de bloquer', () => {
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false, isError: true } as never)
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Rechercher un client…')).not.toBeInTheDocument()
+  })
+
+  it('un devis introuvable ouvre le formulaire vide, sans avis ni erreur', () => {
+    vi.mocked(useQuote).mockReturnValue({ data: undefined, isLoading: false, isError: true } as never)
+    // Pas de `?client=` : rien à relire (le mock, lui, renverrait un client quoi qu'on lui demande)
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
+    renderPage('/devis/nouveau?duplicate=zzz')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+    expect(screen.queryByTestId('duplicate-hint')).not.toBeInTheDocument()
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('le formulaire attend le devis, puis la relecture du client', () => {
+    vi.mocked(useQuote).mockReturnValue({ data: undefined, isLoading: true } as never)
+    renderPage('/devis/nouveau?duplicate=q7')
+    expect(screen.queryByRole('button', { name: 'Créer le devis' })).not.toBeInTheDocument()
+  })
+
+  it('il attend aussi la relecture du client, sinon le client changerait sous la main', () => {
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: true } as never)
+    renderPage('/devis/nouveau?duplicate=q7')
+    expect(screen.queryByRole('button', { name: 'Créer le devis' })).not.toBeInTheDocument()
+  })
+
+  it('« retour » ramène au devis copié', async () => {
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retour' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/devis/q7')
+  })
+
+  it('sans `?duplicate=`, ni avis de copie ni devis cherché', () => {
+    // Le test simule `useQuote` sans tenir compte de `enabled` : la page ne doit pas s'y fier
+    renderPage('/devis/nouveau')
+
+    expect(useQuote).toHaveBeenCalledWith('')
+    expect(screen.queryByTestId('duplicate-hint')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Objet du devis')).toHaveValue('')
   })
 })
 

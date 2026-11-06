@@ -8,33 +8,41 @@ import { useOrganization } from '@/hooks/use-organization'
 import { useClientFromUrl } from '@/hooks/use-client-from-url'
 import { apiErrorMessage } from '@/lib/api-error'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Client } from '@/types/api'
 import { paymentDays } from '@/modules/factures/payment-terms'
 import { QuoteFormFields } from '@/pages/quotes/QuoteFormFields'
 import { EMPTY_QUOTE_FORM, isFormDirty, type QuoteFormValues } from '@/pages/quotes/quote-form'
 import { UnsavedChangesDialog } from '@/components/common/UnsavedChangesGuard'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { toInvoiceInput } from './invoice-form'
+import { useDuplicateInvoice } from './use-duplicate-invoice'
 
 // Le taux appliqué quand l'organisation n'en a pas réglé (même valeur par défaut que le back)
 const FALLBACK_VAT_RATE = 10
 
 /**
  * Une facture à partir de rien. Depuis un devis accepté, c'est un clic sur la fiche du devis (`quoteId`). Le raccourci
- * « Nouvelle facture » de la fiche client (`?client=`) arrive avec ce client déjà choisi.
+ * « Nouvelle facture » de la fiche client (`?client=`) arrive avec ce client déjà choisi ; « Dupliquer » sur la fiche
+ * d'une facture (`?duplicate=`) arrive avec sa copie, à relire avant d'enregistrer.
  */
 export function CreateInvoicePage() {
-  const { ready, client } = useClientFromUrl()
-  if (!ready) return <Skeleton className="h-40 rounded-xl" />
-  return <CreateInvoiceForm initialClient={client} />
+  const fromClient = useClientFromUrl()
+  const copy = useDuplicateInvoice()
+  if (!fromClient.ready || !copy.ready) return <Skeleton className="h-40 rounded-xl" />
+  if (copy.values) return <CreateInvoiceForm start={copy.values} backTo={`/factures/${copy.sourceId}`} copied />
+  return (
+    <CreateInvoiceForm
+      start={{ ...EMPTY_QUOTE_FORM, client: fromClient.client }}
+      backTo={fromClient.client ? `/clients/${fromClient.client.id}` : '/factures'}
+    />
+  )
 }
 
-function CreateInvoiceForm({ initialClient }: { initialClient: Client | null }) {
+function CreateInvoiceForm({ start, backTo, copied = false }: { start: QuoteFormValues; backTo: string; copied?: boolean }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const createInvoice = useCreateInvoice()
   const { data: org } = useOrganization()
-  const [initial] = useState<QuoteFormValues>(() => ({ ...EMPTY_QUOTE_FORM, client: initialClient }))
+  const [initial] = useState<QuoteFormValues>(start)
   const [values, setValues] = useState<QuoteFormValues>(initial)
   // Une saisie non enregistrée ne se perd pas sans prévenir (retour, menu, rafraîchissement)
   const guard = useUnsavedChanges(isFormDirty(values, initial))
@@ -56,13 +64,19 @@ function CreateInvoiceForm({ initialClient }: { initialClient: Client | null }) 
         <button
           type="button"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card active:bg-muted"
-          onClick={() => void navigate(initialClient ? `/clients/${initialClient.id}` : '/factures')}
+          onClick={() => void navigate(backTo)}
           aria-label={t('common.back')}
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('invoices.form_add_title')}</h1>
       </div>
+
+      {copied && (
+        <p className="text-sm text-muted-foreground" data-testid="duplicate-hint">
+          {t('invoices.duplicate_hint')}
+        </p>
+      )}
 
       <QuoteFormFields
         kind="invoice"

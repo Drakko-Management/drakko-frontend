@@ -18,6 +18,22 @@ export function formFromInvoice(invoice: Invoice): QuoteFormValues {
   }
 }
 
+/**
+ * Le formulaire d'une copie (« Dupliquer » sur la fiche d'une facture) : l'objet, les lignes et le commentaire sont
+ * repris, avec le client que l'appelant a choisi. Ni l'échéance ni le jour de la prestation : ceux de la facture
+ * d'origine ne valent pas pour la nouvelle. Sous franchise de TVA, le taux d'origine (0) n'est pas repris : l'entreprise
+ * a pu en sortir depuis, le taux par défaut de l'organisation s'applique alors.
+ */
+export function duplicateOfInvoice(invoice: Invoice, client: QuoteFormValues['client']): QuoteFormValues {
+  return {
+    ...formFromInvoice(invoice),
+    client,
+    date: '',
+    serviceDate: '',
+    vatRate: invoice.vatExempt ? '' : String(parseFloat(invoice.vatRate)),
+  }
+}
+
 /** Le corps envoyé à l'API. Appelé seulement quand le formulaire est valide. */
 export function toInvoiceInput(values: QuoteFormValues): InvoiceInput {
   return {

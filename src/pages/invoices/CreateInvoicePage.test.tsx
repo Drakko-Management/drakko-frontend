@@ -3,13 +3,13 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { toast } from 'sonner'
-import { useCreateInvoice } from '@/hooks/use-invoices'
+import { useCreateInvoice, useInvoice } from '@/hooks/use-invoices'
 import { useServices } from '@/hooks/use-services'
 import { useClient, useClients } from '@/hooks/use-clients'
 import { useOrganization } from '@/hooks/use-organization'
 import { ApiError } from '@/lib/api-client'
 import { CreateInvoicePage } from './CreateInvoicePage'
-import { invoice } from '@/test/invoice-fixtures'
+import { invoice, invoiceLine } from '@/test/invoice-fixtures'
 import { plain } from '@/test/quote-fixtures'
 
 const mockNavigate = vi.fn()
@@ -18,7 +18,7 @@ vi.mock('react-router', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
-vi.mock('@/hooks/use-invoices', () => ({ useCreateInvoice: vi.fn() }))
+vi.mock('@/hooks/use-invoices', () => ({ useCreateInvoice: vi.fn(), useInvoice: vi.fn() }))
 vi.mock('@/hooks/use-services', () => ({ useServices: vi.fn() }))
 vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn(), useClient: vi.fn() }))
 vi.mock('@/hooks/use-organization', () => ({ useOrganization: vi.fn() }))
@@ -35,6 +35,7 @@ beforeEach(() => {
   vi.mocked(useServices).mockReturnValue({ data: [SERVICE] } as never)
   vi.mocked(useClients).mockReturnValue({ data: { data: [CLIENT] }, isFetching: false } as never)
   vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
+  vi.mocked(useInvoice).mockReturnValue({ data: undefined, isLoading: false } as never)
   vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 10, defaultPaymentTerms: '30' } } as never)
 })
 
@@ -98,6 +99,139 @@ describe('CreateInvoicePage — client venu de la fiche client', () => {
     renderPage('/factures/nouveau?client=c1')
     await userEvent.click(screen.getByRole('button', { name: 'Retour' }))
     expect(mockNavigate).toHaveBeenLastCalledWith('/clients/c1')
+  })
+})
+
+describe('CreateInvoicePage — copie d\'une facture (« Dupliquer »)', () => {
+  const FULL_CLIENT = { ...CLIENT, phone: null, address: null, notes: null, active: true }
+  // Une facture émise en octobre, avec échéance et jour de prestation
+  const SOURCE = invoice({
+    id: 'i7',
+    status: 'ISSUED',
+    reference: 'FAC-2026-0007',
+    dueDate: '2026-11-30T00:00:00.000Z',
+    serviceDate: '2026-10-28T00:00:00.000Z',
+    vatRate: '20',
+    comment: 'Règlement par virement',
+    lines: [invoiceLine(), invoiceLine({ id: 'il2', snapshotTitle: 'Déplacement', snapshotDescription: null, snapshotUnit: null, quantity: '1', unitPrice: '40' })],
+  })
+
+  beforeEach(() => {
+    vi.mocked(useInvoice).mockReturnValue({ data: SOURCE, isLoading: false } as never)
+    vi.mocked(useClient).mockReturnValue({ data: FULL_CLIENT, isLoading: false } as never)
+  })
+
+  it('le formulaire s\'ouvre rempli : client, objet, taux, commentaire et lignes, avec un avis de copie', () => {
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    expect(useInvoice).toHaveBeenCalledWith('i7')
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+    expect(screen.getByLabelText('Objet du devis')).toHaveValue('Haie du fond')
+    expect(screen.getByLabelText('TVA (%)')).toHaveValue('20')
+    expect(screen.getByLabelText('Commentaire')).toHaveValue('Règlement par virement')
+    expect(screen.getAllByTestId('quote-line')).toHaveLength(2)
+    expect(screen.getByTestId('duplicate-hint')).toHaveTextContent('Copie d\'une facture existante')
+  })
+
+  it('ni l\'échéance ni le jour de la prestation ne sont repris', () => {
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    expect(screen.getByLabelText('Échéance')).toHaveValue('')
+    expect(screen.getByLabelText('Prestation réalisée le')).toHaveValue('')
+  })
+
+  it('« Créer le brouillon » envoie la copie : une nouvelle facture, sans échéance ni jour de prestation', async () => {
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le brouillon' }))
+
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create.mock.calls[0][0]).toEqual({
+      clientId: 'c1',
+      title: 'Haie du fond',
+      comment: 'Règlement par virement',
+      vatRate: 20,
+      dueDate: null,
+      serviceDate: null,
+      lines: [
+        { title: 'Taille de haie', description: 'Haie vive', unit: 'ml', quantity: 10, unitPrice: 12.5 },
+        { title: 'Déplacement', quantity: 1, unitPrice: 40 },
+      ],
+    })
+    expect(mockNavigate).toHaveBeenCalledWith('/factures/i1', { replace: true })
+  })
+
+  it('les lignes qui déduisent un acompte ne sont pas reprises (l\'adresse peut être tapée à la main)', async () => {
+    vi.mocked(useInvoice).mockReturnValue({
+      data: { ...SOURCE, lines: [invoiceLine(), invoiceLine({ id: 'il3', depositInvoiceId: 'd1', snapshotTitle: 'FAC-2026-0006', quantity: '-1', unitPrice: '50' })] },
+      isLoading: false,
+    } as never)
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    expect(screen.getAllByTestId('quote-line')).toHaveLength(1)
+  })
+
+  it('une facture établie sous franchise de TVA ne fait pas reprendre son taux 0', async () => {
+    vi.mocked(useInvoice).mockReturnValue({ data: { ...SOURCE, vatExempt: true, vatRate: '0' }, isLoading: false } as never)
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    expect(screen.getByLabelText('TVA (%)')).toHaveValue('')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le brouillon' }))
+
+    expect(create.mock.calls[0][0]).not.toHaveProperty('vatRate')
+  })
+
+  it('un client désactivé n\'est pas repris, les lignes si', () => {
+    vi.mocked(useClient).mockReturnValue({ data: { ...FULL_CLIENT, active: false }, isLoading: false } as never)
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+    expect(screen.getAllByTestId('quote-line')).toHaveLength(2)
+  })
+
+  it('si la relecture du client échoue, la copie garde celui de la facture', () => {
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false, isError: true } as never)
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+  })
+
+  it('une facture introuvable ouvre le formulaire vide, sans avis ni erreur', () => {
+    vi.mocked(useInvoice).mockReturnValue({ data: undefined, isLoading: false, isError: true } as never)
+    // Pas de `?client=` : rien à relire (le mock, lui, renverrait un client quoi qu'on lui demande)
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
+    renderPage('/factures/nouveau?duplicate=zzz')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+    expect(screen.queryByTestId('duplicate-hint')).not.toBeInTheDocument()
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('le formulaire attend la facture, puis la relecture du client', () => {
+    vi.mocked(useInvoice).mockReturnValue({ data: undefined, isLoading: true } as never)
+    renderPage('/factures/nouveau?duplicate=i7')
+    expect(screen.queryByRole('button', { name: 'Créer le brouillon' })).not.toBeInTheDocument()
+
+    vi.mocked(useInvoice).mockReturnValue({ data: SOURCE, isLoading: false } as never)
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: true } as never)
+    renderPage('/factures/nouveau?duplicate=i7')
+    expect(screen.queryByRole('button', { name: 'Créer le brouillon' })).not.toBeInTheDocument()
+  })
+
+  it('« retour » ramène à la facture copiée', async () => {
+    renderPage('/factures/nouveau?duplicate=i7')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retour' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/factures/i7')
+  })
+
+  it('sans `?duplicate=`, ni avis de copie ni facture cherchée', () => {
+    renderPage('/factures/nouveau')
+
+    expect(useInvoice).toHaveBeenCalledWith('')
+    expect(screen.queryByTestId('duplicate-hint')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Objet du devis')).toHaveValue('')
   })
 })
 

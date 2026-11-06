@@ -87,6 +87,21 @@ export function formFromQuote(quote: Quote): QuoteFormValues {
   }
 }
 
+/**
+ * Le formulaire d'une copie (« Dupliquer » sur la fiche d'un devis) : l'objet, les lignes et le commentaire sont repris,
+ * avec le client que l'appelant a choisi. Pas la date de validité : celle du devis d'origine est peut-être passée. Sous
+ * franchise de TVA, le taux d'origine (0) n'est pas repris non plus : l'entreprise a pu en sortir depuis, le taux par
+ * défaut de l'organisation s'applique alors (et reste verrouillé tant qu'elle est en franchise).
+ */
+export function duplicateOfQuote(quote: Quote, client: QuoteFormValues['client']): QuoteFormValues {
+  return {
+    ...formFromQuote(quote),
+    client,
+    date: '',
+    vatRate: quote.vatExempt ? '' : String(parseFloat(quote.vatRate)),
+  }
+}
+
 // Ce qui compte pour savoir si la saisie a changé : tout, sauf les clés de liste React
 const comparable = (values: QuoteFormValues) => ({
   ...values,

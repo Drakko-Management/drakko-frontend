@@ -195,6 +195,30 @@ describe('QuoteDetailPage — les gestes selon l\'état', () => {
   })
 })
 
+describe('QuoteDetailPage — dupliquer', () => {
+  it.each([
+    ['un brouillon', quote()],
+    ['un devis envoyé', quote({ status: 'SENT' })],
+    ['un devis expiré', quote({ status: 'SENT', expired: true, validUntil: '2026-09-30T00:00:00.000Z' })],
+    ['un devis accepté', quote({ status: 'ACCEPTED' })],
+    ['un devis refusé', quote({ status: 'REJECTED' })],
+  ])('%s se duplique : le formulaire de création s\'ouvre rempli d\'après lui', async (_label, data) => {
+    show(data)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dupliquer' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/devis/nouveau?duplicate=q1')
+  })
+
+  it('sans le droit de créer un devis, « Dupliquer » n\'est pas proposé', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ devis: ['read', 'update'], clients: ['read'] }) })
+    show(quote())
+
+    expect(button('Télécharger le PDF')).toBeInTheDocument()
+    expect(button('Dupliquer')).not.toBeInTheDocument()
+  })
+})
+
 describe('QuoteDetailPage — chantier issu du devis (ADR-032)', () => {
   const accepted = quote({ status: 'ACCEPTED', decidedAt: '2026-11-04T09:00:00.000Z' })
   const withProject = quote({

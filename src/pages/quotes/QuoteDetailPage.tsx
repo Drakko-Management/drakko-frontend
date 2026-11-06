@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Banknote, Check, Copy, Download, Hammer, Loader2, Mail, Pencil, Receipt, RotateCcw, Send, Trash2, Undo2, X } from 'lucide-react'
+import { ArrowLeft, Banknote, Check, Copy, CopyPlus, Download, Hammer, Loader2, Mail, Pencil, Receipt, RotateCcw, Send, Trash2, Undo2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
@@ -284,6 +284,14 @@ export function QuoteDetailPage() {
           {pdfPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           {t('quotes.action_pdf')}
         </Button>
+
+        {/* Une copie, quel que soit l'état : le formulaire s'ouvre rempli, rien n'est créé avant « Créer le devis » */}
+        {can('devis', 'create') && (
+          <Button type="button" variant="outline" className={buttonClass} onClick={() => void navigate(`/devis/nouveau?duplicate=${id}`)}>
+            <CopyPlus className="h-4 w-4" />
+            {t('quotes.action_duplicate')}
+          </Button>
+        )}
 
         {status === 'DRAFT' && canUpdate && (
           <>

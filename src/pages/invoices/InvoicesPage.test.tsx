@@ -82,6 +82,8 @@ describe('InvoicesPage', () => {
     ['À encaisser', { status: 'ISSUED', kind: 'INVOICE' }],
     ['En retard', { overdue: true }],
     ['Payées', { status: 'PAID' }],
+    // Les factures annulées par un avoir ; l'avoir lui-même reste dans « Avoirs »
+    ['Annulées', { status: 'CANCELLED' }],
     ['Avoirs', { kind: 'CREDIT_NOTE' }],
   ])('l\'onglet « %s » demande ce qu\'il faut à l\'API', async (label, expected) => {
     renderPage()

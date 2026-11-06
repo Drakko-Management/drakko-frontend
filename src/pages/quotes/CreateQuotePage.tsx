@@ -8,29 +8,39 @@ import { useOrganization } from '@/hooks/use-organization'
 import { useClientFromUrl } from '@/hooks/use-client-from-url'
 import { apiErrorMessage } from '@/lib/api-error'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Client } from '@/types/api'
 import { UnsavedChangesDialog } from '@/components/common/UnsavedChangesGuard'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { QuoteFormFields } from './QuoteFormFields'
+import { useDuplicateQuote } from './use-duplicate-quote'
 import { EMPTY_QUOTE_FORM, isFormDirty, toQuoteInput, type QuoteFormValues } from './quote-form'
 
 // Le taux appliqué quand l'organisation n'en a pas réglé (même valeur par défaut que le back)
 const FALLBACK_VAT_RATE = 10
 
-/** Un devis neuf. Le raccourci « Nouveau devis » de la fiche client (`?client=`) arrive avec ce client déjà choisi. */
+/**
+ * Un devis neuf. Le raccourci « Nouveau devis » de la fiche client (`?client=`) arrive avec ce client déjà choisi ;
+ * « Dupliquer » sur la fiche d'un devis (`?duplicate=`) arrive avec sa copie, à relire avant d'enregistrer.
+ */
 export function CreateQuotePage() {
-  const { ready, client } = useClientFromUrl()
-  if (!ready) return <Skeleton className="h-40 rounded-xl" />
-  // Le formulaire naît une fois le client connu : il part de lui, sans passer par un « saisie modifiée »
-  return <CreateQuoteForm initialClient={client} />
+  const fromClient = useClientFromUrl()
+  const copy = useDuplicateQuote()
+  if (!fromClient.ready || !copy.ready) return <Skeleton className="h-40 rounded-xl" />
+  // Le formulaire naît une fois le client ou la copie connus : il part d'eux, sans passer par un « saisie modifiée »
+  if (copy.values) return <CreateQuoteForm start={copy.values} backTo={`/devis/${copy.sourceId}`} copied />
+  return (
+    <CreateQuoteForm
+      start={{ ...EMPTY_QUOTE_FORM, client: fromClient.client }}
+      backTo={fromClient.client ? `/clients/${fromClient.client.id}` : '/devis'}
+    />
+  )
 }
 
-function CreateQuoteForm({ initialClient }: { initialClient: Client | null }) {
+function CreateQuoteForm({ start, backTo, copied = false }: { start: QuoteFormValues; backTo: string; copied?: boolean }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const createQuote = useCreateQuote()
   const { data: org } = useOrganization()
-  const [initial] = useState<QuoteFormValues>(() => ({ ...EMPTY_QUOTE_FORM, client: initialClient }))
+  const [initial] = useState<QuoteFormValues>(start)
   const [values, setValues] = useState<QuoteFormValues>(initial)
   // Une saisie non enregistrée ne se perd pas sans prévenir (retour, menu, rafraîchissement)
   const guard = useUnsavedChanges(isFormDirty(values, initial))
@@ -52,13 +62,19 @@ function CreateQuoteForm({ initialClient }: { initialClient: Client | null }) {
         <button
           type="button"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card active:bg-muted"
-          onClick={() => void navigate(initialClient ? `/clients/${initialClient.id}` : '/devis')}
+          onClick={() => void navigate(backTo)}
           aria-label={t('common.back')}
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="text-lg font-bold">{t('quotes.form_add_title')}</h1>
       </div>
+
+      {copied && (
+        <p className="text-sm text-muted-foreground" data-testid="duplicate-hint">
+          {t('quotes.duplicate_hint')}
+        </p>
+      )}
 
       <QuoteFormFields
         vatExempt={org?.vatExempt ?? false}

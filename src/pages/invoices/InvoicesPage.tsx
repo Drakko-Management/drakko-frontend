@@ -17,17 +17,21 @@ import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 // Les factures se chargent par 50 ; « Afficher plus » en demande 50 de plus (la liste ne s'arrête jamais en silence)
 const PAGE_SIZE = 50
 
-type Filter = 'ALL' | 'DRAFT' | 'ISSUED' | 'OVERDUE' | 'PAID' | 'CREDIT_NOTE'
+type Filter = 'ALL' | 'DRAFT' | 'ISSUED' | 'OVERDUE' | 'PAID' | 'CANCELLED' | 'CREDIT_NOTE'
 
-const FILTERS: Filter[] = ['ALL', 'DRAFT', 'ISSUED', 'OVERDUE', 'PAID', 'CREDIT_NOTE']
+const FILTERS: Filter[] = ['ALL', 'DRAFT', 'ISSUED', 'OVERDUE', 'PAID', 'CANCELLED', 'CREDIT_NOTE']
 
-/** Ce que chaque onglet demande à l'API. « À encaisser » ne compte pas les avoirs, qui n'attendent aucun paiement. */
+/**
+ * Ce que chaque onglet demande à l'API. « À encaisser » ne compte pas les avoirs, qui n'attendent aucun paiement.
+ * « Annulées » : les factures annulées par un avoir (l'avoir, lui, est dans « Avoirs »).
+ */
 const QUERY: Record<Filter, InvoiceFilters> = {
   ALL: {},
   DRAFT: { status: 'DRAFT' },
   ISSUED: { status: 'ISSUED', kind: 'INVOICE' },
   OVERDUE: { overdue: true },
   PAID: { status: 'PAID' },
+  CANCELLED: { status: 'CANCELLED' },
   CREDIT_NOTE: { kind: 'CREDIT_NOTE' },
 }
 

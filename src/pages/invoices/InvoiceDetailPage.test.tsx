@@ -245,12 +245,13 @@ describe('InvoiceDetailPage — gestes selon l\'état', () => {
     expect(button('Marquer payée')).not.toBeInTheDocument()
   })
 
-  it('annulée : seulement le PDF, sans envoi par email', () => {
+  it('annulée : le PDF et « Dupliquer » (pour refaire la facture corrigée), sans envoi par email', () => {
     show(issuedInvoice({ status: 'CANCELLED' }))
 
     expect(button(PDF)).toBeInTheDocument()
+    expect(button('Dupliquer')).toBeInTheDocument()
     expect(button('Envoyer par email')).not.toBeInTheDocument() // son avoir la remplace
-    expect(screen.getAllByRole('button')).toHaveLength(2) // PDF + retour
+    expect(screen.getAllByRole('button')).toHaveLength(3) // PDF + Dupliquer + retour
   })
 
   it('un avoir : le PDF et l\'envoi par email, ni payer ni modifier', () => {
@@ -305,6 +306,53 @@ describe('InvoiceDetailPage — gestes selon l\'état', () => {
     await userEvent.click(button(PDF)!)
 
     expect(toast.error).toHaveBeenCalledWith('Impossible d\'ouvrir le PDF')
+  })
+})
+
+describe('InvoiceDetailPage — dupliquer', () => {
+  it.each([
+    ['un brouillon', invoice()],
+    ['une facture émise', issuedInvoice()],
+    ['une facture en retard', issuedInvoice({ overdue: true })],
+    ['une facture payée', issuedInvoice({ status: 'PAID', paidAt: '2026-11-10T00:00:00.000Z', paymentMethod: 'TRANSFER' })],
+    ['une facture annulée par un avoir', issuedInvoice({ status: 'CANCELLED' })],
+  ])('%s se duplique : le formulaire de création s\'ouvre rempli d\'après elle', async (_label, data) => {
+    show(data)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dupliquer' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/factures/nouveau?duplicate=i1')
+  })
+
+  it('un avoir ne se duplique pas : on l\'annule, on ne le refait pas', () => {
+    show(creditNote())
+
+    expect(button('Dupliquer')).not.toBeInTheDocument()
+  })
+
+  it('une facture d\'acompte ne se duplique pas : elle vient d\'un devis et ne se refait pas seule', () => {
+    show(issuedInvoice({ deposit: true, quoteId: 'q1' }))
+
+    expect(button('Dupliquer')).not.toBeInTheDocument()
+  })
+
+  it('une facture de solde ne se duplique pas : la copie perdrait les acomptes déduits et en demanderait trop', () => {
+    show(
+      issuedInvoice({
+        quoteId: 'q1',
+        lines: [invoiceLine(), invoiceLine({ id: 'il2', depositInvoiceId: 'd1', snapshotTitle: 'FAC-2026-0006', quantity: '-1', unitPrice: '50', total: '-50.00' })],
+      }),
+    )
+
+    expect(button('Dupliquer')).not.toBeInTheDocument()
+  })
+
+  it('sans le droit de créer une facture, « Dupliquer » n\'est pas proposé', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ factures: ['read', 'update'], clients: ['read'] }) })
+    show(issuedInvoice())
+
+    expect(button(PDF)).toBeInTheDocument()
+    expect(button('Dupliquer')).not.toBeInTheDocument()
   })
 })
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Ban, Banknote, Download, FileCheck2, Loader2, Mail, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { ArrowLeft, Ban, Banknote, CopyPlus, Download, FileCheck2, Loader2, Mail, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDestructiveDialog } from '@/components/common/ConfirmDestructiveDialog'
@@ -332,6 +332,15 @@ export function InvoiceDetailPage() {
           {pdfPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           {t('invoices.action_pdf')}
         </Button>
+
+        {/* Ni un avoir (on l'annule, on ne le refait pas), ni un acompte (il vient d'un devis), ni une facture de solde (la
+            copie perdrait les acomptes déduits et en demanderait trop) */}
+        {canCreate && !isCreditNote && !invoice.deposit && deductions.length === 0 && (
+          <Button type="button" variant="outline" className={buttonClass} onClick={() => void navigate(`/factures/nouveau?duplicate=${id}`)}>
+            <CopyPlus className="h-4 w-4" />
+            {t('invoices.action_duplicate')}
+          </Button>
+        )}
 
         {canEmail && (
           <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setDialog('email')}>
