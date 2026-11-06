@@ -1,19 +1,24 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { Download, Loader2, Trash2, X } from 'lucide-react'
+import { Download, Loader2, Trash2, Upload, X } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  openInsuranceAttestation,
+  useDeleteInsuranceAttestation,
   useOrganization,
   useUpdateOrganization,
+  useUploadInsuranceAttestation,
   useUploadLogo,
   useDeleteLogo,
 } from '@/hooks/use-organization'
 import { usePermissions } from '@/hooks/use-permissions'
+import { apiErrorMessage } from '@/lib/api-error'
+import { formatDate } from '@/lib/utils'
 import {
   isValidBic,
   isValidEmail,
@@ -71,6 +76,8 @@ type OrgFormState = {
   defaultPaymentTerms: string
   latePaymentPenalties: string
 }
+
+const ATTESTATION_MAX_BYTES = 5 * 1024 * 1024
 
 const EMPTY: OrgFormState = {
   name: '', language: 'fr',
@@ -159,6 +166,9 @@ export function SettingsEnterprisePage() {
   const updateOrg = useUpdateOrganization()
   const uploadLogo = useUploadLogo()
   const deleteLogo = useDeleteLogo()
+  const uploadAttestation = useUploadInsuranceAttestation()
+  const deleteAttestation = useDeleteInsuranceAttestation()
+  const [confirmAttestationRemoval, setConfirmAttestationRemoval] = useState(false)
 
   const [form, setForm] = useState<OrgFormState>(EMPTY)
   const [logoPreviewOpen, setLogoPreviewOpen] = useState(false)
@@ -224,6 +234,36 @@ export function SettingsEnterprisePage() {
       onError: () => toast.error(t('settings.logo_error')),
     })
     e.target.value = ''
+  }
+
+  // L'attestation d'assurance : un PDF de 5 Mo au plus. L'API relit le fichier (type annoncé, pages, lisibilité) : ici
+  // on évite seulement un envoi voué à l'échec.
+  function handleAttestationChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error(t('settings.attestation_error_type'))
+      return
+    }
+    if (file.size > ATTESTATION_MAX_BYTES) {
+      toast.error(t('settings.attestation_error_size'))
+      return
+    }
+    void uploadAttestation.mutateAsync(file).then(
+      () => toast.success(t('settings.attestation_uploaded')),
+      (error: unknown) => toast.error(apiErrorMessage(error, t, 'settings.attestation_error')),
+    )
+  }
+
+  function handleAttestationRemoval() {
+    void deleteAttestation.mutateAsync().then(
+      () => {
+        setConfirmAttestationRemoval(false)
+        toast.success(t('settings.attestation_removed'))
+      },
+      (error: unknown) => toast.error(apiErrorMessage(error, t, 'settings.attestation_error')),
+    )
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -489,6 +529,91 @@ export function SettingsEnterprisePage() {
                       {t('settings.org_insurance_expired')}
                     </p>
                   )}
+                  <div className="space-y-2 rounded-lg border p-3" data-testid="insurance-attestation">
+                    <p className="text-sm font-medium">{t('settings.attestation_label')}</p>
+                    <p className="text-xs text-muted-foreground">{t('settings.attestation_hint')}</p>
+                    {org?.insuranceAttestationName ? (
+                      <p className="break-all text-sm" data-testid="attestation-current">
+                        {t('settings.attestation_current', {
+                          name: org.insuranceAttestationName,
+                          date: formatDate(org.insuranceAttestationAt),
+                        })}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-orange-700" data-testid="attestation-none">
+                        {t('settings.attestation_none')}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label
+                        htmlFor="attestation-upload"
+                        className={[
+                          'inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
+                          uploadAttestation.isPending ? 'pointer-events-none opacity-50' : '',
+                        ].join(' ')}
+                      >
+                        {uploadAttestation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {org?.insuranceAttestationName ? t('settings.attestation_replace') : t('settings.attestation_upload')}
+                      </label>
+                      <input
+                        id="attestation-upload"
+                        type="file"
+                        accept="application/pdf"
+                        className="sr-only"
+                        onChange={handleAttestationChange}
+                      />
+                      {org?.insuranceAttestationName && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="min-h-[44px]"
+                            onClick={() =>
+                              void openInsuranceAttestation().catch(() => toast.error(t('settings.attestation_view_error')))
+                            }
+                          >
+                            {t('settings.attestation_view')}
+                          </Button>
+                          {!confirmAttestationRemoval && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="min-h-[44px] text-destructive"
+                              onClick={() => setConfirmAttestationRemoval(true)}
+                            >
+                              {t('settings.attestation_remove')}
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {confirmAttestationRemoval && (
+                      <div className="space-y-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3" role="alert">
+                        <p className="text-sm font-medium text-destructive">{t('settings.attestation_remove_warning')}</p>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={deleteAttestation.isPending}
+                            onClick={() => setConfirmAttestationRemoval(false)}
+                          >
+                            {t('common.cancel')}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            disabled={deleteAttestation.isPending}
+                            onClick={handleAttestationRemoval}
+                          >
+                            {deleteAttestation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {t('settings.attestation_remove')}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </Card>

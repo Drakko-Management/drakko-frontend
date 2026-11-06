@@ -1,9 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { toast } from 'sonner'
-import { useDeleteLogo, useOrganization, useUpdateOrganization, useUploadLogo } from '@/hooks/use-organization'
+import {
+  openInsuranceAttestation,
+  useDeleteInsuranceAttestation,
+  useDeleteLogo,
+  useOrganization,
+  useUpdateOrganization,
+  useUploadInsuranceAttestation,
+  useUploadLogo,
+} from '@/hooks/use-organization'
+import { ApiError } from '@/lib/api-client'
 import { useAuthStore } from '@/store/auth.store'
 import { SettingsEnterprisePage } from './SettingsEnterprisePage'
 
@@ -13,10 +22,15 @@ vi.mock('@/hooks/use-organization', () => ({
   useUpdateOrganization: vi.fn(),
   useUploadLogo: vi.fn(),
   useDeleteLogo: vi.fn(),
+  useUploadInsuranceAttestation: vi.fn(),
+  useDeleteInsuranceAttestation: vi.fn(),
+  openInsuranceAttestation: vi.fn(),
 }))
 
 const mutate = vi.fn()
 const mutateAsync = vi.fn()
+const uploadAttestation = vi.fn()
+const deleteAttestation = vi.fn()
 
 function renderPage(org: object = {}) {
   vi.mocked(useOrganization).mockReturnValue({ data: { name: 'Jardins du Sud', defaultVatRate: 10, ...org }, isLoading: false } as never)
@@ -38,6 +52,11 @@ beforeEach(() => {
   vi.mocked(useUpdateOrganization).mockReturnValue({ mutate, mutateAsync, isPending: false } as never)
   vi.mocked(useUploadLogo).mockReturnValue({ mutate: vi.fn(), isPending: false } as never)
   vi.mocked(useDeleteLogo).mockReturnValue({ mutate: vi.fn(), isPending: false } as never)
+  uploadAttestation.mockResolvedValue({ name: 'a.pdf', uploadedAt: '2026-11-06T10:00:00.000Z' })
+  deleteAttestation.mockResolvedValue(undefined)
+  vi.mocked(useUploadInsuranceAttestation).mockReturnValue({ mutateAsync: uploadAttestation, isPending: false } as never)
+  vi.mocked(useDeleteInsuranceAttestation).mockReturnValue({ mutateAsync: deleteAttestation, isPending: false } as never)
+  vi.mocked(openInsuranceAttestation).mockResolvedValue(undefined)
   useAuthStore.setState({ role: 'ADMIN', permissions: null, modules: null })
 })
 
@@ -214,6 +233,141 @@ describe('SettingsEnterprisePage — documents (ADR-033)', () => {
 
       expect(screen.queryByLabelText('Nature de vos opérations')).not.toBeInTheDocument()
       expect(debits()).not.toBeInTheDocument()
+    })
+  })
+
+  describe('attestation d\'assurance jointe aux documents (ADR-037)', () => {
+    const block = () => screen.getByTestId('insurance-attestation')
+    const input = () => document.getElementById('attestation-upload') as HTMLInputElement
+    const pdfFile = (name = 'axa-2026.pdf', size = 1000) =>
+      new File([new Uint8Array(size)], name, { type: 'application/pdf' })
+
+    beforeEach(() => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['devis', 'factures'] })
+    })
+
+    it('sans attestation : le dit, et propose de l\'ajouter', () => {
+      renderPage()
+
+      expect(screen.getByTestId('attestation-none')).toHaveTextContent(/partent sans/)
+      expect(within(block()).getByText('Ajouter l\'attestation')).toBeInTheDocument()
+      expect(within(block()).queryByRole('button', { name: 'Voir' })).not.toBeInTheDocument()
+      expect(within(block()).queryByRole('button', { name: 'Retirer' })).not.toBeInTheDocument()
+    })
+
+    it('avec une attestation : son nom et le jour du dépôt, pour la remplacer, la voir ou la retirer', () => {
+      renderPage({ insuranceAttestationName: 'axa-2026.pdf', insuranceAttestationAt: '2026-11-06T10:00:00.000Z' })
+
+      expect(screen.getByTestId('attestation-current')).toHaveTextContent(/axa-2026\.pdf, ajoutée le 6 nov\. 2026/)
+      expect(screen.queryByTestId('attestation-none')).not.toBeInTheDocument()
+      expect(within(block()).getByText('Remplacer')).toBeInTheDocument()
+      expect(within(block()).getByRole('button', { name: 'Voir' })).toBeInTheDocument()
+      expect(within(block()).getByRole('button', { name: 'Retirer' })).toBeInTheDocument()
+    })
+
+    it('dit ce que fait la loi : jointe à la fin de chaque devis et de chaque facture, les factures émises gardent la leur', () => {
+      renderPage()
+
+      expect(block()).toHaveTextContent(/jointe à la fin de chaque devis et de chaque facture/)
+      expect(block()).toHaveTextContent(/factures déjà émises gardent celle qui était jointe/)
+      expect(block()).toHaveTextContent(/5 Mo et 10 pages/)
+    })
+
+    it('un PDF choisi part à l\'API, un message le confirme', async () => {
+      renderPage()
+      const file = pdfFile()
+
+      await userEvent.upload(input(), file)
+
+      expect(uploadAttestation).toHaveBeenCalledWith(file)
+      await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith('Attestation ajoutée'))
+    })
+
+    it('un fichier qui n\'est pas un PDF n\'est pas envoyé', async () => {
+      renderPage()
+      const user = userEvent.setup({ applyAccept: false })
+
+      await user.upload(input(), new File(['x'], 'photo.png', { type: 'image/png' }))
+
+      expect(uploadAttestation).not.toHaveBeenCalled()
+      expect(toast.error).toHaveBeenCalledWith('Choisissez un fichier PDF.')
+    })
+
+    it('un PDF de plus de 5 Mo n\'est pas envoyé', async () => {
+      renderPage()
+
+      await userEvent.upload(input(), pdfFile('gros.pdf', 5 * 1024 * 1024 + 1))
+
+      expect(uploadAttestation).not.toHaveBeenCalled()
+      expect(toast.error).toHaveBeenCalledWith('Ce fichier dépasse 5 Mo.')
+    })
+
+    it.each([
+      ['INSURANCE_ATTESTATION_INVALID', 'Ce PDF est illisible ou protégé par un mot de passe. Demandez-en une copie à votre assureur.'],
+      ['INSURANCE_ATTESTATION_TOO_LONG', 'Ce PDF a plus de 10 pages.'],
+      ['INSURANCE_ATTESTATION_TOO_BIG', 'Ce fichier dépasse 5 Mo.'],
+    ])('un refus de l\'API (%s) est dit avec sa traduction', async (code, message) => {
+      uploadAttestation.mockRejectedValue(new ApiError(400, 'x', code))
+      renderPage()
+
+      await userEvent.upload(input(), pdfFile())
+
+      await vi.waitFor(() => expect(toast.error).toHaveBeenCalledWith(message))
+    })
+
+    it('une autre erreur : un message général', async () => {
+      uploadAttestation.mockRejectedValue(new Error('réseau'))
+      renderPage()
+
+      await userEvent.upload(input(), pdfFile())
+
+      await vi.waitFor(() => expect(toast.error).toHaveBeenCalledWith('L\'attestation n\'a pas pu être envoyée.'))
+    })
+
+    it('« Voir » ouvre le fichier stocké', async () => {
+      renderPage({ insuranceAttestationName: 'axa-2026.pdf', insuranceAttestationAt: '2026-11-06T10:00:00.000Z' })
+
+      await userEvent.click(within(block()).getByRole('button', { name: 'Voir' }))
+
+      expect(openInsuranceAttestation).toHaveBeenCalled()
+    })
+
+    it('retirer demande confirmation, et rien ne part avant', async () => {
+      renderPage({ insuranceAttestationName: 'axa-2026.pdf', insuranceAttestationAt: '2026-11-06T10:00:00.000Z' })
+
+      await userEvent.click(within(block()).getByRole('button', { name: 'Retirer' }))
+
+      expect(screen.getByRole('alert')).toHaveTextContent(/partiront sans attestation/)
+      expect(deleteAttestation).not.toHaveBeenCalled()
+      await userEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(deleteAttestation).not.toHaveBeenCalled()
+    })
+
+    it('la confirmation retire l\'attestation', async () => {
+      renderPage({ insuranceAttestationName: 'axa-2026.pdf', insuranceAttestationAt: '2026-11-06T10:00:00.000Z' })
+      await userEvent.click(within(block()).getByRole('button', { name: 'Retirer' }))
+
+      await userEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: 'Retirer' }))
+
+      expect(deleteAttestation).toHaveBeenCalled()
+      await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith('Attestation retirée'))
+    })
+
+    it('« Chantiers » seul : aucun devis ni facture ne la joint, le bloc n\'apparaît pas', () => {
+      useAuthStore.setState({ role: 'ADMIN', modules: ['chantiers'] })
+      renderPage()
+
+      expect(screen.queryByTestId('insurance-attestation')).not.toBeInTheDocument()
+    })
+
+    it('enregistrer les réglages n\'envoie jamais l\'attestation : elle a ses propres routes', async () => {
+      renderPage({ insuranceAttestationName: 'axa-2026.pdf', insuranceAttestationAt: '2026-11-06T10:00:00.000Z' })
+
+      await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+      expect(lastPayload()).not.toHaveProperty('insuranceAttestationName')
+      expect(lastPayload()).not.toHaveProperty('insuranceAttestationAt')
     })
   })
 

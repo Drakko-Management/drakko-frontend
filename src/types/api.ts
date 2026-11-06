@@ -58,6 +58,9 @@ export interface Organization {
   insurerName?: string
   insurerPolicy?: string
   insurerExpiry?: string
+  /** L'attestation d'assurance (PDF) jointe à la fin des devis et des factures : son nom et le jour du dépôt, jamais sa clé (ADR-037) */
+  insuranceAttestationName?: string | null
+  insuranceAttestationAt?: string | null
 
   // Apparence
   primaryColor?: string
