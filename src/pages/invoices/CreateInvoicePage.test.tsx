@@ -235,6 +235,55 @@ describe('CreateInvoicePage — copie d\'une facture (« Dupliquer »)', () => {
   })
 })
 
+describe('CreateInvoicePage — remises (une ligne à prix négatif)', () => {
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn()
+  })
+
+  async function fillDiscounted(discount: string) {
+    await pickClient()
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+    await userEvent.type(within(screen.getByTestId('quote-line')).getByLabelText('Désignation'), 'Pose')
+    await userEvent.type(within(screen.getByTestId('quote-line')).getByLabelText('Prix unitaire HT (€)'), '100')
+    await userEvent.click(screen.getByRole('button', { name: 'Remise' }))
+    const lines = screen.getAllByTestId('quote-line')
+    await userEvent.type(within(lines[1]).getByLabelText('Prix unitaire HT (€)'), discount)
+  }
+
+  it('la facture part avec sa remise, le total en tient compte', async () => {
+    renderPage()
+
+    await fillDiscounted('40')
+
+    expect(plain(screen.getByTestId('quote-subtotal').textContent)).toBe('60,00 €')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le brouillon' }))
+    expect(create.mock.calls[0][0].lines).toEqual([
+      { title: 'Pose', quantity: 1, unitPrice: 100 },
+      { title: 'Remise', quantity: 1, unitPrice: -40 },
+    ])
+  })
+
+  it('des remises plus grandes que les prestations bloquent l\'envoi', async () => {
+    renderPage()
+
+    await fillDiscounted('140')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le brouillon' }))
+
+    expect(screen.getByTestId('quote-discount-too-high')).toBeInTheDocument()
+    expect(create).not.toHaveBeenCalled()
+  })
+
+  it('une erreur de l\'API sur les remises est dite avec sa traduction', async () => {
+    create.mockRejectedValue(new ApiError(400, 'x', 'INVOICE_DISCOUNT_TOO_HIGH'))
+    renderPage()
+    await fillDiscounted('40')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le brouillon' }))
+
+    expect(toast.error).toHaveBeenCalledWith('Les remises dépassent le montant des prestations : le total ne peut pas être négatif.')
+  })
+})
+
 describe('CreateInvoicePage', () => {
   it('le formulaire est celui d\'un devis, avec une échéance au lieu d\'une validité', () => {
     renderPage()

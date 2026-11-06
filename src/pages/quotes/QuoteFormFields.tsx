@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Loader2, Plus, Trash2 } from 'lucide-react'
+import { Loader2, Minus, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +19,7 @@ import {
   MAX_UNIT_PRICE,
   decimal,
   firstLineProblemId,
+  isDiscountLine,
   isLineValid,
   lineFromService,
   newKey,
@@ -66,6 +67,8 @@ export function QuoteFormFields({
   const formRef = useRef<HTMLFormElement>(null)
   // Texte tapé dans la recherche quand la fenêtre de création de client est ouverte (null = fermée)
   const [newClientName, setNewClientName] = useState<string | null>(null)
+  // La ligne de remise qui vient d'être ajoutée : son prix prend le curseur (le clavier décimal d'un téléphone n'a pas de signe moins)
+  const [focusPrice, setFocusPrice] = useState<string | null>(null)
 
   const set = <K extends keyof QuoteFormValues>(key: K, value: QuoteFormValues[K]) => onChange({ ...values, [key]: value })
   const setLine = (key: string, patch: Partial<FormLine>) =>
@@ -80,11 +83,15 @@ export function QuoteFormFields({
   const validityPast = kind === 'quote' && values.date !== '' && values.date < todayInput()
   const clientMissing = attempted && !values.client
   const linesInvalid = attempted && invalidLines.length > 0
+  // Des remises qui dépassent les prestations : le total ne descend jamais sous zéro (le serveur le refuse aussi). C'est le
+  // total des prestations qui compte, avant les acomptes d'une facture de solde, qui ont leur propre avis.
+  const discountsTooHigh = totals.worksSubtotal < 0n
+  const discountLine = values.lines.find(isDiscountLine)
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setAttempted(true)
-    if (!values.client || invalidLines.length > 0 || rateInvalid) {
+    if (!values.client || invalidLines.length > 0 || rateInvalid || discountsTooHigh) {
       setRejections((n) => n + 1)
       return
     }
@@ -101,6 +108,21 @@ export function QuoteFormFields({
     const field = target.getAttribute('data-form-error')
     if (field) document.getElementById(field)?.focus({ preventScroll: true })
   }, [rejections])
+
+  useEffect(() => {
+    if (!focusPrice) return
+    const field = document.getElementById(`${focusPrice}-price`) as HTMLInputElement | null
+    field?.focus()
+    // Le curseur après le « - » déjà posé
+    field?.setSelectionRange(field.value.length, field.value.length)
+    setFocusPrice(null)
+  }, [focusPrice])
+
+  function addDiscount() {
+    const key = newKey()
+    set('lines', [...values.lines, { ...FREE_LINE, key, title: t('quotes.discount_line_title'), unitPrice: '-' }])
+    setFocusPrice(key)
+  }
 
   const atMaxLines = values.lines.length >= MAX_LINES
 
@@ -328,6 +350,10 @@ export function QuoteFormFields({
             <Plus className="h-4 w-4" />
             {t('quotes.form_add_free_line')}
           </Button>
+          <Button type="button" variant="outline" className="min-h-[44px]" disabled={atMaxLines} onClick={addDiscount}>
+            <Minus className="h-4 w-4" />
+            {t('quotes.form_add_discount')}
+          </Button>
         </div>
         {atMaxLines && (
           <p className="text-xs text-muted-foreground" data-testid="lines-max">
@@ -378,10 +404,21 @@ export function QuoteFormFields({
         </div>
       </dl>
       {deductions.length > 0 && <p className="text-xs text-muted-foreground">{t('invoices.form_deductions_note')}</p>}
-      {totals.subtotal < 0n && (
-        <p className="text-sm text-destructive" role="alert" data-testid="quote-balance-negative">
-          {t('invoices.form_balance_negative')}
+      {discountsTooHigh ? (
+        <p
+          className="text-sm text-destructive"
+          role="alert"
+          data-testid="quote-discount-too-high"
+          data-form-error={discountLine ? `${discountLine.key}-price` : ''}
+        >
+          {t('quotes.err_discount_too_high')}
         </p>
+      ) : (
+        totals.subtotal < 0n && (
+          <p className="text-sm text-destructive" role="alert" data-testid="quote-balance-negative">
+            {t('invoices.form_balance_negative')}
+          </p>
+        )
       )}
 
       <Button type="submit" className="min-h-[48px] w-full" disabled={isPending}>

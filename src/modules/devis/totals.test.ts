@@ -8,6 +8,7 @@ import {
   percentOfCents,
   toCents,
   toMilli,
+  toPriceCents,
   vatOfCents,
 } from './totals'
 
@@ -153,6 +154,107 @@ describe('computeBalanceTotals', () => {
     expect(totals.subtotal).toBe(-5900n)
     expect(totals.vatAmount).toBe(-1180n)
     expect(totals.total).toBe(-7080n)
+  })
+})
+
+describe('toPriceCents : un prix peut être négatif (une remise)', () => {
+  it('lit un signe moins, avec une virgule ou un point', () => {
+    expect(toPriceCents('-50')).toBe(-5000n)
+    expect(toPriceCents('-12,5')).toBe(-1250n)
+    expect(toPriceCents('-0.05')).toBe(-5n)
+    expect(toPriceCents('12,5')).toBe(1250n)
+  })
+
+  it('« -0 » vaut zéro, jamais un zéro négatif', () => {
+    expect(toPriceCents('-0')).toBe(0n)
+    expect(toPriceCents('-0,00')).toBe(0n)
+  })
+
+  it('refuse un moins seul, deux moins, un moins au milieu, un signe plus et trop de décimales', () => {
+    for (const bad of ['-', '--5', '5-', '1-2', '+5', '- 5', '-1,234', '', 'abc']) {
+      expect(toPriceCents(bad)).toBeNull()
+    }
+  })
+
+  it('les quantités, les taux et les pourcentages restent positifs', () => {
+    expect(toMilli('-1')).toBeNull()
+    expect(toCents('-5')).toBeNull()
+  })
+})
+
+describe('une remise dans les totaux', () => {
+  it('une ligne à prix négatif retranche, la TVA porte sur ce qui reste', () => {
+    const totals = computeDraftTotals(
+      [
+        { quantity: '10', unitPrice: '50' },
+        { quantity: '1', unitPrice: '-50' },
+      ],
+      '10',
+    )
+
+    expect(totals.lines).toEqual([50000n, -5000n])
+    expect(totals.subtotal).toBe(45000n)
+    expect(totals.vatAmount).toBe(4500n)
+    expect(totals.total).toBe(49500n)
+  })
+
+  // Les mêmes valeurs que `quote-totals.spec.ts` du back : la remise saisie ici est, au centime, celle du PDF
+  it.each([
+    ['0,5', '-0,01', -1n],
+    ['0,5', '0,01', 1n],
+    ['1,005', '-1', -101n],
+    ['2,675', '-1', -268n],
+    ['0,4', '-0,01', 0n],
+  ])('%s × %s s\'arrondit comme l\'API, en s\'éloignant de zéro : %s centime(s)', (quantity, unitPrice, expected) => {
+    expect(lineCents({ quantity, unitPrice })).toBe(expected)
+  })
+
+  it('la TVA d\'un total négatif s\'arrondit comme côté API : -10,10 × 5,5 % = -0,56', () => {
+    const totals = computeDraftTotals([{ quantity: '1', unitPrice: '-10,10' }], '5,5')
+
+    expect(totals.vatAmount).toBe(-56n)
+    expect(totals.total).toBe(-1066n)
+  })
+
+  it('une remise égale aux prestations donne zéro, sans signe', () => {
+    const totals = computeDraftTotals(
+      [
+        { quantity: '1', unitPrice: '80' },
+        { quantity: '1', unitPrice: '-80' },
+      ],
+      '20',
+    )
+
+    expect(totals.subtotal).toBe(0n)
+    expect(totals.vatAmount).toBe(0n)
+    expect(totals.total).toBe(0n)
+  })
+
+  it('des remises plus grandes que les prestations donnent un total négatif, que le formulaire refuse', () => {
+    const totals = computeDraftTotals(
+      [
+        { quantity: '1', unitPrice: '100' },
+        { quantity: '1', unitPrice: '-100,01' },
+      ],
+      '10',
+    )
+
+    expect(totals.subtotal).toBe(-1n)
+  })
+
+  it('un solde garde la remise, puis retranche les acomptes', () => {
+    const totals = computeBalanceTotals(
+      [
+        { quantity: '2', unitPrice: '100' },
+        { quantity: '1', unitPrice: '-50' },
+      ],
+      '20',
+      3000n,
+    )
+
+    expect(totals.worksSubtotal).toBe(15000n)
+    expect(totals.subtotal).toBe(12000n)
+    expect(totals.vatAmount).toBe(2400n)
   })
 })
 

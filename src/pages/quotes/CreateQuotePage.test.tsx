@@ -255,6 +255,156 @@ describe('CreateQuotePage — copie d\'un devis (« Dupliquer »)', () => {
   })
 })
 
+describe('CreateQuotePage — remises (une ligne à prix négatif)', () => {
+  const scroll = vi.fn()
+  const price = (line: HTMLElement) => within(line).getByLabelText('Prix unitaire HT (€)')
+  const lastLine = () => {
+    const lines = screen.getAllByTestId('quote-line')
+    return lines[lines.length - 1]
+  }
+  async function addPose(amount = '100') {
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+    const line = lastLine()
+    await userEvent.type(within(line).getByLabelText('Désignation'), 'Pose')
+    await userEvent.type(price(line), amount)
+  }
+  const addDiscount = () => userEvent.click(screen.getByRole('button', { name: 'Remise' }))
+
+  beforeEach(() => {
+    scroll.mockClear()
+    Element.prototype.scrollIntoView = scroll
+  })
+
+  it('« Remise » ajoute une ligne titrée « Remise », au prix « - », et y met le curseur', async () => {
+    renderPage()
+
+    await addDiscount()
+
+    const line = lastLine()
+    expect(within(line).getByLabelText('Désignation')).toHaveValue('Remise')
+    expect(within(line).getByLabelText('Quantité')).toHaveValue('1')
+    expect(price(line)).toHaveValue('-')
+    expect(price(line)).toHaveFocus()
+  })
+
+  it('le montant tapé après le « - » retranche du total, et la TVA porte sur le reste', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('100')
+
+    await addDiscount()
+    await userEvent.type(price(lastLine()), '30')
+
+    expect(within(lastLine()).getByTestId('quote-line-total')).toHaveTextContent('-30,00')
+    expect(plain(screen.getByTestId('quote-subtotal').textContent)).toBe('70,00 €')
+    expect(plain(screen.getByTestId('quote-vat-amount').textContent)).toBe('7,00 €')
+    expect(plain(screen.getByTestId('quote-total').textContent)).toBe('77,00 €')
+  })
+
+  it('le devis part avec la remise : prix négatif, quantité positive', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('100')
+    await addDiscount()
+    await userEvent.type(price(lastLine()), '30')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create.mock.calls[0][0].lines).toEqual([
+      { title: 'Pose', quantity: 1, unitPrice: 100 },
+      { title: 'Remise', quantity: 1, unitPrice: -30 },
+    ])
+  })
+
+  it('un prix négatif se tape aussi à la main sur une ligne libre', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('100')
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+    await userEvent.type(within(lastLine()).getByLabelText('Désignation'), 'Geste commercial')
+    await userEvent.type(price(lastLine()), '-12,5')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create.mock.calls[0][0].lines[1]).toEqual({ title: 'Geste commercial', quantity: 1, unitPrice: -12.5 })
+  })
+
+  it('des remises plus grandes que les prestations bloquent l\'envoi, le disent et ramènent au prix de la remise', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('100')
+    await addDiscount()
+    await userEvent.type(price(lastLine()), '150')
+
+    expect(screen.getByTestId('quote-discount-too-high')).toHaveTextContent(
+      'Les remises dépassent le montant des prestations : le total ne peut pas être négatif.',
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create).not.toHaveBeenCalled()
+    expect(scroll).toHaveBeenCalled()
+    expect(price(lastLine())).toHaveFocus()
+  })
+
+  it('l\'avis disparaît dès que le total n\'est plus négatif', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('100')
+    await addDiscount()
+    await userEvent.type(price(lastLine()), '150')
+    expect(screen.getByTestId('quote-discount-too-high')).toBeInTheDocument()
+
+    await userEvent.clear(price(lastLine()))
+    await userEvent.type(price(lastLine()), '-100')
+
+    expect(screen.queryByTestId('quote-discount-too-high')).not.toBeInTheDocument()
+  })
+
+  it('une remise égale aux prestations (total à zéro) est permise', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('80')
+    await addDiscount()
+    await userEvent.type(price(lastLine()), '80')
+
+    expect(plain(screen.getByTestId('quote-total').textContent)).toBe('0,00 €')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create).toHaveBeenCalledTimes(1)
+  })
+
+  it('une remise au « - » seul n\'est pas finie : il manque le montant, et l\'envoi le dit', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('100')
+    await addDiscount()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create).not.toHaveBeenCalled()
+    expect(
+      screen.getByText('Chaque ligne doit avoir une désignation, une quantité supérieure à zéro et un prix.'),
+    ).toBeInTheDocument()
+    expect(price(lastLine())).toHaveFocus()
+  })
+
+  it('une remise a le même plafond qu\'un prix', async () => {
+    renderPage()
+    await addDiscount()
+    await userEvent.type(price(lastLine()), '100000000')
+
+    expect(within(lastLine()).getByTestId('price-max')).toBeInTheDocument()
+  })
+
+  it('le bouton « Remise » se désactive au plafond de lignes, comme « Ligne libre »', async () => {
+    renderPage()
+    for (let i = 0; i < 100; i += 1) await userEvent.click(screen.getByRole('button', { name: 'Remise' }))
+
+    expect(screen.getByRole('button', { name: 'Remise' })).toBeDisabled()
+  })
+})
+
 describe('CreateQuotePage — plafonds de l\'API et première erreur', () => {
   async function addFreeLine(title = 'Pose', quantity = '1', price = '100') {
     await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))

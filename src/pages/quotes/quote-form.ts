@@ -1,4 +1,4 @@
-import { toCents, toMilli } from '@/modules/devis/totals'
+import { toMilli, toPriceCents } from '@/modules/devis/totals'
 import type { Client, Quote, Service } from '@/types/api'
 import type { QuoteInput, QuoteLineInput } from '@/hooks/use-quotes'
 
@@ -131,10 +131,16 @@ export function quantityTooLarge(line: FormLine): boolean {
   return quantity !== null && quantity > MAX_MILLI
 }
 
-/** Le prix saisi dépasse le plafond de l'API. */
+/** Le prix saisi dépasse le plafond de l'API, dans un sens ou dans l'autre (une remise a un plafond comme un prix). */
 export function priceTooLarge(line: FormLine): boolean {
-  const price = toCents(line.unitPrice)
-  return price !== null && price > MAX_CENTS
+  const price = toPriceCents(line.unitPrice)
+  return price !== null && (price > MAX_CENTS || price < -MAX_CENTS)
+}
+
+/** Une ligne à prix négatif : une remise. */
+export function isDiscountLine(line: FormLine): boolean {
+  const price = toPriceCents(line.unitPrice)
+  return price !== null && price < 0n
 }
 
 /** Une ligne est envoyable quand elle a un titre, une quantité positive et un prix, sous les plafonds de l'API. */
@@ -144,7 +150,7 @@ export function isLineValid(line: FormLine): boolean {
     line.title.trim() !== '' &&
     quantity !== null &&
     quantity > 0n &&
-    toCents(line.unitPrice) !== null &&
+    toPriceCents(line.unitPrice) !== null &&
     !quantityTooLarge(line) &&
     !priceTooLarge(line)
   )

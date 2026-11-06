@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { makePermissions } from '@/lib/permissions'
 import { ApiError } from '@/lib/api-client'
 import { QuoteDetailPage } from './QuoteDetailPage'
-import { acceptance, plain, quote } from '@/test/quote-fixtures'
+import { acceptance, plain, quote, quoteLine } from '@/test/quote-fixtures'
 import type { Quote } from '@/types/api'
 
 const mockNavigate = vi.fn()
@@ -71,6 +71,23 @@ describe('QuoteDetailPage — contenu', () => {
     expect(screen.getByText('Haie vive')).toBeInTheDocument()
     expect(plain(screen.getByTestId('quote-total').textContent)).toBe('137,50 €')
     expect(screen.getByText('Brouillon')).toBeInTheDocument()
+  })
+
+  it('une remise (prix négatif) se lit en négatif, ligne et totaux', () => {
+    show(
+      quote({
+        lines: [quoteLine(), quoteLine({ id: 'l2', snapshotTitle: 'Remise fidélité', snapshotDescription: null, snapshotUnit: null, quantity: '1', unitPrice: '-25', total: '-25.00' })],
+        subtotal: '100.00',
+        vatAmount: '10.00',
+        total: '110.00',
+      }),
+    )
+
+    const discount = screen.getAllByTestId('quote-line')[1]
+    expect(discount).toHaveTextContent('Remise fidélité')
+    expect(plain(discount.textContent)).toContain('1 × -25,00 €')
+    expect(plain(discount.textContent)).toContain('-25,00 €')
+    expect(plain(screen.getByTestId('quote-total').textContent)).toBe('110,00 €')
   })
 
   it('un devis introuvable le dit et renvoie à la liste', () => {

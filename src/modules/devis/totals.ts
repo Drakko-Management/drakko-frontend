@@ -15,24 +15,32 @@ export interface DraftTotals {
   total: bigint
 }
 
-// « 12,5 » ou « 12.5 » → 12500 (millièmes). Au plus `decimals` décimales, sinon null (refusé comme l'API).
-function toScaled(value: string, decimals: number): bigint | null {
+// « 12,5 » ou « 12.5 » → 12500 (millièmes). Au plus `decimals` décimales, sinon null (refusé comme l'API). Un signe
+// moins n'est lu que pour un prix (`signed`) : une remise est une ligne à prix négatif ; une quantité, un taux ou un
+// pourcentage restent positifs.
+function toScaled(value: string, decimals: number, signed = false): bigint | null {
   const text = value.trim().replace(',', '.')
-  if (!/^\d+(\.\d*)?$/.test(text)) return null
-  const [whole, fraction = ''] = text.split('.')
+  if (!(signed ? /^-?\d+(\.\d*)?$/ : /^\d+(\.\d*)?$/).test(text)) return null
+  const negative = text.startsWith('-')
+  const [whole, fraction = ''] = (negative ? text.slice(1) : text).split('.')
   if (fraction.length > decimals) return null
-  return BigInt(whole + fraction.padEnd(decimals, '0'))
+  const scaled = BigInt(whole + fraction.padEnd(decimals, '0'))
+  return negative ? -scaled : scaled
 }
 
 export const toMilli = (value: string): bigint | null => toScaled(value, 3)
 export const toCents = (value: string): bigint | null => toScaled(value, 2)
+/** Le prix d'une ligne en centimes : négatif pour une remise. */
+export const toPriceCents = (value: string): bigint | null => toScaled(value, 2, true)
 
-// Demi vers le haut, sur des valeurs positives
-const divRound = (numerator: bigint, denominator: bigint): bigint => (numerator * 2n + denominator) / (denominator * 2n)
+// Demi vers le haut, en s'éloignant de zéro pour un montant négatif : comme `ROUND_HALF_UP` de Decimal côté API
+// (-0,005 → -0,01), pour que la remise saisie ici soit au centime celle du PDF
+const divRound = (numerator: bigint, denominator: bigint): bigint =>
+  numerator < 0n ? -divRound(-numerator, denominator) : (numerator * 2n + denominator) / (denominator * 2n)
 
 export function lineCents({ quantity, unitPrice }: DraftLineAmounts): bigint | null {
   const milli = toMilli(quantity)
-  const cents = toCents(unitPrice)
+  const cents = toPriceCents(unitPrice)
   if (milli === null || cents === null) return null
   // millièmes × centimes = 10⁻⁵ euro ; on revient au centime
   return divRound(milli * cents, 1000n)
@@ -66,7 +74,7 @@ export function percentOfCents(cents: bigint, percent: string): bigint | null {
 /** La TVA d'un montant hors taxe en centimes, comme le fait l'API (demi vers le haut, une seule fois sur le total). */
 export function vatOfCents(cents: bigint, vatRate: string): bigint {
   const rate = toCents(vatRate) ?? 0n
-  return cents < 0n ? -divRound(-cents * rate, 10000n) : divRound(cents * rate, 10000n)
+  return divRound(cents * rate, 10000n)
 }
 
 export interface BalanceTotals extends DraftTotals {
