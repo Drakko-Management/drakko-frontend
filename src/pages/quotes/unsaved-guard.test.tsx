@@ -5,7 +5,7 @@ import { RouterProvider, createMemoryRouter } from 'react-router'
 import { toast } from 'sonner'
 import { useCreateQuote, useQuote, useUpdateQuote } from '@/hooks/use-quotes'
 import { useServices } from '@/hooks/use-services'
-import { useClients } from '@/hooks/use-clients'
+import { useClient, useClients } from '@/hooks/use-clients'
 import { useOrganization } from '@/hooks/use-organization'
 import { CreateQuotePage } from './CreateQuotePage'
 import { EditQuotePage } from './EditQuotePage'
@@ -17,7 +17,7 @@ import { quote } from '@/test/quote-fixtures'
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/hooks/use-quotes', () => ({ useCreateQuote: vi.fn(), useQuote: vi.fn(), useUpdateQuote: vi.fn() }))
 vi.mock('@/hooks/use-services', () => ({ useServices: vi.fn() }))
-vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn() }))
+vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn(), useClient: vi.fn() }))
 vi.mock('@/hooks/use-organization', () => ({ useOrganization: vi.fn() }))
 
 const CLIENT = { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test' }
@@ -33,13 +33,15 @@ beforeEach(() => {
   vi.mocked(useQuote).mockReturnValue({ data: quote({ status: 'DRAFT' }), isLoading: false, isError: false } as never)
   vi.mocked(useServices).mockReturnValue({ data: [] } as never)
   vi.mocked(useClients).mockReturnValue({ data: { data: [CLIENT] }, isFetching: false } as never)
+  vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
   vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 10 } } as never)
 })
 
-function open(path: '/devis/nouveau' | '/devis/q1/modifier') {
+function open(path: '/devis/nouveau' | '/devis/nouveau?client=c1' | '/devis/q1/modifier') {
   const router = createMemoryRouter(
     [
       { path: '/devis', element: <p>Liste des devis</p> },
+      { path: '/clients/:id', element: <p>Fiche du client</p> },
       { path: '/devis/nouveau', element: <CreateQuotePage /> },
       { path: '/devis/:id/modifier', element: <EditQuotePage /> },
       { path: '/devis/:id', element: <p>Fiche du devis</p> },
@@ -59,6 +61,17 @@ describe('formulaire de création d\'un devis', () => {
     await userEvent.click(back())
 
     expect(await screen.findByText('Liste des devis')).toBeInTheDocument()
+  })
+
+  it('le client du raccourci de la fiche client n\'est pas une saisie : le formulaire se quitte sans rien demander', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: { ...CLIENT, active: true }, isLoading: false } as never)
+    open('/devis/nouveau?client=c1')
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+
+    await userEvent.click(back())
+
+    expect(await screen.findByText('Fiche du client')).toBeInTheDocument()
+    expect(screen.queryByText('Quitter sans enregistrer ?')).not.toBeInTheDocument()
   })
 
   it('une saisie non enregistrée demande confirmation avant de quitter', async () => {

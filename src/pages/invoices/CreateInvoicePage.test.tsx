@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import { toast } from 'sonner'
 import { useCreateInvoice } from '@/hooks/use-invoices'
 import { useServices } from '@/hooks/use-services'
-import { useClients } from '@/hooks/use-clients'
+import { useClient, useClients } from '@/hooks/use-clients'
 import { useOrganization } from '@/hooks/use-organization'
 import { ApiError } from '@/lib/api-client'
 import { CreateInvoicePage } from './CreateInvoicePage'
@@ -20,7 +20,7 @@ vi.mock('react-router', async (importOriginal) => {
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/hooks/use-invoices', () => ({ useCreateInvoice: vi.fn() }))
 vi.mock('@/hooks/use-services', () => ({ useServices: vi.fn() }))
-vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn() }))
+vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn(), useClient: vi.fn() }))
 vi.mock('@/hooks/use-organization', () => ({ useOrganization: vi.fn() }))
 
 const CLIENT = { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test' }
@@ -34,12 +34,13 @@ beforeEach(() => {
   vi.mocked(useCreateInvoice).mockReturnValue({ mutateAsync: create, isPending: false } as never)
   vi.mocked(useServices).mockReturnValue({ data: [SERVICE] } as never)
   vi.mocked(useClients).mockReturnValue({ data: { data: [CLIENT] }, isFetching: false } as never)
+  vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
   vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 10, defaultPaymentTerms: '30' } } as never)
 })
 
-function renderPage() {
+function renderPage(entry = '/factures/nouveau') {
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[entry]}>
       <CreateInvoicePage />
     </MemoryRouter>,
   )
@@ -49,6 +50,56 @@ async function pickClient() {
   await userEvent.click(screen.getByPlaceholderText('Rechercher un client…'))
   await userEvent.click(await screen.findByText('Léa Martin'))
 }
+
+describe('CreateInvoicePage — client venu de la fiche client', () => {
+  const FULL_CLIENT = { ...CLIENT, phone: null, address: null, notes: null, active: true }
+
+  it('sans paramètre, le formulaire s\'ouvre sans client', () => {
+    renderPage()
+    expect(useClient).toHaveBeenCalledWith('')
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+  })
+
+  it('`?client=` présélectionne ce client, et la facture part avec lui', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: FULL_CLIENT, isLoading: false } as never)
+    renderPage('/factures/nouveau?client=c1')
+
+    expect(useClient).toHaveBeenCalledWith('c1')
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Rechercher un client…')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+    const line = screen.getByTestId('quote-line')
+    await userEvent.type(within(line).getByLabelText('Désignation'), 'Pose')
+    await userEvent.type(within(line).getByLabelText('Prix unitaire HT (€)'), '100')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le brouillon' }))
+
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create.mock.calls[0][0].clientId).toBe('c1')
+  })
+
+  it('un client désactivé n\'est pas présélectionné', () => {
+    vi.mocked(useClient).mockReturnValue({ data: { ...FULL_CLIENT, active: false }, isLoading: false } as never)
+    renderPage('/factures/nouveau?client=c1')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+  })
+
+  it('un client introuvable ouvre le formulaire vide, sans erreur', () => {
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false, isError: true } as never)
+    renderPage('/factures/nouveau?client=zzz')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('« retour » ramène à la fiche du client, ou à la liste des factures sans raccourci', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: FULL_CLIENT, isLoading: false } as never)
+    renderPage('/factures/nouveau?client=c1')
+    await userEvent.click(screen.getByRole('button', { name: 'Retour' }))
+    expect(mockNavigate).toHaveBeenLastCalledWith('/clients/c1')
+  })
+})
 
 describe('CreateInvoicePage', () => {
   it('le formulaire est celui d\'un devis, avec une échéance au lieu d\'une validité', () => {

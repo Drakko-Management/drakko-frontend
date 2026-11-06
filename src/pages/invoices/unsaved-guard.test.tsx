@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { useCreateInvoice, useInvoice, useUpdateInvoice } from '@/hooks/use-invoices'
 import { useServices } from '@/hooks/use-services'
-import { useClients } from '@/hooks/use-clients'
+import { useClient, useClients } from '@/hooks/use-clients'
 import { useOrganization } from '@/hooks/use-organization'
 import { CreateInvoicePage } from './CreateInvoicePage'
 import { EditInvoicePage } from './EditInvoicePage'
@@ -16,7 +16,7 @@ import { invoice } from '@/test/invoice-fixtures'
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/hooks/use-invoices', () => ({ useCreateInvoice: vi.fn(), useInvoice: vi.fn(), useUpdateInvoice: vi.fn() }))
 vi.mock('@/hooks/use-services', () => ({ useServices: vi.fn() }))
-vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn() }))
+vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn(), useClient: vi.fn() }))
 vi.mock('@/hooks/use-organization', () => ({ useOrganization: vi.fn() }))
 
 const update = vi.fn()
@@ -29,13 +29,15 @@ beforeEach(() => {
   vi.mocked(useInvoice).mockReturnValue({ data: invoice(), isLoading: false, isError: false } as never)
   vi.mocked(useServices).mockReturnValue({ data: [] } as never)
   vi.mocked(useClients).mockReturnValue({ data: { data: [] }, isFetching: false } as never)
+  vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
   vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 10 } } as never)
 })
 
-function open(path: '/factures/nouveau' | '/factures/i1/modifier') {
+function open(path: '/factures/nouveau' | '/factures/nouveau?client=c1' | '/factures/i1/modifier') {
   const router = createMemoryRouter(
     [
       { path: '/factures', element: <p>Liste des factures</p> },
+      { path: '/clients/:id', element: <p>Fiche du client</p> },
       { path: '/factures/nouveau', element: <CreateInvoicePage /> },
       { path: '/factures/:id/modifier', element: <EditInvoicePage /> },
       { path: '/factures/:id', element: <p>Fiche de la facture</p> },
@@ -55,6 +57,20 @@ describe('formulaire de création d\'une facture', () => {
     await userEvent.click(back())
 
     expect(await screen.findByText('Liste des factures')).toBeInTheDocument()
+  })
+
+  it('le client du raccourci de la fiche client n\'est pas une saisie : le formulaire se quitte sans rien demander', async () => {
+    vi.mocked(useClient).mockReturnValue({
+      data: { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test', active: true },
+      isLoading: false,
+    } as never)
+    open('/factures/nouveau?client=c1')
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+
+    await userEvent.click(back())
+
+    expect(await screen.findByText('Fiche du client')).toBeInTheDocument()
+    expect(screen.queryByText('Quitter sans enregistrer ?')).not.toBeInTheDocument()
   })
 
   it('une saisie non enregistrée demande confirmation avant de quitter', async () => {

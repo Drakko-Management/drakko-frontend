@@ -571,7 +571,8 @@
     "sms": "SMS",
     "write": "Écrire",
     "map": "Itinéraire",
-    "quotes": "Devis ({{count}})"
+    "quotes": "Devis ({{count}})",
+    "invoices": "Factures ({{count}})"
   },
   "create_client": {
     "title": "Nouveau client",

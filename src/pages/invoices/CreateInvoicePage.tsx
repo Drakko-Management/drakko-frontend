@@ -5,7 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { useCreateInvoice } from '@/hooks/use-invoices'
 import { useOrganization } from '@/hooks/use-organization'
+import { useClientFromUrl } from '@/hooks/use-client-from-url'
 import { apiErrorMessage } from '@/lib/api-error'
+import { Skeleton } from '@/components/ui/skeleton'
+import type { Client } from '@/types/api'
 import { paymentDays } from '@/modules/factures/payment-terms'
 import { QuoteFormFields } from '@/pages/quotes/QuoteFormFields'
 import { EMPTY_QUOTE_FORM, isFormDirty, type QuoteFormValues } from '@/pages/quotes/quote-form'
@@ -16,15 +19,25 @@ import { toInvoiceInput } from './invoice-form'
 // Le taux appliqué quand l'organisation n'en a pas réglé (même valeur par défaut que le back)
 const FALLBACK_VAT_RATE = 10
 
-/** Une facture à partir de rien. Depuis un devis accepté, c'est un clic sur la fiche du devis (`quoteId`). */
+/**
+ * Une facture à partir de rien. Depuis un devis accepté, c'est un clic sur la fiche du devis (`quoteId`). Le raccourci
+ * « Nouvelle facture » de la fiche client (`?client=`) arrive avec ce client déjà choisi.
+ */
 export function CreateInvoicePage() {
+  const { ready, client } = useClientFromUrl()
+  if (!ready) return <Skeleton className="h-40 rounded-xl" />
+  return <CreateInvoiceForm initialClient={client} />
+}
+
+function CreateInvoiceForm({ initialClient }: { initialClient: Client | null }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const createInvoice = useCreateInvoice()
   const { data: org } = useOrganization()
-  const [values, setValues] = useState<QuoteFormValues>(EMPTY_QUOTE_FORM)
+  const [initial] = useState<QuoteFormValues>(() => ({ ...EMPTY_QUOTE_FORM, client: initialClient }))
+  const [values, setValues] = useState<QuoteFormValues>(initial)
   // Une saisie non enregistrée ne se perd pas sans prévenir (retour, menu, rafraîchissement)
-  const guard = useUnsavedChanges(isFormDirty(values, EMPTY_QUOTE_FORM))
+  const guard = useUnsavedChanges(isFormDirty(values, initial))
 
   async function handleSubmit() {
     try {
@@ -43,7 +56,7 @@ export function CreateInvoicePage() {
         <button
           type="button"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card active:bg-muted"
-          onClick={() => void navigate('/factures')}
+          onClick={() => void navigate(initialClient ? `/clients/${initialClient.id}` : '/factures')}
           aria-label={t('common.back')}
         >
           <ArrowLeft className="h-4 w-4" />

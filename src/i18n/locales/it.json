@@ -571,7 +571,8 @@
     "sms": "SMS",
     "write": "Scrivi",
     "map": "Percorso",
-    "quotes": "Preventivi ({{count}})"
+    "quotes": "Preventivi ({{count}})",
+    "invoices": "Fatture ({{count}})"
   },
   "create_client": {
     "title": "Nuovo cliente",

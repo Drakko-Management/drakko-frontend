@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import { toast } from 'sonner'
 import { useCreateQuote } from '@/hooks/use-quotes'
 import { useServices } from '@/hooks/use-services'
-import { useClients } from '@/hooks/use-clients'
+import { useClient, useClients } from '@/hooks/use-clients'
 import { useOrganization } from '@/hooks/use-organization'
 import { ApiError } from '@/lib/api-client'
 import { todayInput } from '@/lib/utils'
@@ -20,7 +20,7 @@ vi.mock('react-router', async (importOriginal) => {
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/hooks/use-quotes', () => ({ useCreateQuote: vi.fn() }))
 vi.mock('@/hooks/use-services', () => ({ useServices: vi.fn() }))
-vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn() }))
+vi.mock('@/hooks/use-clients', () => ({ useClients: vi.fn(), useClient: vi.fn() }))
 vi.mock('@/hooks/use-organization', () => ({ useOrganization: vi.fn() }))
 
 const CLIENT = { id: 'c1', firstName: 'Léa', lastName: 'Martin', email: 'lea@martin.test' }
@@ -34,12 +34,13 @@ beforeEach(() => {
   vi.mocked(useCreateQuote).mockReturnValue({ mutateAsync: create, isPending: false } as never)
   vi.mocked(useServices).mockReturnValue({ data: [SERVICE] } as never)
   vi.mocked(useClients).mockReturnValue({ data: { data: [CLIENT] }, isFetching: false } as never)
+  vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false } as never)
   vi.mocked(useOrganization).mockReturnValue({ data: { defaultVatRate: 10 } } as never)
 })
 
-function renderPage() {
+function renderPage(entry = '/devis/nouveau') {
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[entry]}>
       <CreateQuotePage />
     </MemoryRouter>,
   )
@@ -49,6 +50,83 @@ async function pickClient() {
   await userEvent.click(screen.getByPlaceholderText('Rechercher un client…'))
   await userEvent.click(await screen.findByText('Léa Martin'))
 }
+
+describe('CreateQuotePage — client venu de la fiche client', () => {
+  const FULL_CLIENT = { ...CLIENT, phone: null, address: null, notes: null, active: true }
+
+  it('sans paramètre, le formulaire s\'ouvre sans client et ne cherche personne', () => {
+    renderPage()
+    expect(useClient).toHaveBeenCalledWith('')
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+  })
+
+  it('`?client=` présélectionne ce client, et le devis part avec lui', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: FULL_CLIENT, isLoading: false } as never)
+    renderPage('/devis/nouveau?client=c1')
+
+    expect(useClient).toHaveBeenCalledWith('c1')
+    expect(screen.getByText('Léa Martin')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Rechercher un client…')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+    const line = screen.getByTestId('quote-line')
+    await userEvent.type(within(line).getByLabelText('Désignation'), 'Pose')
+    await userEvent.type(within(line).getByLabelText('Prix unitaire HT (€)'), '100')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create.mock.calls[0][0].clientId).toBe('c1')
+  })
+
+  it('le client reste modifiable : on peut en prendre un autre', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: FULL_CLIENT, isLoading: false } as never)
+    renderPage('/devis/nouveau?client=c1')
+
+    // Le bouton qui retire le client n'a pas de nom : on le prend à côté du nom choisi
+    await userEvent.click(within(screen.getByText('Léa Martin').parentElement as HTMLElement).getByRole('button'))
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+  })
+
+  it('un client désactivé n\'est pas présélectionné : on ne l\'a plus dans les formulaires', () => {
+    vi.mocked(useClient).mockReturnValue({ data: { ...FULL_CLIENT, active: false }, isLoading: false } as never)
+    renderPage('/devis/nouveau?client=c1')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+  })
+
+  it('un client introuvable ouvre le formulaire vide, sans erreur', () => {
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: false, isError: true } as never)
+    renderPage('/devis/nouveau?client=zzz')
+
+    expect(screen.getByPlaceholderText('Rechercher un client…')).toBeInTheDocument()
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('le formulaire attend la réponse : pas de client en vue, pas de formulaire non plus', () => {
+    vi.mocked(useClient).mockReturnValue({ data: undefined, isLoading: true } as never)
+    renderPage('/devis/nouveau?client=c1')
+
+    expect(screen.queryByRole('button', { name: 'Créer le devis' })).not.toBeInTheDocument()
+  })
+
+  it('« retour » ramène à la fiche du client, pas à la liste des devis', async () => {
+    vi.mocked(useClient).mockReturnValue({ data: FULL_CLIENT, isLoading: false } as never)
+    renderPage('/devis/nouveau?client=c1')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retour' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/clients/c1')
+  })
+
+  it('sans raccourci, « retour » ramène à la liste des devis', async () => {
+    renderPage()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retour' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/devis')
+  })
+})
 
 describe('CreateQuotePage — plafonds de l\'API et première erreur', () => {
   async function addFreeLine(title = 'Pose', quantity = '1', price = '100') {

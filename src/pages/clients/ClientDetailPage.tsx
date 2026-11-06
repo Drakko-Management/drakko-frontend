@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Mail, Phone, MapPin, FileText, Loader2, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, MapPin, FileText, Loader2, MessageSquare, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,7 +17,9 @@ import { useClient, useUpdateClient, useSetClientActive, useDeleteClient } from 
 import type { Client } from '@/types/api'
 import { useProjects } from '@/hooks/use-projects'
 import { useQuotes } from '@/hooks/use-quotes'
+import { useInvoices } from '@/hooks/use-invoices'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
+import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 import { formatMoney } from '@/modules/devis/format'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
@@ -49,11 +51,13 @@ function toForm(client: Client): ClientForm {
   }
 }
 
+const SHORTCUT =
+  'flex min-h-[44px] flex-1 basis-28 items-center justify-center gap-2 rounded-xl border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted/50 active:bg-muted'
+
 // Raccourcis de contact : appeler, écrire, itinéraire. Ils n'apparaissent que si la donnée existe.
 function ContactShortcuts({ client }: { client: Client }) {
   const { t } = useTranslation()
-  const link =
-    'flex min-h-[44px] flex-1 basis-28 items-center justify-center gap-2 rounded-xl border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted/50 active:bg-muted'
+  const link = SHORTCUT
   return (
     <div className="flex flex-wrap gap-2">
       {client.phone && (
@@ -91,15 +95,19 @@ function ClientView({ client }: { client: Client }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { can } = usePermissions()
-  // Les chantiers et les devis d'un client ne se lisent que si l'organisation a le module et que l'utilisateur y a droit
-  // (ADR-029) : sans Chantiers (« Devis seul »), on ne lance même pas la requête
+  // Les chantiers, les devis et les factures d'un client ne se lisent que si l'organisation a le module et que l'utilisateur
+  // y a droit (ADR-029) : sans Chantiers (« Devis seul »), on ne lance même pas la requête
   const { data: projects } = useProjects({ clientId: client.id }, can('chantiers', 'read'))
   const { data: quotes } = useQuotes({ clientId: client.id }, can('devis', 'read'))
+  const { data: invoices } = useInvoices({ clientId: client.id }, can('factures', 'read'))
   const updateClient = useUpdateClient(client.id)
   const setActive = useSetClientActive()
   const deleteClient = useDeleteClient()
 
   const canEdit = can('clients', 'update')
+  // Un client désactivé n'est plus proposé dans les formulaires : pas de raccourci pour lui écrire un devis ou une facture
+  const canQuote = client.active && can('devis', 'create')
+  const canInvoice = client.active && can('factures', 'create')
   const initial = toForm(client)
   const [form, setForm] = useState<ClientForm>(initial)
   // « Enregistrer » ne s'active que si la fiche a changé
@@ -166,6 +174,33 @@ function ClientView({ client }: { client: Client }) {
       </div>
 
       <ContactShortcuts client={client} />
+
+      {(canQuote || canInvoice) && (
+        <div className="flex flex-wrap gap-2">
+          {canQuote && (
+            <button
+              type="button"
+              className={SHORTCUT}
+              data-testid="client-new-quote"
+              onClick={() => void navigate(`/devis/nouveau?client=${client.id}`)}
+            >
+              <Plus className="h-4 w-4 text-muted-foreground" />
+              {t('quotes.new')}
+            </button>
+          )}
+          {canInvoice && (
+            <button
+              type="button"
+              className={SHORTCUT}
+              data-testid="client-new-invoice"
+              onClick={() => void navigate(`/factures/nouveau?client=${client.id}`)}
+            >
+              <Plus className="h-4 w-4 text-muted-foreground" />
+              {t('invoices.new')}
+            </button>
+          )}
+        </div>
+      )}
 
       {canEdit ? (
         <Card className="space-y-4 p-4">
@@ -287,6 +322,33 @@ function ClientView({ client }: { client: Client }) {
                 <QuoteStatusBadge status={quote.status} expired={quote.expired} />
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {invoices && invoices.length > 0 && (
+        <div className="space-y-2" data-testid="client-invoices">
+          <h2 className="text-sm font-semibold">{t('client_detail.invoices', { count: invoices.length })}</h2>
+          <div className="space-y-2">
+            {invoices.map((invoice) => {
+              const name = invoice.reference ?? t('invoices.draft_name')
+              return (
+                <button
+                  key={invoice.id}
+                  onClick={() => void navigate(`/factures/${invoice.id}`)}
+                  className="flex min-h-[64px] w-full items-center gap-3 rounded-xl border bg-card p-4 text-left transition-colors active:bg-muted"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{invoice.title || name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {invoice.title ? `${name} · ` : ''}
+                      {formatMoney(invoice.total)}
+                    </p>
+                  </div>
+                  <InvoiceStatusBadge invoice={invoice} />
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
