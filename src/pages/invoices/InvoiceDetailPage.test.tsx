@@ -120,7 +120,7 @@ describe('InvoiceDetailPage — contenu', () => {
     const discount = screen.getAllByTestId('invoice-line')[1]
     expect(discount).toHaveTextContent('Remise fidélité')
     // Le total de la ligne (à droite) est positif : quantité négative × prix négatif
-    expect(plain(discount.querySelector('p.font-semibold')?.textContent)).toBe('25,00 €')
+    expect(plain(discount.querySelector('p.font-semibold')?.textContent ?? null)).toBe('25,00 €')
   })
 
   it('un brouillon : sans numéro, l\'objet, le client, les lignes et les montants calculés par l\'API', () => {

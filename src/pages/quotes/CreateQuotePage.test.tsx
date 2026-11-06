@@ -396,13 +396,6 @@ describe('CreateQuotePage — remises (une ligne à prix négatif)', () => {
 
     expect(within(lastLine()).getByTestId('price-max')).toBeInTheDocument()
   })
-
-  it('le bouton « Remise » se désactive au plafond de lignes, comme « Ligne libre »', async () => {
-    renderPage()
-    for (let i = 0; i < 100; i += 1) await userEvent.click(screen.getByRole('button', { name: 'Remise' }))
-
-    expect(screen.getByRole('button', { name: 'Remise' })).toBeDisabled()
-  })
 })
 
 describe('CreateQuotePage — plafonds de l\'API et première erreur', () => {

@@ -102,6 +102,7 @@ describe('EditQuotePage', () => {
       show(quote({ lines: lines(99) }))
 
       expect(screen.getByRole('button', { name: 'Ligne libre' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Remise' })).toBeEnabled()
       expect(screen.queryByTestId('lines-max')).not.toBeInTheDocument()
     })
 
@@ -110,6 +111,8 @@ describe('EditQuotePage', () => {
       show(quote({ lines: lines(100) }))
 
       expect(screen.getByRole('button', { name: 'Ligne libre' })).toBeDisabled()
+      // « Remise » ajoute aussi une ligne : elle ne dépasse pas le plafond
+      expect(screen.getByRole('button', { name: 'Remise' })).toBeDisabled()
       expect(screen.getByLabelText('Ajouter une prestation')).toBeDisabled()
       expect(screen.getByTestId('lines-max')).toHaveTextContent('Le maximum de 100 lignes est atteint.')
     })
