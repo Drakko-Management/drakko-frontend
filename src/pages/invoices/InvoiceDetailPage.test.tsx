@@ -535,6 +535,62 @@ describe('InvoiceDetailPage — les sept jours d\'un acompte de particulier (ADR
   })
 })
 
+describe('InvoiceDetailPage — l\'enregistrement des paiements fermé hors franchise de TVA (ADR-038)', () => {
+  const closed = () => vi.mocked(useOrganization).mockReturnValue({ data: { ...COMPLETE_ORG, paymentRecordingEnabled: false } } as never)
+
+  it('fermé : plus de « Marquer payée » sur une facture émise, et un mot dit pourquoi', () => {
+    closed()
+    show(issuedInvoice())
+
+    expect(button('Marquer payée')).not.toBeInTheDocument()
+    expect(screen.getByTestId('payments-closed')).toHaveTextContent(/enregistrement des paiements est suspendu/)
+    expect(screen.getByTestId('payments-closed')).toHaveTextContent(/soumise à la TVA/)
+    // Tout le reste reste permis
+    expect(button(PDF)).toBeInTheDocument()
+    expect(button('Envoyer par email')).toBeInTheDocument()
+    expect(button('Annuler par un avoir')).toBeInTheDocument()
+  })
+
+  it('fermé : plus de « Annuler le paiement » sur une facture déjà payée', () => {
+    closed()
+    show(issuedInvoice({ status: 'PAID', paidAt: '2026-11-10T00:00:00.000Z' }))
+
+    expect(button('Annuler le paiement')).not.toBeInTheDocument()
+    expect(screen.getByTestId('payments-closed')).toBeInTheDocument()
+  })
+
+  it('un avoir, un brouillon et une facture annulée n\'attendent aucun paiement : pas de mot', () => {
+    closed()
+    show(creditNote())
+    expect(screen.queryByTestId('payments-closed')).not.toBeInTheDocument()
+  })
+
+  it('un brouillon : pas de mot non plus', () => {
+    closed()
+    show(invoice())
+
+    expect(screen.queryByTestId('payments-closed')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['ouvert', { paymentRecordingEnabled: true }],
+    ['absent de la réponse (ancienne version de l\'API)', {}],
+  ])('%s : « Marquer payée » reste proposé, sans mot', (_name, extra) => {
+    vi.mocked(useOrganization).mockReturnValue({ data: { ...COMPLETE_ORG, ...extra } } as never)
+    show(issuedInvoice())
+
+    expect(button('Marquer payée')).toBeInTheDocument()
+    expect(screen.queryByTestId('payments-closed')).not.toBeInTheDocument()
+  })
+
+  it('réglages pas encore chargés : on ne cache rien', () => {
+    vi.mocked(useOrganization).mockReturnValue({ data: undefined } as never)
+    show(issuedInvoice())
+
+    expect(button('Marquer payée')).toBeInTheDocument()
+  })
+})
+
 describe('InvoiceDetailPage — envoyer par email', () => {
   it('demande confirmation en disant à qui part le PDF, puis envoie', async () => {
     show(issuedInvoice())

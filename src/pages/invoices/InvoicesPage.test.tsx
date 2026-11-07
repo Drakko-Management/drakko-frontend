@@ -239,3 +239,22 @@ describe('InvoicesPage — export pour le comptable', () => {
     expect(screen.getByRole('button', { name: 'Exporter' })).toBeInTheDocument()
   })
 })
+
+describe('InvoicesPage — archive annuelle du journal (ADR-038)', () => {
+  it('« Archive » ouvre la fenêtre de l\'archive et du contrôle du journal', async () => {
+    renderPage()
+    expect(screen.queryByText('Archive et contrôle du journal')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Archive' }))
+
+    expect(screen.getByRole('heading', { name: 'Archive et contrôle du journal' })).toBeInTheDocument()
+  })
+
+  it('est proposée à qui peut seulement lire les factures, comme l\'export', () => {
+    useAuthStore.setState({ role: 'MEMBER', permissions: makePermissions({ factures: ['read'] }) })
+    renderPage()
+
+    expect(screen.getByRole('button', { name: 'Archive' })).toBeInTheDocument()
+  })
+})
+

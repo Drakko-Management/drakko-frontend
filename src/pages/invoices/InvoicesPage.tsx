@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { Download, Plus, Receipt, Search } from 'lucide-react'
+import { Archive, Download, Plus, Receipt, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ import { cn, formatDate, clientName } from '@/lib/utils'
 import { formatMoney } from '@/modules/devis/format'
 import { formatDay } from '@/modules/factures/format'
 import { ExportInvoicesDialog } from '@/modules/factures/ExportInvoicesDialog'
+import { LedgerArchiveDialog } from '@/modules/factures/LedgerArchiveDialog'
 import { InvoiceStatusBadge } from '@/modules/factures/InvoiceStatusBadge'
 
 // Les factures se chargent par 50 ; « Afficher plus » en demande 50 de plus (la liste ne s'arrête jamais en silence)
@@ -53,6 +54,8 @@ export function InvoicesPage() {
   // L'export comptable : la fenêtre du choix de période, et le fichier en préparation
   const [exportOpen, setExportOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
+  // L'archive annuelle et le contrôle du journal (ADR-038)
+  const [archiveOpen, setArchiveOpen] = useState(false)
 
   async function handleExport({ from, to }: { from: string; to: string }) {
     setExporting(true)
@@ -92,6 +95,10 @@ export function InvoicesPage() {
           <Button type="button" variant="outline" className="min-h-[44px]" onClick={() => setExportOpen(true)}>
             <Download className="mr-1 h-4 w-4" />
             {t('invoices.export')}
+          </Button>
+          <Button type="button" variant="outline" className="min-h-[44px]" onClick={() => setArchiveOpen(true)}>
+            <Archive className="mr-1 h-4 w-4" />
+            {t('invoices.ledger_button')}
           </Button>
           {canCreate && (
             <Button className="hidden min-h-[44px] md:flex" onClick={() => void navigate('/factures/nouveau')}>
@@ -196,6 +203,7 @@ export function InvoicesPage() {
 
       {canCreate && <Fab onClick={() => void navigate('/factures/nouveau')} />}
 
+      <LedgerArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} />
       <ExportInvoicesDialog open={exportOpen} onOpenChange={setExportOpen} pending={exporting} onConfirm={(period) => void handleExport(period)} />
     </div>
   )

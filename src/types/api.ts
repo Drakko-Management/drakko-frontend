@@ -58,6 +58,8 @@ export interface Organization {
   insurerName?: string
   insurerPolicy?: string
   insurerExpiry?: string
+  /** Faux hors franchise de TVA tant que l'attestation de l'éditeur manque : « Marquer payée » est fermé (ADR-038) */
+  paymentRecordingEnabled?: boolean
   /** L'attestation d'assurance (PDF) jointe à la fin des devis et des factures : son nom et le jour du dépôt, jamais sa clé (ADR-037) */
   insuranceAttestationName?: string | null
   insuranceAttestationAt?: string | null
@@ -544,3 +546,28 @@ export interface ReportLine {
   createdAt: string
   updatedAt: string
 }
+
+/** Ce que le contrôle du journal des factures et des règlements a relevé (ADR-038) */
+export type LedgerProblemCode =
+  | 'SEQUENCE_GAP'
+  | 'CHAIN_BROKEN'
+  | 'HASH_MISMATCH'
+  | 'UNKNOWN_KEY'
+  | 'ISSUE_EVENT_MISSING'
+  | 'CONTENT_ALTERED'
+  | 'STATE_MISMATCH'
+
+export interface LedgerVerification {
+  ok: boolean
+  checkedAt: string
+  events: number
+  firstSequence: number | null
+  lastSequence: number | null
+  lastHash: string | null
+  /** Les factures et avoirs émis que le contrôle a regardés */
+  invoices: number
+  /** Émis avant le journal : leur contenu ne peut pas être prouvé */
+  legacyInvoices: number
+  problems: { code: LedgerProblemCode; sequence?: number; invoice?: string | null; detail?: string }[]
+}
+

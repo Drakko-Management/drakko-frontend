@@ -70,6 +70,10 @@ export function InvoiceDetailPage() {
   const canDelete = can('factures', 'delete')
   const missing = missingIdentity(org, invoice.vatExempt)
   const name = invoice.reference ?? t('invoices.draft_name')
+  // Enregistrer un paiement est fermé hors franchise de TVA tant que l'attestation de l'éditeur manque (ADR-038) ; tant que
+  // l'organisation n'est pas chargée, on ne cache rien
+  const paymentsOpen = org?.paymentRecordingEnabled !== false
+  const paymentsClosedNote = !paymentsOpen && !isCreditNote && (status === 'ISSUED' || status === 'PAID')
   // L'acompte d'un particulier ne se demande pas dans les sept jours du devis : on le dit avant d'émettre et d'envoyer
   const depositWait =
     invoice.deposit && invoice.quote
@@ -331,6 +335,12 @@ export function InvoiceDetailPage() {
         </p>
       )}
 
+      {paymentsClosedNote && (
+        <p className="rounded-md border border-orange-300 bg-orange-50 p-3 text-sm text-orange-900" role="note" data-testid="payments-closed">
+          {t('invoices.payment_closed')}
+        </p>
+      )}
+
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" className={buttonClass} disabled={pdfPending} onClick={() => void handlePdf()}>
           {pdfPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
@@ -373,14 +383,14 @@ export function InvoiceDetailPage() {
           </>
         )}
 
-        {status === 'ISSUED' && !isCreditNote && canUpdate && (
+        {status === 'ISSUED' && !isCreditNote && canUpdate && paymentsOpen && (
           <Button type="button" className={buttonClass} disabled={busy} onClick={() => setDialog('pay')}>
             <Banknote className="h-4 w-4" />
             {t('invoices.action_pay')}
           </Button>
         )}
 
-        {status === 'PAID' && canUpdate && (
+        {status === 'PAID' && canUpdate && paymentsOpen && (
           <Button type="button" variant="outline" className={buttonClass} disabled={busy} onClick={() => setDialog('unpay')}>
             <RotateCcw className="h-4 w-4" />
             {t('invoices.action_unpay')}
