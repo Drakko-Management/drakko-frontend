@@ -364,6 +364,7 @@ describe('SettingsEnterprisePage — documents (ADR-033)', () => {
     it('enregistrer les réglages n\'envoie jamais l\'attestation : elle a ses propres routes', async () => {
       renderPage({ insuranceAttestationName: 'axa-2026.pdf', insuranceAttestationAt: '2026-11-06T10:00:00.000Z' })
 
+      await userEvent.type(screen.getByLabelText('Email professionnel'), 'contact@jardins.test')
       await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
       expect(lastPayload()).not.toHaveProperty('insuranceAttestationName')
@@ -502,6 +503,7 @@ describe('SettingsEnterprisePage — identifiants contrôlés et champs effaçab
   it('un champ vide n\'est pas une erreur', async () => {
     renderPage()
 
+    await userEvent.type(screen.getByDisplayValue('Jardins du Sud'), ' 2')
     await save()
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
@@ -548,3 +550,57 @@ describe('SettingsEnterprisePage — identifiants contrôlés et champs effaçab
   })
 })
 
+
+describe('SettingsEnterprisePage — « Enregistrer » ne s\'allume que pour une modification', () => {
+  const saveButton = () => screen.getByRole('button', { name: 'Enregistrer' })
+
+  it('éteint à l\'ouverture : rien n\'a changé', () => {
+    renderPage({ siret: '73282932000074', phone: '0400000000' })
+
+    expect(saveButton()).toBeDisabled()
+  })
+
+  it('s\'allume à la première modification et se rééteint quand on revient à la valeur enregistrée', async () => {
+    renderPage({ phone: '0400000000' })
+
+    await userEvent.type(screen.getByDisplayValue('0400000000'), '1')
+    expect(saveButton()).toBeEnabled()
+
+    await userEvent.type(screen.getByDisplayValue('04000000001'), '{Backspace}')
+    expect(saveButton()).toBeDisabled()
+  })
+
+  it('un interrupteur compte comme une modification', async () => {
+    renderPage()
+
+    await userEvent.click(screen.getByRole('switch', { name: 'Franchise en base de TVA' }))
+
+    expect(saveButton()).toBeEnabled()
+  })
+
+  it('une valeur déjà enregistrée et fausse le garde allumé : c\'est en l\'essayant qu\'on sait quoi corriger', () => {
+    renderPage({ siret: '12345678900012' })
+
+    expect(saveButton()).toBeEnabled()
+  })
+
+  it('après un enregistrement, la saisie reprend ce que le serveur a gardé et le bouton s\'éteint', async () => {
+    // Une nouvelle instance à chaque appel : React ne rend pas deux fois le même élément
+    const page = () => (
+      <MemoryRouter>
+        <SettingsEnterprisePage />
+      </MemoryRouter>
+    )
+    vi.mocked(useOrganization).mockReturnValue({ data: { name: 'Jardins du Sud', defaultVatRate: 10, phone: '0400000000' }, isLoading: false } as never)
+    const view = render(page())
+    await userEvent.type(screen.getByDisplayValue('0400000000'), '1')
+    expect(saveButton()).toBeEnabled()
+
+    // L'API a gardé la valeur : la page, restée ouverte, reçoit l'organisation rechargée
+    vi.mocked(useOrganization).mockReturnValue({ data: { name: 'Jardins du Sud', defaultVatRate: 10, phone: '04000000001' }, isLoading: false } as never)
+    view.rerender(page())
+
+    expect(screen.getByDisplayValue('04000000001')).toBeInTheDocument()
+    expect(saveButton()).toBeDisabled()
+  })
+})

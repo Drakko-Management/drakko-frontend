@@ -30,7 +30,7 @@ import {
   normalizeSiret,
   normalizeVatNumber,
 } from '@/lib/identifiers'
-import type { OperationNature } from '@/types/api'
+import type { OperationNature, Organization } from '@/types/api'
 import { SettingsSubHeader } from './SettingsSubHeader'
 
 type OrgFormState = {
@@ -154,6 +154,54 @@ function checkedErrors(form: OrgFormState): Partial<Record<CheckedField, string>
 /** Un champ facultatif vidé s'efface : `null`, pas « rien à changer ». */
 const textOrNull = (value: string): string | null => value.trim() || null
 
+/**
+ * Le formulaire tel que l'organisation l'a enregistré : la saisie d'ouverture, et la référence qui dit si quelque
+ * chose a changé (« Enregistrer » reste éteint tant que la saisie lui est identique).
+ */
+function formFromOrg(org: Organization): OrgFormState {
+  return {
+    name:                org.name ?? '',
+    language:            org.language ?? 'fr',
+    tradeName:           org.tradeName ?? '',
+    siret:               org.siret ?? '',
+    vatNumber:           org.vatNumber ?? '',
+    legalForm:           org.legalForm ?? '',
+    shareCapital:        org.shareCapital ?? '',
+    phone:               org.phone ?? '',
+    mobile:              org.mobile ?? '',
+    email:               org.email ?? '',
+    website:             org.website ?? '',
+    address:             org.address ?? '',
+    addressLine2:        org.addressLine2 ?? '',
+    postalCode:          org.postalCode ?? '',
+    city:                org.city ?? '',
+    country:             org.country ?? 'France',
+    bankHolder:          org.bankHolder ?? '',
+    iban:                org.iban ?? '',
+    bic:                 org.bic ?? '',
+    insurerName:         org.insurerName ?? '',
+    insurerPolicy:       org.insurerPolicy ?? '',
+    insurerExpiry:       org.insurerExpiry ?? '',
+    primaryColor:        org.primaryColor ?? '#1a7a33',
+    projectPrefix:       org.projectPrefix ?? 'CH',
+    autoProjectReference: org.autoProjectReference ?? false,
+    quotePrefix:         org.quotePrefix ?? 'DEV',
+    invoicePrefix:       org.invoicePrefix ?? 'FAC',
+    reportPrefix:        org.reportPrefix ?? 'RAP',
+    defaultVatRate:      String(org.defaultVatRate ?? 10),
+    vatExempt:           org.vatExempt ?? false,
+    vatOnDebits:         org.vatOnDebits ?? false,
+    operationNature:     org.operationNature ?? 'SERVICES',
+    defaultPaymentTerms: org.defaultPaymentTerms ?? '',
+    latePaymentPenalties:org.latePaymentPenalties ?? '',
+  }
+}
+
+/** La saisie a-t-elle quelque chose de différent de ce qui est enregistré ? */
+function hasChanges(form: OrgFormState, saved: OrgFormState): boolean {
+  return (Object.keys(saved) as (keyof OrgFormState)[]).some((key) => form[key] !== saved[key])
+}
+
 export function SettingsEnterprisePage() {
   const { t } = useTranslation()
   // Les numéros de chantier et de rapport n'ont de sens qu'avec le module Chantiers, celui des devis qu'avec Devis
@@ -170,51 +218,17 @@ export function SettingsEnterprisePage() {
   const deleteAttestation = useDeleteInsuranceAttestation()
   const [confirmAttestationRemoval, setConfirmAttestationRemoval] = useState(false)
 
-  const [form, setForm] = useState<OrgFormState>(EMPTY)
+  // Une organisation déjà connue ouvre la saisie pleine : sans cela « Enregistrer » serait allumé le temps d'un affichage
+  const [form, setForm] = useState<OrgFormState>(() => (org ? formFromOrg(org) : EMPTY))
   const [logoPreviewOpen, setLogoPreviewOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   // Une erreur de format ne s'affiche qu'une fois le champ quitté, ou à l'enregistrement : pas pendant la frappe
   const [touched, setTouched] = useState<Set<CheckedField>>(new Set())
   const [attempted, setAttempted] = useState(false)
 
+  // Après un enregistrement, la liste se recharge et la saisie reprend ce que le serveur a gardé (remis en forme)
   useEffect(() => {
-    if (!org) return
-    setForm({
-      name:                org.name ?? '',
-      language:            org.language ?? 'fr',
-      tradeName:           org.tradeName ?? '',
-      siret:               org.siret ?? '',
-      vatNumber:           org.vatNumber ?? '',
-      legalForm:           org.legalForm ?? '',
-      shareCapital:        org.shareCapital ?? '',
-      phone:               org.phone ?? '',
-      mobile:              org.mobile ?? '',
-      email:               org.email ?? '',
-      website:             org.website ?? '',
-      address:             org.address ?? '',
-      addressLine2:        org.addressLine2 ?? '',
-      postalCode:          org.postalCode ?? '',
-      city:                org.city ?? '',
-      country:             org.country ?? 'France',
-      bankHolder:          org.bankHolder ?? '',
-      iban:                org.iban ?? '',
-      bic:                 org.bic ?? '',
-      insurerName:         org.insurerName ?? '',
-      insurerPolicy:       org.insurerPolicy ?? '',
-      insurerExpiry:       org.insurerExpiry ?? '',
-      primaryColor:        org.primaryColor ?? '#1a7a33',
-      projectPrefix:       org.projectPrefix ?? 'CH',
-      autoProjectReference: org.autoProjectReference ?? false,
-      quotePrefix:         org.quotePrefix ?? 'DEV',
-      invoicePrefix:       org.invoicePrefix ?? 'FAC',
-      reportPrefix:        org.reportPrefix ?? 'RAP',
-      defaultVatRate:      String(org.defaultVatRate ?? 10),
-      vatExempt:           org.vatExempt ?? false,
-      vatOnDebits:         org.vatOnDebits ?? false,
-      operationNature:     org.operationNature ?? 'SERVICES',
-      defaultPaymentTerms: org.defaultPaymentTerms ?? '',
-      latePaymentPenalties:org.latePaymentPenalties ?? '',
-    })
+    if (org) setForm(formFromOrg(org))
   }, [org])
 
   function f(key: keyof OrgFormState) {
@@ -315,6 +329,9 @@ export function SettingsEnterprisePage() {
 
   const inputCls = 'min-h-[44px]'
   const errors = checkedErrors(form)
+  // « Enregistrer » reste éteint tant que rien n'a changé. Une valeur déjà enregistrée et fausse le garde allumé : c'est
+  // en l'essayant que l'erreur s'affiche et qu'on sait quoi corriger.
+  const canSave = (org ? hasChanges(form, formFromOrg(org)) : false) || Object.keys(errors).length > 0
   // Le message d'un champ contrôlé, une fois qu'on l'a quitté ou qu'on a voulu enregistrer
   const shownError = (key: CheckedField): string | undefined =>
     errors[key] && (attempted || touched.has(key)) ? t(errors[key] as string) : undefined
@@ -728,7 +745,7 @@ export function SettingsEnterprisePage() {
               </Field>
             </Card>
 
-            <Button type="submit" className="w-full min-h-[44px]" disabled={updateOrg.isPending || !form.name.trim()}>
+            <Button type="submit" className="w-full min-h-[44px]" disabled={updateOrg.isPending || !form.name.trim() || !canSave}>
               {updateOrg.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('settings.save')}
             </Button>
