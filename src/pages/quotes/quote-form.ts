@@ -1,4 +1,5 @@
-import { toMilli, toPriceCents } from '@/modules/devis/totals'
+import { toDiscountRate, toMilli, toPriceCents } from '@/modules/devis/totals'
+import { hasDiscount } from '@/modules/devis/format'
 import type { Client, Quote, Service } from '@/types/api'
 import type { QuoteInput, QuoteLineInput } from '@/hooks/use-quotes'
 
@@ -13,6 +14,8 @@ export interface FormLine {
   unit: string
   quantity: string
   unitPrice: string
+  /** Remise de la ligne en pourcentage du prix (« 10 », « 12,5 »), vide = aucune */
+  discountRate: string
 }
 
 // Le formulaire d'un devis sert aussi à celui d'une facture (ADR-033) : mêmes client, objet, taux, lignes et commentaire.
@@ -42,7 +45,7 @@ export const EMPTY_QUOTE_FORM: QuoteFormValues = {
 let lineCounter = 0
 export const newKey = () => `line-${++lineCounter}`
 
-export const FREE_LINE: Omit<FormLine, 'key'> = { title: '', description: '', unit: '', quantity: '1', unitPrice: '' }
+export const FREE_LINE: Omit<FormLine, 'key'> = { title: '', description: '', unit: '', quantity: '1', unitPrice: '', discountRate: '' }
 
 export function lineFromService(service: Service): FormLine {
   return {
@@ -54,6 +57,7 @@ export function lineFromService(service: Service): FormLine {
     quantity: '1',
     // Le prix par défaut de la prestation, s'il en a un
     unitPrice: service.defaultPrice === null || service.defaultPrice === undefined ? '' : String(service.defaultPrice),
+    discountRate: '',
   }
 }
 
@@ -61,7 +65,7 @@ export function lineFromService(service: Service): FormLine {
 export function formLinesFrom(
   lines: Pick<
     Quote['lines'][number],
-    'serviceId' | 'snapshotTitle' | 'snapshotDescription' | 'snapshotUnit' | 'quantity' | 'unitPrice'
+    'serviceId' | 'snapshotTitle' | 'snapshotDescription' | 'snapshotUnit' | 'quantity' | 'unitPrice' | 'discountRate'
   >[],
 ): FormLine[] {
   return lines.map((line) => ({
@@ -72,6 +76,8 @@ export function formLinesFrom(
     unit: line.snapshotUnit ?? '',
     quantity: String(parseFloat(line.quantity)),
     unitPrice: String(parseFloat(line.unitPrice)),
+    // Une ligne sans remise a un champ vide, pas « 0 »
+    discountRate: hasDiscount(line.discountRate) ? String(parseFloat(line.discountRate)) : '',
   }))
 }
 
@@ -143,7 +149,12 @@ export function isDiscountLine(line: FormLine): boolean {
   return price !== null && price < 0n
 }
 
-/** Une ligne est envoyable quand elle a un titre, une quantité positive et un prix, sous les plafonds de l'API. */
+/** La remise saisie n'est pas un pourcentage de 0 à 100 à deux décimales (vide = aucune remise, c'est valide). */
+export function discountRateInvalid(line: FormLine): boolean {
+  return toDiscountRate(line.discountRate) === null
+}
+
+/** Une ligne est envoyable quand elle a un titre, une quantité positive, un prix et une remise valide, sous les plafonds de l'API. */
 export function isLineValid(line: FormLine): boolean {
   const quantity = toMilli(line.quantity)
   return (
@@ -151,17 +162,19 @@ export function isLineValid(line: FormLine): boolean {
     quantity !== null &&
     quantity > 0n &&
     toPriceCents(line.unitPrice) !== null &&
+    !discountRateInvalid(line) &&
     !quantityTooLarge(line) &&
     !priceTooLarge(line)
   )
 }
 
-/** L'identifiant du premier champ à corriger d'une ligne (désignation, puis quantité, puis prix). */
+/** L'identifiant du premier champ à corriger d'une ligne (désignation, quantité, prix, puis remise). */
 export function firstLineProblemId(line: FormLine): string {
   if (line.title.trim() === '') return `${line.key}-title`
   const quantity = toMilli(line.quantity)
   if (quantity === null || quantity <= 0n || quantityTooLarge(line)) return `${line.key}-qty`
-  return `${line.key}-price`
+  if (toPriceCents(line.unitPrice) === null || priceTooLarge(line)) return `${line.key}-price`
+  return `${line.key}-discount`
 }
 
 export const decimal = (value: string) => parseFloat(value.trim().replace(',', '.'))
@@ -175,6 +188,8 @@ export function toLineInputs(lines: FormLine[]): QuoteLineInput[] {
     unit: line.unit.trim() || undefined,
     quantity: decimal(line.quantity),
     unitPrice: decimal(line.unitPrice),
+    // Vide : pas de remise (l'API met 0, y compris sur une ligne qui en avait une et dont on a vidé le champ)
+    ...(line.discountRate.trim() !== '' ? { discountRate: decimal(line.discountRate) } : {}),
   }))
 }
 

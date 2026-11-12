@@ -87,6 +87,29 @@ describe('EditQuotePage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/devis/q1', { replace: true })
   })
 
+  it('une remise en pourcentage déjà saisie s\'ouvre dans son champ, se change et repart avec la ligne', async () => {
+    show(quote({ lines: [quoteLine({ discountRate: '12.5', total: '109.38' })] }))
+
+    expect(screen.getByLabelText('Remise (%)')).toHaveValue('12.5')
+    expect(within(screen.getByTestId('quote-line')).getByTestId('quote-line-total')).toHaveTextContent('109,38')
+    await userEvent.clear(screen.getByLabelText('Remise (%)'))
+    await userEvent.type(screen.getByLabelText('Remise (%)'), '20')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(update.mock.calls[0][0].lines).toEqual([
+      { title: 'Taille de haie', description: 'Haie vive', unit: 'ml', quantity: 10, unitPrice: 12.5, discountRate: 20 },
+    ])
+  })
+
+  it('une ligne sans remise (« 0 » reçu de l\'API) s\'ouvre avec un champ vide, et ne renvoie pas de remise', async () => {
+    show(quote({ lines: [quoteLine({ discountRate: '0' })] }))
+
+    expect(screen.getByLabelText('Remise (%)')).toHaveValue('')
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(update.mock.calls[0][0].lines[0]).not.toHaveProperty('discountRate')
+  })
+
   it.each(['SENT', 'ACCEPTED', 'REJECTED'] as const)('un devis %s ne se modifie pas : le formulaire n\'apparaît pas', (status) => {
     show(quote({ status }))
 
@@ -102,7 +125,7 @@ describe('EditQuotePage', () => {
       show(quote({ lines: lines(99) }))
 
       expect(screen.getByRole('button', { name: 'Ligne libre' })).toBeEnabled()
-      expect(screen.getByRole('button', { name: 'Remise' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Remise globale' })).toBeEnabled()
       expect(screen.queryByTestId('lines-max')).not.toBeInTheDocument()
     })
 
@@ -112,7 +135,7 @@ describe('EditQuotePage', () => {
 
       expect(screen.getByRole('button', { name: 'Ligne libre' })).toBeDisabled()
       // « Remise » ajoute aussi une ligne : elle ne dépasse pas le plafond
-      expect(screen.getByRole('button', { name: 'Remise' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Remise globale' })).toBeDisabled()
       expect(screen.getByLabelText('Ajouter une prestation')).toBeDisabled()
       expect(screen.getByTestId('lines-max')).toHaveTextContent('Le maximum de 100 lignes est atteint.')
     })

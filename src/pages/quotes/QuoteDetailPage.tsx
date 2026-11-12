@@ -13,7 +13,7 @@ import { useDeleteQuote, useEmailQuote, useQuote, useQuoteAction, openQuotePdf, 
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { formatDate, formatDay, clientName } from '@/lib/utils'
-import { formatMoney, formatQuantity } from '@/modules/devis/format'
+import { formatMoney, formatPercent, formatQuantity, hasDiscount } from '@/modules/devis/format'
 import { centsOf } from '@/modules/devis/totals'
 import { QuoteStatusBadge } from '@/modules/devis/QuoteStatusBadge'
 import { DepositDialog } from '@/modules/factures/DepositDialog'
@@ -228,6 +228,9 @@ export function QuoteDetailPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 {formatQuantity(line.quantity)}
                 {line.snapshotUnit ? ` ${line.snapshotUnit}` : ''} × {formatMoney(line.unitPrice)}
+                {hasDiscount(line.discountRate) && (
+                  <span data-testid="line-discount"> · -{formatPercent(line.discountRate)}</span>
+                )}
               </p>
             </div>
             <p className="shrink-0 text-sm font-semibold">{formatMoney(line.total)}</p>

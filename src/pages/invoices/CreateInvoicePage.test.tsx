@@ -245,7 +245,7 @@ describe('CreateInvoicePage — remises (une ligne à prix négatif)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
     await userEvent.type(within(screen.getByTestId('quote-line')).getByLabelText('Désignation'), 'Pose')
     await userEvent.type(within(screen.getByTestId('quote-line')).getByLabelText('Prix unitaire HT (€)'), '100')
-    await userEvent.click(screen.getByRole('button', { name: 'Remise' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remise globale' }))
     const lines = screen.getAllByTestId('quote-line')
     await userEvent.type(within(lines[1]).getByLabelText('Prix unitaire HT (€)'), discount)
   }

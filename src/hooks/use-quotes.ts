@@ -24,6 +24,8 @@ export interface QuoteLineInput {
   unit?: string
   quantity?: number
   unitPrice?: number
+  /** Remise en pourcentage du prix, de 0 à 100 (absente : aucune) */
+  discountRate?: number
 }
 
 export interface QuoteInput {

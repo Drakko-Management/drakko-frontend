@@ -5,6 +5,11 @@
 export interface DraftLineAmounts {
   quantity: string
   unitPrice: string
+  /**
+   * La remise de la ligne, en pourcentage du prix (« 10 », « 12,5 »), vide = aucune. Obligatoire : une ligne qui
+   * l'oublierait serait comptée sans sa remise, sans que rien ne le signale.
+   */
+  discountRate: string
 }
 
 export interface DraftTotals {
@@ -32,18 +37,29 @@ export const toMilli = (value: string): bigint | null => toScaled(value, 3)
 export const toCents = (value: string): bigint | null => toScaled(value, 2)
 /** Le prix d'une ligne en centimes : négatif pour une remise. */
 export const toPriceCents = (value: string): bigint | null => toScaled(value, 2, true)
+/**
+ * La remise d'une ligne en centièmes de pour cent (12,5 % → 1250). Vide = aucune (0). Null au-delà de 100 % ou de deux
+ * décimales : l'API refuse aussi.
+ */
+export function toDiscountRate(value: string): bigint | null {
+  if (value.trim() === '') return 0n
+  const rate = toScaled(value, 2)
+  return rate !== null && rate <= 10000n ? rate : null
+}
 
 // Demi vers le haut, en s'éloignant de zéro pour un montant négatif : comme `ROUND_HALF_UP` de Decimal côté API
 // (-0,005 → -0,01), pour que la remise saisie ici soit au centime celle du PDF
 const divRound = (numerator: bigint, denominator: bigint): bigint =>
   numerator < 0n ? -divRound(-numerator, denominator) : (numerator * 2n + denominator) / (denominator * 2n)
 
-export function lineCents({ quantity, unitPrice }: DraftLineAmounts): bigint | null {
+export function lineCents({ quantity, unitPrice, discountRate }: DraftLineAmounts): bigint | null {
   const milli = toMilli(quantity)
   const cents = toPriceCents(unitPrice)
-  if (milli === null || cents === null) return null
-  // millièmes × centimes = 10⁻⁵ euro ; on revient au centime
-  return divRound(milli * cents, 1000n)
+  const rate = toDiscountRate(discountRate)
+  if (milli === null || cents === null || rate === null) return null
+  // millièmes × centimes × (100 % moins la remise, en centièmes de pour cent) = 10⁻⁸ euro ; on revient au centime, en
+  // arrondissant une seule fois, après la remise (comme `quote-totals.ts` du back)
+  return divRound(milli * cents * (10000n - rate), 1000n * 10000n)
 }
 
 export function computeDraftTotals(lines: DraftLineAmounts[], vatRate: string): DraftTotals {

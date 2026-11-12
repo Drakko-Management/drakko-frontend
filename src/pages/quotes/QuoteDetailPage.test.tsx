@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { toast } from 'sonner'
@@ -88,6 +88,29 @@ describe('QuoteDetailPage — contenu', () => {
     expect(plain(discount.textContent)).toContain('1 × -25,00 €')
     expect(plain(discount.textContent)).toContain('-25,00 €')
     expect(plain(screen.getByTestId('quote-total').textContent)).toBe('110,00 €')
+  })
+
+  it('une remise en pourcentage se lit sur la ligne : prix, pourcentage et total net', () => {
+    show(
+      quote({
+        lines: [
+          quoteLine({ quantity: '10', unitPrice: '12.5', discountRate: '10', total: '112.50' }),
+          quoteLine({ id: 'l2', snapshotTitle: 'Déplacement', quantity: '1', unitPrice: '40', discountRate: '12.5', total: '35.00' }),
+          quoteLine({ id: 'l3', snapshotTitle: 'Fournitures', quantity: '1', unitPrice: '20', discountRate: '0', total: '20.00' }),
+        ],
+        subtotal: '167.50',
+        vatAmount: '16.75',
+        total: '184.25',
+      }),
+    )
+
+    const [first, second, third] = screen.getAllByTestId('quote-line')
+    expect(plain(first.textContent)).toContain('10 ml × 12,50 € · -10 %')
+    expect(plain(first.querySelector('p.font-semibold')?.textContent ?? null)).toBe('112,50 €')
+    expect(plain(second.textContent)).toContain('1 ml × 40,00 € · -12,5 %')
+    // Sans remise (« 0 »), aucun pourcentage n'est écrit
+    expect(within(third).queryByTestId('line-discount')).not.toBeInTheDocument()
+    expect(plain(screen.getByTestId('quote-total').textContent)).toBe('184,25 €')
   })
 
   it('un devis introuvable le dit et renvoie à la liste', () => {

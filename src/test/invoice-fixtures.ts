@@ -10,6 +10,7 @@ export function invoiceLine(over: Partial<InvoiceLine> = {}): InvoiceLine {
     snapshotUnit: 'ml',
     quantity: '10',
     unitPrice: '12.5',
+    discountRate: '0',
     order: 0,
     depositInvoiceId: null,
     total: '125.00',

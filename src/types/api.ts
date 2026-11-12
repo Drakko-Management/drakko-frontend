@@ -335,8 +335,10 @@ export interface QuoteLine {
   snapshotUnit: string | null
   quantity: string
   unitPrice: string
+  /** Remise de la ligne en pourcentage du prix (« 10 », « 12.5 », « 0 » sans remise) */
+  discountRate: string
   order: number
-  /** Total hors taxe de la ligne, calculé par l'API */
+  /** Total hors taxe de la ligne, après remise, calculé par l'API */
   total: string
 }
 
@@ -429,6 +431,8 @@ export interface InvoiceLine {
   snapshotUnit: string | null
   quantity: string
   unitPrice: string
+  /** Remise de la ligne en pourcentage du prix (« 10 », « 12.5 », « 0 » sans remise) */
+  discountRate: string
   order: number
   /** Sur une facture de solde : la facture d'acompte que cette ligne déduit (quantité -1). Ces lignes ne se modifient pas. */
   depositInvoiceId: string | null
@@ -525,6 +529,8 @@ export interface PublicQuote {
       unit: string | null
       quantity: string
       unitPrice: string
+      /** Remise de la ligne en pourcentage du prix (« 0 » sans remise) */
+      discountRate: string
       total: string
     }[]
     subtotal: string

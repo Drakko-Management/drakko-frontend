@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { publicQuotePdfUrl, useAcceptPublicQuote, usePublicQuote, useRejectPublicQuote } from '@/hooks/use-public-quote'
 import { apiErrorMessage } from '@/lib/api-error'
 import { formatDate, formatDay } from '@/lib/utils'
-import { formatMoney, formatQuantity } from '@/modules/devis/format'
+import { formatMoney, formatPercent, formatQuantity, hasDiscount } from '@/modules/devis/format'
 import type { PublicQuote } from '@/types/api'
 
 const SUPPORTED_LANGS = ['fr', 'en', 'es', 'it', 'de']
@@ -220,6 +220,9 @@ function QuoteBody({ quote, lang, t }: { quote: Quote; lang: string; t: Translat
               <p className="mt-1 text-xs text-muted-foreground">
                 {formatQuantity(line.quantity, lang)}
                 {line.unit ? ` ${line.unit}` : ''} × {formatMoney(line.unitPrice, lang)}
+                {hasDiscount(line.discountRate) && (
+                  <span data-testid="line-discount"> · -{formatPercent(line.discountRate, lang)}</span>
+                )}
               </p>
             </div>
             <p className="shrink-0 text-sm font-semibold">{formatMoney(line.total, lang)}</p>

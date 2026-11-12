@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { toast } from 'sonner'
@@ -51,6 +51,26 @@ describe('PublicQuotePage — un lien ouvert', () => {
     expect(screen.getByText('Haie vive')).toBeInTheDocument()
     expect(plain(screen.getByTestId('public-quote-total').textContent)).toBe('137,50 €')
     expect(screen.getByRole('link', { name: 'Télécharger le PDF' })).toHaveAttribute('href', 'https://api.test/public/quotes/tok-123/pdf')
+  })
+
+  it('une ligne remisée montre son pourcentage et son total net, dans la langue de l\'entreprise', () => {
+    const base = publicQuote()
+    show({
+      ...base,
+      language: 'en',
+      quote: {
+        ...base.quote!,
+        lines: [
+          { title: 'Hedge', description: null, unit: 'ml', quantity: '10', unitPrice: '12.5', discountRate: '10', total: '112.50' },
+          { title: 'Travel', description: null, unit: null, quantity: '1', unitPrice: '40', discountRate: '0', total: '40.00' },
+        ],
+      },
+    })
+
+    const [discounted, plainLine] = screen.getAllByTestId('public-quote-line')
+    expect(plain(discounted.textContent)).toContain('10 ml × €12.50 · -10%')
+    expect(plain(discounted.querySelector('p.font-semibold')?.textContent ?? null)).toBe('€112.50')
+    expect(within(plainLine).queryByTestId('line-discount')).not.toBeInTheDocument()
   })
 
   it('la page parle la langue de l\'entreprise, pas celle du navigateur', () => {

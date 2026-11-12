@@ -107,6 +107,22 @@ describe('InvoiceDetailPage — contenu', () => {
     expect(plain(discount.textContent)).toContain('-25,00 €')
   })
 
+  it('une remise en pourcentage se lit sur la ligne : prix, pourcentage et total net', () => {
+    show(
+      invoice({
+        lines: [
+          invoiceLine({ quantity: '10', unitPrice: '12.5', discountRate: '10', total: '112.50' }),
+          invoiceLine({ id: 'il2', snapshotTitle: 'Fournitures', quantity: '1', unitPrice: '20', discountRate: '0', total: '20.00' }),
+        ],
+      }),
+    )
+
+    const [first, second] = screen.getAllByTestId('invoice-line')
+    expect(plain(first.textContent)).toContain('10 ml × 12,50 € · -10 %')
+    expect(plain(first.querySelector('p.font-semibold')?.textContent ?? null)).toBe('112,50 €')
+    expect(within(second).queryByTestId('line-discount')).not.toBeInTheDocument()
+  })
+
   it('l\'avoir d\'une facture remisée montre la remise à l\'envers : un montant positif', () => {
     show(
       creditNote({

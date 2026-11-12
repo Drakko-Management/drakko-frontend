@@ -23,7 +23,7 @@ import { useOrganization } from '@/hooks/use-organization'
 import { usePermissions } from '@/hooks/use-permissions'
 import { apiErrorMessage } from '@/lib/api-error'
 import { formatDate, clientName } from '@/lib/utils'
-import { formatMoney, formatQuantity } from '@/modules/devis/format'
+import { formatMoney, formatPercent, formatQuantity, hasDiscount } from '@/modules/devis/format'
 import { centsOf, centsToNumber } from '@/modules/devis/totals'
 import { formatDay } from '@/modules/factures/format'
 import { missingIdentity } from '@/modules/factures/identity'
@@ -271,6 +271,9 @@ export function InvoiceDetailPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 {formatQuantity(line.quantity)}
                 {line.snapshotUnit ? ` ${line.snapshotUnit}` : ''} × {formatMoney(line.unitPrice)}
+                {hasDiscount(line.discountRate) && (
+                  <span data-testid="line-discount"> · -{formatPercent(line.discountRate)}</span>
+                )}
               </p>
             </div>
             <p className="shrink-0 text-sm font-semibold">{formatMoney(line.total)}</p>

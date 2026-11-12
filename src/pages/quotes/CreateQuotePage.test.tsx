@@ -188,6 +188,21 @@ describe('CreateQuotePage — copie d\'un devis (« Dupliquer »)', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/devis/q1', { replace: true })
   })
 
+  it('les remises en pourcentage des lignes sont reprises dans la copie', async () => {
+    vi.mocked(useQuote).mockReturnValue({
+      data: { ...SOURCE, lines: [quoteLine({ discountRate: '15', total: '106.25' }), quoteLine({ id: 'l2', discountRate: '0' })] },
+      isLoading: false,
+    } as never)
+    renderPage('/devis/nouveau?duplicate=q7')
+
+    const [first, second] = screen.getAllByTestId('quote-line')
+    expect(within(first).getByLabelText('Remise (%)')).toHaveValue('15')
+    expect(within(second).getByLabelText('Remise (%)')).toHaveValue('')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create.mock.calls[0][0].lines.map((line: { discountRate?: number }) => line.discountRate)).toEqual([15, undefined])
+  })
+
   it('un devis établi sous franchise de TVA ne fait pas reprendre son taux 0 : celui de l\'organisation s\'applique', async () => {
     vi.mocked(useQuote).mockReturnValue({ data: { ...SOURCE, vatExempt: true, vatRate: '0' }, isLoading: false } as never)
     renderPage('/devis/nouveau?duplicate=q7')
@@ -255,6 +270,144 @@ describe('CreateQuotePage — copie d\'un devis (« Dupliquer »)', () => {
   })
 })
 
+describe('CreateQuotePage — remise en pourcentage sur une ligne', () => {
+  const scroll = vi.fn()
+  const lastLine = () => {
+    const lines = screen.getAllByTestId('quote-line')
+    return lines[lines.length - 1]
+  }
+  const discount = (line: HTMLElement) => within(line).getByLabelText('Remise (%)')
+  async function addPose(quantity = '3', price = '100') {
+    await userEvent.click(screen.getByRole('button', { name: 'Ligne libre' }))
+    const line = lastLine()
+    await userEvent.type(within(line).getByLabelText('Désignation'), 'Pose')
+    await userEvent.clear(within(line).getByLabelText('Quantité'))
+    await userEvent.type(within(line).getByLabelText('Quantité'), quantity)
+    await userEvent.type(within(line).getByLabelText('Prix unitaire HT (€)'), price)
+  }
+
+  beforeEach(() => {
+    scroll.mockClear()
+    Element.prototype.scrollIntoView = scroll
+  })
+
+  it('chaque ligne a son champ « Remise (%) », vide au départ', async () => {
+    renderPage()
+    await addPose()
+
+    expect(discount(lastLine())).toHaveValue('')
+  })
+
+  it('le pourcentage tapé donne le total net de la ligne, et les totaux et la TVA le suivent', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('3', '100')
+
+    await userEvent.type(discount(lastLine()), '10')
+
+    // 3 × 100 = 300, moins 10 % = 270 ; TVA 10 % = 27
+    expect(within(lastLine()).getByTestId('quote-line-total')).toHaveTextContent('270,00')
+    expect(plain(screen.getByTestId('quote-subtotal').textContent)).toBe('270,00 €')
+    expect(plain(screen.getByTestId('quote-vat-amount').textContent)).toBe('27,00 €')
+    expect(plain(screen.getByTestId('quote-total').textContent)).toBe('297,00 €')
+  })
+
+  it('une virgule est acceptée, le pourcentage décimal se calcule au centime', async () => {
+    renderPage()
+    await addPose('2,5', '33,33')
+
+    await userEvent.type(discount(lastLine()), '12,5')
+
+    // 2,5 × 33,33 = 83,325 ; moins 12,5 % = 72,909375 → 72,91
+    expect(within(lastLine()).getByTestId('quote-line-total')).toHaveTextContent('72,91')
+  })
+
+  it('100 % offre la ligne : elle vaut zéro et le devis peut partir', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('1', '80')
+
+    await userEvent.type(discount(lastLine()), '100')
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(within(lastLine()).getByTestId('quote-line-total')).toHaveTextContent('0,00')
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(create.mock.calls[0][0].lines[0].discountRate).toBe(100)
+  })
+
+  it('le devis part avec la remise de chaque ligne, en nombre, et rien pour une ligne sans remise', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('3', '100')
+    await userEvent.type(discount(lastLine()), '10')
+    await addPose('1', '40')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create.mock.calls[0][0].lines).toEqual([
+      { title: 'Pose', quantity: 3, unitPrice: 100, discountRate: 10 },
+      { title: 'Pose', quantity: 1, unitPrice: 40 },
+    ])
+  })
+
+  it('une remise saisie puis effacée ne part plus', async () => {
+    renderPage()
+    await pickClient()
+    await addPose('1', '100')
+    await userEvent.type(discount(lastLine()), '10')
+    await userEvent.clear(discount(lastLine()))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+    expect(create.mock.calls[0][0].lines).toEqual([{ title: 'Pose', quantity: 1, unitPrice: 100 }])
+  })
+
+  it.each(['100,01', '101', '-5', '1,234', 'dix'])(
+    'une remise de « %s » est refusée : la phrase le dit, l\'envoi est bloqué et le curseur va au champ',
+    async (value) => {
+      renderPage()
+      await pickClient()
+      await addPose('1', '100')
+      await userEvent.type(discount(lastLine()), value)
+
+      expect(screen.getByTestId('discount-rate-invalid')).toHaveTextContent(
+        'La remise est un pourcentage de 0 à 100, avec au plus deux décimales.',
+      )
+      expect(within(lastLine()).getByTestId('quote-line-total')).toHaveTextContent('—')
+      await userEvent.click(screen.getByRole('button', { name: 'Créer le devis' }))
+
+      expect(create).not.toHaveBeenCalled()
+      expect(scroll).toHaveBeenCalled()
+      expect(discount(lastLine())).toHaveFocus()
+    },
+  )
+
+  it('la phrase disparaît dès que la remise est corrigée', async () => {
+    renderPage()
+    await addPose('1', '100')
+    await userEvent.type(discount(lastLine()), '150')
+    expect(screen.getByTestId('discount-rate-invalid')).toBeInTheDocument()
+
+    await userEvent.clear(discount(lastLine()))
+    await userEvent.type(discount(lastLine()), '15')
+
+    expect(screen.queryByTestId('discount-rate-invalid')).not.toBeInTheDocument()
+    expect(within(lastLine()).getByTestId('quote-line-total')).toHaveTextContent('85,00')
+  })
+
+  it('le pourcentage se combine avec une ligne de remise globale', async () => {
+    renderPage()
+    await addPose('10', '50')
+    await userEvent.type(discount(lastLine()), '10')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remise globale' }))
+    await userEvent.type(within(lastLine()).getByLabelText('Prix unitaire HT (€)'), '50')
+
+    // 10 × 50 moins 10 % = 450 ; moins la remise globale de 50 = 400
+    expect(plain(screen.getByTestId('quote-subtotal').textContent)).toBe('400,00 €')
+  })
+})
+
 describe('CreateQuotePage — remises (une ligne à prix négatif)', () => {
   const scroll = vi.fn()
   const price = (line: HTMLElement) => within(line).getByLabelText('Prix unitaire HT (€)')
@@ -268,7 +421,7 @@ describe('CreateQuotePage — remises (une ligne à prix négatif)', () => {
     await userEvent.type(within(line).getByLabelText('Désignation'), 'Pose')
     await userEvent.type(price(line), amount)
   }
-  const addDiscount = () => userEvent.click(screen.getByRole('button', { name: 'Remise' }))
+  const addDiscount = () => userEvent.click(screen.getByRole('button', { name: 'Remise globale' }))
 
   beforeEach(() => {
     scroll.mockClear()

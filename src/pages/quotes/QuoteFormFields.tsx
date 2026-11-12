@@ -18,6 +18,7 @@ import {
   MAX_QUANTITY,
   MAX_UNIT_PRICE,
   decimal,
+  discountRateInvalid,
   firstLineProblemId,
   isDiscountLine,
   isLineValid,
@@ -224,6 +225,7 @@ export function QuoteFormFields({
           const invalid = attempted && !isLineValid(line)
           const qtyTooLarge = quantityTooLarge(line)
           const priceTooBig = priceTooLarge(line)
+          const discountInvalid = discountRateInvalid(line)
           return (
             <div
               key={line.key}
@@ -311,9 +313,31 @@ export function QuoteFormFields({
                   )}
                 </div>
               </div>
-              <p className="text-right text-sm font-medium" data-testid="quote-line-total">
-                {total === null ? '—' : formatMoney(centsToNumber(total))}
-              </p>
+              <div className="flex items-end justify-between gap-3">
+                <div className="w-32 space-y-1">
+                  <Label className="text-xs text-muted-foreground" htmlFor={`${line.key}-discount`}>
+                    {t('quotes.form_line_discount')}
+                  </Label>
+                  <Input
+                    id={`${line.key}-discount`}
+                    inputMode="decimal"
+                    className={cn('min-h-[44px]', discountInvalid && 'border-destructive')}
+                    placeholder="0"
+                    value={line.discountRate}
+                    onChange={(e) => setLine(line.key, { discountRate: e.target.value })}
+                    aria-invalid={discountInvalid || undefined}
+                    aria-describedby={discountInvalid ? `${line.key}-discount-error` : undefined}
+                  />
+                </div>
+                <p className="pb-3 text-right text-sm font-medium" data-testid="quote-line-total">
+                  {total === null ? '—' : formatMoney(centsToNumber(total))}
+                </p>
+              </div>
+              {discountInvalid && (
+                <p id={`${line.key}-discount-error`} className="text-xs text-destructive" data-testid="discount-rate-invalid">
+                  {t('quotes.form_discount_rate_invalid')}
+                </p>
+              )}
             </div>
           )
         })}

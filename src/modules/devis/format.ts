@@ -17,3 +17,15 @@ export function formatQuantity(quantity: string | number, locale?: string): stri
   if (Number.isNaN(value)) return String(quantity)
   return new Intl.NumberFormat(locale ?? (i18n.language || 'fr'), { maximumFractionDigits: 3 }).format(value)
 }
+
+/** Un pourcentage de 0 à 100 sans zéros inutiles (« 10 % », « 12,5 % »). */
+export function formatPercent(percent: string | number, locale?: string): string {
+  const value = typeof percent === 'string' ? parseFloat(percent) : percent
+  if (Number.isNaN(value)) return String(percent)
+  return new Intl.NumberFormat(locale ?? (i18n.language || 'fr'), { style: 'percent', maximumFractionDigits: 2 }).format(value / 100)
+}
+
+/** La ligne porte-t-elle une remise en pourcentage ? (« 0 », « 0.00 », absente : non) */
+export function hasDiscount(rate: string | number | null | undefined): boolean {
+  return parseFloat(String(rate ?? 0)) > 0
+}
